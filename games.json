@@ -1,8 +1,8 @@
 [
   {
-    "name": "Example Game",
-    "path": "games/example-game/index.html",
-    "thumbnail": "games/example-game/thumbnail.png"
+    "name": "2048",
+    "path": "games/2048/index.html",
+    "thumbnail": "games/2048/thumbnail.png"
   },
   {
     "name": "Tetris",
@@ -10,3 +10,4 @@
     "thumbnail": "games/tetris/thumbnail.png"
   }
 ]
+
