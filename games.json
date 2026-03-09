@@ -5,11 +5,12 @@
     "thumbnail": "games/2048/2048.png"
   },
   {
-    "name": "Packman",
+    "name": "packman",
     "path": "games/packman/index.html",
     "thumbnail": "games/packman/thumbnail.png"
   }
 ]
+
 
 
 
