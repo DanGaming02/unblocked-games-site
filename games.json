@@ -5,10 +5,11 @@
     "thumbnail": "games/2048/2048.png"
   },
   {
-    "name": "Tetris",
-    "path": "games/tetris/index.html",
-    "thumbnail": "games/tetris/thumbnail.png"
+    "name": "Packman",
+    "path": "games/packman/index.html",
+    "thumbnail": "games/packman/thumbnail.png"
   }
 ]
+
 
 
