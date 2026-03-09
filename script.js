@@ -1,28 +1,29 @@
-async function loadGames(){
+// script.js
 
-const res = await fetch("/api/games");
-const games = await res.json();
+// This image will show if a game doesn't have a thumbnail
+const DEFAULT_THUMBNAIL = "default-thumbnail.png";
 
-const container = document.getElementById("games");
+fetch("games.json")
+  .then(res => res.json())
+  .then(games => {
+    const container = document.getElementById("games");
 
-games.forEach(game => {
+    games.forEach(game => {
+      const div = document.createElement("div");
+      div.className = "game";
 
-const div = document.createElement("div");
-div.className = "game";
+      // Use game.thumbnail if it exists, otherwise use default
+      const thumb = game.thumbnail && game.thumbnail !== "" ? game.thumbnail : DEFAULT_THUMBNAIL;
 
-div.innerHTML = `
-<img src="${game.thumbnail}" />
-<p>${game.name}</p>
-`;
+      div.innerHTML = `
+        <img src="${thumb}" />
+        <p>${game.name}</p>
+      `;
 
-div.onclick = () => {
-window.location = game.path;
-};
+      div.onclick = () => {
+        window.location = game.path;
+      };
 
-container.appendChild(div);
-
-});
-
-}
-
-loadGames();
+      container.appendChild(div);
+    });
+  });
