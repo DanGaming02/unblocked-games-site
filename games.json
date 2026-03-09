@@ -2,7 +2,7 @@
   {
     "name": "2048",
     "path": "games/2048/index.html",
-    "thumbnail": "games/2048/thumbnail.png"
+    "thumbnail": "games/2048/2048.png"
   },
   {
     "name": "Tetris",
@@ -10,4 +10,5 @@
     "thumbnail": "games/tetris/thumbnail.png"
   }
 ]
+
 
