@@ -3,5 +3,10 @@
     "name": "Example Game",
     "path": "games/example-game/index.html",
     "thumbnail": "games/example-game/thumbnail.png"
+  },
+  {
+    "name": "Tetris",
+    "path": "games/tetris/index.html",
+    "thumbnail": "games/tetris/thumbnail.png"
   }
 ]
