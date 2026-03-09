@@ -3,17 +3,13 @@
     "name": "2048",
     "path": "games/2048/index.html",
     "thumbnail": "games/2048/2048.png"
-  }
-]
-[
-   {
+  },
+  {
     "name": "packman",
     "path": "games/packman/index.html",
     "thumbnail": "games/packman/thumbnail.png"
   }
 ]
-
-
 
 
 
