@@ -15,16 +15,17 @@
     "thumbnail": "games/flappybird/flappy-bird.png"
   },
   {
-    "name": "Agario",
+    "name": "agario",
     "path": "games/agario/index.html",
     "thumbnail": "games/agario/agario2.png"
   },
   {
-    "name": "Motox3m",
+    "name": "motox3m",
     "path": "games/motox3m/index.html",
     "thumbnail": "games/motox3m/motox3m.png"
   }
 ]
+
 
 
 
