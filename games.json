@@ -8,13 +8,19 @@
     "name": "packman",
     "path": "games/packman/index.html",
     "thumbnail": "games/packman/thumbnail.png"
-  },
+  }
   {
     "name": "flappybird",
     "path": "games/flappybird/index.html",
     "thumbnail": "games/flappy-bird/thumbnail.png"
   }
+  {
+    "name": "Agario",
+    "path": "games/agario/index.html",
+    "thumbnail": "games/agario2/thumbnail.png"
+  }
 ]
+
 
 
 
