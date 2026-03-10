@@ -8,8 +8,14 @@
     "name": "packman",
     "path": "games/packman/index.html",
     "thumbnail": "games/packman/thumbnail.png"
+  },
+  {
+    "name": "flappybird",
+    "path": "games/flappybird/index.html",
+    "thumbnail": "games/flappy-bird/thumbnail.png"
   }
 ]
+
 
 
 
