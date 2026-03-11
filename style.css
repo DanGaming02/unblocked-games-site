@@ -1,53 +1,55 @@
 body{
-background:#0f172a;
-font-family:Arial;
-color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
 margin:0;
-}
-
-.chat-container{
-width:500px;
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-box-shadow:0 0 20px rgba(0,0,0,0.5);
-}
-
-#chat{
-height:300px;
-overflow-y:auto;
-margin-bottom:15px;
-}
-
-.message{
-background:#334155;
-padding:10px;
-border-radius:6px;
-margin-bottom:8px;
-}
-
-.input-area{
-display:flex;
-gap:10px;
-}
-
-input{
-flex:1;
-padding:10px;
-border-radius:6px;
-border:none;
-}
-
-button{
-padding:10px 15px;
-border:none;
-background:#22c55e;
+font-family:Arial;
+background:black;
 color:white;
-border-radius:6px;
-cursor:pointer;
 }
 
+/* Top title bar */
+.header{
+position:fixed;
+top:0;
+width:100%;
+background:black;
+text-align:center;
+padding:20px;
+font-size:28px;
+border-bottom:2px solid #222;
+}
+
+/* Space under the title */
+main{
+margin-top:100px;
+}
+
+/* Games grid */
+#games{
+display:grid;
+grid-template-columns:repeat(auto-fill,200px);
+gap:20px;
+justify-content:center;
+padding:20px;
+}
+
+/* Game cards */
+.game{
+background:#111;
+padding:10px;
+border-radius:10px;
+cursor:pointer;
+transition:transform 0.2s;
+}
+
+.game:hover{
+transform:scale(1.05);
+}
+
+.game img{
+width:100%;
+border-radius:8px;
+}
+
+.game p{
+text-align:center;
+margin-top:8px;
+}
