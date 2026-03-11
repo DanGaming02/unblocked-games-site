@@ -1,29 +1,30 @@
-// Default thumbnail if the game folder has none
-const DEFAULT_THUMBNAIL = "default-thumbnail.png";
+function sendMessage(){
 
-fetch("games.json")
-  .then(response => response.json())
-  .then(games => {
-    const container = document.getElementById("games");
+let input = document.getElementById("userInput").value.toLowerCase();
+let chat = document.getElementById("chat");
 
-    games.forEach(game => {
-      const div = document.createElement("div");
-      div.className = "game";
+let message = document.createElement("div");
+message.className = "message";
+message.innerText = "Du: " + input;
 
-      // Use the game thumbnail if it exists, otherwise use default
-      const thumb = game.thumbnail && game.thumbnail !== "" ? game.thumbnail : DEFAULT_THUMBNAIL;
+chat.appendChild(message);
 
-      div.innerHTML = `
-        <img src="${thumb}" alt="${game.name} thumbnail">
-        <p>${game.name}</p>
-      `;
 
-      // Click to open the game
-      div.onclick = () => {
-        window.location.href = game.path;
-      };
+// SECRET WORD
+if(input === "games"){
 
-      container.appendChild(div);
-    });
-  })
-  .catch(err => console.error("Failed to load games.json:", err));
+window.location.href = "games.html";
+
+}else{
+
+let bot = document.createElement("div");
+bot.className = "message";
+bot.innerText = "ChatABC: Ich verstehe das noch nicht.";
+
+chat.appendChild(bot);
+
+}
+
+document.getElementById("userInput").value = "";
+
+}
