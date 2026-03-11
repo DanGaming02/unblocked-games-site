@@ -5,13 +5,13 @@ let chat = document.getElementById("chat");
 
 let message = document.createElement("div");
 message.className = "message";
-message.innerText = "Du: " + input;
+message.innerText = "You: " + input;
 
 chat.appendChild(message);
 
 
-// GEHEIMES WORT
-if(input === "spiele"){
+// SECRET WORD
+if(input === "games"){
 
 window.location.href = "games.html";
 
@@ -19,7 +19,7 @@ window.location.href = "games.html";
 
 let bot = document.createElement("div");
 bot.className = "message";
-bot.innerText = "ChatABC: Ich arbeite noch daran das zu verstehen.";
+bot.innerText = "ChatABC: I'm still learning how to respond to that.";
 
 chat.appendChild(bot);
 
