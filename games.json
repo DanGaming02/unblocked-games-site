@@ -12,7 +12,7 @@
   {
     "name": "flappybird",
     "path": "games/flappybird/index.html",
-    "thumbnail": "games/flappybird/flappy-bird.png"
+    "thumbnail": "games/flappybird/logo.png"
   },
   {
     "name": "Agario",
@@ -30,6 +30,7 @@
     "thumbnail": "games/SlopeRider3D/SlopeRider.png"
   }
 ]
+
 
 
 
