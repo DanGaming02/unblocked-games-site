@@ -1,30 +1,29 @@
-function sendMessage(){
+const DEFAULT_THUMBNAIL = "default-thumbnail.png";
 
-let input = document.getElementById("userInput").value.toLowerCase();
-let chat = document.getElementById("chat");
+fetch("games.json")
+.then(res => res.json())
+.then(games => {
 
-let message = document.createElement("div");
-message.className = "message";
-message.innerText = "Du: " + input;
+const container = document.getElementById("games");
 
-chat.appendChild(message);
+games.forEach(game => {
 
+const div = document.createElement("div");
+div.className = "game";
 
-// SECRET WORD
-if(input === "games"){
+const thumb = game.thumbnail ? game.thumbnail : DEFAULT_THUMBNAIL;
 
-window.location.href = "games.html";
+div.innerHTML = `
+<img src="${thumb}">
+<p>${game.name}</p>
+`;
 
-}else{
+div.onclick = () => {
+window.location.href = game.path;
+};
 
-let bot = document.createElement("div");
-bot.className = "message";
-bot.innerText = "ChatABC: Ich verstehe das noch nicht.";
+container.appendChild(div);
 
-chat.appendChild(bot);
+});
 
-}
-
-document.getElementById("userInput").value = "";
-
-}
+});
