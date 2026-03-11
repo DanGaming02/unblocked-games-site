@@ -25,11 +25,12 @@
     "thumbnail": "games/Motox3m/motox3m.png"
   },
   {
-    "name": "SlopeRider3D",
-    "path": "games/SlopeRider3D/index.html",
-    "thumbnail": "games/SlopeRider3D/SlopeRider.png"
+    "name": "SnowRider3D",
+    "path": "games/SnowRider3D/index.html",
+    "thumbnail": "games/SnowRider3D/SlopeRider.png"
   }
 ]
+
 
 
 
