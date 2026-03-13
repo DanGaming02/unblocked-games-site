@@ -25,11 +25,12 @@
     "thumbnail": "games/Motox3m/motox3m.png"
   },
   {
-    "name": "SnowRider3D",
-    "path": "games/SnowRider3D/index.html",
+    "name": "SledRider",
+    "path": "https://geometry-games.io/sled-rider",
     "thumbnail": "games/SnowRider3D/SlopeRider.png"
   }
 ]
+
 
 
 
