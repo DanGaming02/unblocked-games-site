@@ -1,35 +1,42 @@
 [
   {
     "name": "2048",
+    "type": "html",
     "path": "games/2048/index.html",
     "thumbnail": "games/2048/2048.png"
   },
   {
     "name": "packman",
+    "type": "html",
     "path": "games/packman/index.html",
     "thumbnail": "games/packman/thumbnail.png"
   },
   {
     "name": "flappybird",
+    "type": "html",
     "path": "games/flappybird/index.html",
     "thumbnail": "games/flappybird/IMG_0583.jpeg"
   },
   {
     "name": "Agario",
+    "type": "html",
     "path": "games/Agario/index.html",
     "thumbnail": "games/Agario/agario2.png"
   },
   {
     "name": "Motox3m",
+    "type": "html",
     "path": "games/Motox3m/index.html",
     "thumbnail": "games/Motox3m/motox3m.png"
   },
   {
     "name": "SledRider",
+    "type": "url",
     "path": "https://geometry-games.io/sled-rider",
     "thumbnail": "games/SnowRider3D/SlopeRider.png"
   }
 ]
+
 
 
 
