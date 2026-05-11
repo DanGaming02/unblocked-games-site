@@ -40,6 +40,12 @@
     "type": "html",
     "path": "games/C&A/C&A.html",
     "thumbnail": "games/C&A/Example.png"
+  },
+  {
+    "name": "CS2 Clicker",
+    "type": "html",
+    "path": "games/CS2 Clicker/index.html",
+    "thumbnail": "games/C&A/Example.png"
   }
 ]
 
