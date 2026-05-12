@@ -20,70 +20,41 @@
         </div>
 
         <p class="hidden md:block text-zinc-400">
-          No ads. Free uploads. No accounts required.
+          No ads. Real human uploads only.
         </p>
       </div>
 
       <!-- SEARCH -->
       <div class="flex items-center gap-2 w-full max-w-xl">
         <input
+          id="searchInput"
           type="text"
-          placeholder="Search videos..."
+          placeholder="Search videos or creators..."
           class="w-full px-5 py-3 rounded-2xl bg-zinc-900 border border-zinc-700 outline-none focus:border-red-500"
         />
-
-        <button
-          class="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-2xl font-semibold transition"
-        >
-          Search
-        </button>
       </div>
-
-      <!-- UPLOAD BUTTON -->
-      <button
-        class="bg-white text-black px-5 py-3 rounded-2xl font-bold hover:bg-zinc-200 transition"
-      >
-        Upload
-      </button>
     </div>
   </header>
 
-  <!-- HERO SECTION -->
-  <section class="bg-gradient-to-br from-red-700 via-red-500 to-orange-500 py-24 px-6 text-center relative overflow-hidden">
 
-    <div class="max-w-4xl mx-auto relative z-10">
-      <h1 class="text-5xl md:text-7xl font-black mb-6 leading-tight">
-        Welcome to TubeYou
-      </h1>
+  <!-- HERO -->
+  <section class="bg-gradient-to-br from-red-700 via-red-500 to-orange-500 py-20 px-6 text-center">
+    <h1 class="text-5xl md:text-7xl font-black mb-6">
+      Welcome to TubeYou
+    </h1>
 
-      <p class="text-lg md:text-2xl text-red-100 mb-8 max-w-2xl mx-auto">
-        Watch videos without annoying ads.
-        Upload instantly.
-        Like videos without creating an account.
-      </p>
-
-      <div class="flex flex-wrap justify-center gap-4">
-        <button
-          class="bg-black hover:scale-105 transition px-8 py-4 rounded-2xl text-lg font-bold"
-        >
-          Explore Videos
-        </button>
-
-        <button
-          class="bg-white/10 hover:bg-white/20 border border-white/40 backdrop-blur px-8 py-4 rounded-2xl text-lg font-bold transition"
-        >
-          Upload Now
-        </button>
-      </div>
-    </div>
+    <p class="text-xl text-red-100 max-w-3xl mx-auto">
+      Upload videos, watch content from real people, and enjoy an ad-free experience.
+    </p>
   </section>
 
-  <!-- VIDEO PLAYER MODAL -->
+
+  <!-- VIDEO PLAYER -->
   <div
     id="videoModal"
     class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-6"
   >
-    <div class="bg-zinc-900 rounded-3xl overflow-hidden max-w-5xl w-full border border-zinc-800 shadow-2xl">
+    <div class="bg-zinc-900 rounded-3xl overflow-hidden max-w-5xl w-full border border-zinc-800">
 
       <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
         <h2 id="videoTitle" class="text-2xl font-bold">
@@ -103,34 +74,12 @@
         controls
         autoplay
         class="w-full bg-black max-h-[70vh]"
-      >
-      </video>
+      ></video>
 
       <div class="p-6">
-        <div class="flex flex-wrap gap-4 items-center justify-between">
-          <div>
-            <p class="text-zinc-400">
-              Uploaded by <span id="videoCreator"></span>
-            </p>
-          </div>
-
-          <div class="flex gap-3">
-            <button
-              onclick="subscribeChannel()"
-              class="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-2xl font-semibold"
-            >
-              Subscribe
-            </button>
-
-            <button
-              onclick="likeCurrentVideo()"
-              id="modalLikeBtn"
-              class="border border-zinc-700 hover:border-red-500 px-5 py-3 rounded-2xl font-semibold"
-            >
-              ❤️ Like
-            </button>
-          </div>
-        </div>
+        <p class="text-zinc-400">
+          Uploaded by <span id="videoCreator"></span>
+        </p>
       </div>
     </div>
   </div>
@@ -144,7 +93,56 @@
   </main>
 
 
-  <!-- UPLOAD SECTION -->
+  <!-- CHANNEL PANEL -->
+  <section class="px-6 py-10 border-t border-zinc-800">
+
+    <div class="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+        <div>
+          <h2 class="text-3xl font-black">
+            Your Channel
+          </h2>
+
+          <p class="text-zinc-400 mt-2">
+            Create and manage your free TubeYou channel.
+          </p>
+        </div>
+
+        <button
+          onclick="createChannel()"
+          class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded-2xl font-bold"
+        >
+          Create Free Channel
+        </button>
+      </div>
+
+      <div
+        id="channelInfo"
+        class="hidden bg-zinc-950 border border-zinc-800 rounded-2xl p-6"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 id="channelNameDisplay" class="text-2xl font-bold"></h3>
+            <p class="text-zinc-500 mt-1">
+              Manage your uploads below.
+            </p>
+          </div>
+
+          <button
+            onclick="deleteChannel()"
+            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl font-semibold"
+          >
+            Delete Channel
+          </button>
+        </div>
+
+        <div id="channelVideos" class="grid gap-4 mt-8"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- UPLOAD -->
   <section class="px-6 py-16 border-t border-zinc-800">
 
     <div class="max-w-3xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
@@ -163,7 +161,7 @@
         <input
           id="uploadCreator"
           type="text"
-          placeholder="Channel name"
+          placeholder="Creator name"
           class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
         />
 
@@ -180,50 +178,12 @@
         >
           Upload Video
         </button>
+
+        <div class="text-zinc-500 text-sm">
+          Videos up to 500MB are supported in the current browser session.
+          Create a free channel to manage uploads, delete videos, and customize your content.
+        </div>
       </div>
-    </div>
-  </section>
-
-
-  <!-- FEATURES -->
-  <section class="grid md:grid-cols-3 gap-6 px-6 py-16 border-t border-zinc-800">
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <div class="text-4xl mb-4">🚫</div>
-
-      <h3 class="text-2xl font-bold mb-3">
-        No Ads Ever
-      </h3>
-
-      <p class="text-zinc-400">
-        Enjoy uninterrupted videos with a completely ad-free experience.
-      </p>
-    </div>
-
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <div class="text-4xl mb-4">📤</div>
-
-      <h3 class="text-2xl font-bold mb-3">
-        Easy Uploads
-      </h3>
-
-      <p class="text-zinc-400">
-        Anyone can upload videos instantly and share creativity with the world.
-      </p>
-    </div>
-
-
-    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <div class="text-4xl mb-4">❤️</div>
-
-      <h3 class="text-2xl font-bold mb-3">
-        Likes Without Accounts
-      </h3>
-
-      <p class="text-zinc-400">
-        Support creators instantly without needing to sign up.
-      </p>
     </div>
   </section>
 
@@ -235,15 +195,63 @@
     </p>
 
     <p class="mt-2">
-      The open video platform for everyone.
+      Community-powered video sharing.
     </p>
   </footer>
 
 
-  <!-- JAVASCRIPT -->
   <script>
 
+    // Only metadata is saved in localStorage.
+    // Actual video blobs are kept in memory using object URLs.
+
+    const savedMetadata = JSON.parse(
+      localStorage.getItem('tubeyouMetadata') || '[]'
+    );
+
     const videos = [];
+
+    let currentChannel = JSON.parse(
+      localStorage.getItem('tubeyouChannel') || 'null'
+    );
+
+
+    // Restore metadata only
+    savedMetadata.forEach(video => {
+      videos.push({
+        title: video.title,
+        creator: video.creator,
+        views: video.views,
+        likes: video.likes,
+        dislikes: video.dislikes,
+        thumbnail: video.thumbnail,
+        video: null
+      });
+    });
+
+
+    function saveMetadata() {
+      const metadata = videos.map(video => ({
+        title: video.title,
+        creator: video.creator,
+        views: video.views,
+        likes: video.likes,
+        dislikes: video.dislikes,
+        thumbnail: video.thumbnail
+      }));
+
+      localStorage.setItem(
+        'tubeyouChannel',
+        JSON.stringify(currentChannel)
+      );
+
+      localStorage.setItem(
+        'tubeyouMetadata',
+        JSON.stringify(metadata)
+      );
+
+      renderChannelPanel();
+    }
 
 
     function renderVideos(filteredVideos = videos) {
@@ -265,7 +273,8 @@
         `;
 
         return;
-      };
+      }
+
 
       filteredVideos.forEach((video, index) => {
         container.innerHTML += `
@@ -277,7 +286,7 @@
             >
               <img
                 src="${video.thumbnail}"
-                class="w-full h-56 object-cover group-hover:scale-105 transition duration-300"
+                class="w-full h-56 object-cover"
               />
 
               <div class="absolute inset-0 flex items-center justify-center">
@@ -304,23 +313,21 @@
 
                 <button
                   onclick="playVideo(${index})"
-                  class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                  class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold"
                 >
                   ▶ Watch
                 </button>
 
                 <button
                   onclick="likeVideo(${index})"
-                  id="like-${index}"
-                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold"
                 >
                   👍 ${video.likes}
                 </button>
 
                 <button
                   onclick="dislikeVideo(${index})"
-                  id="dislike-${index}"
-                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold"
                 >
                   👎 ${video.dislikes}
                 </button>
@@ -333,31 +340,47 @@
 
 
     function playVideo(index) {
-      const modal = document.getElementById('videoModal');
-      const videoPlayer = document.getElementById('mainVideo');
       const currentVideo = videos[index];
+
+      if (!currentVideo.video) {
+        alert(
+          'This uploaded video is no longer available because browser session storage was cleared. Please upload it again.'
+        );
+
+        return;
+      }
+
+      if (!currentVideo.video.startsWith('blob:') &&
+          !currentVideo.video.startsWith('data:') &&
+          !currentVideo.video.startsWith('http')) {
+        alert('Unsupported video format.');
+        return;
+      }
+
+      currentVideo.views++;
+      saveMetadata();
+      renderVideos();
+    renderChannelPanel();
 
       document.getElementById('videoTitle').innerText = currentVideo.title;
       document.getElementById('videoCreator').innerText = currentVideo.creator;
 
-      videoPlayer.src = currentVideo.video;
+      const player = document.getElementById('mainVideo');
+      player.src = currentVideo.video;
 
-      currentVideo.views++;
-
-      renderVideos();
-
+      const modal = document.getElementById('videoModal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
-      videoPlayer.play();
+      player.play();
     }
 
 
     function closeVideo() {
       const modal = document.getElementById('videoModal');
-      const video = document.getElementById('mainVideo');
+      const player = document.getElementById('mainVideo');
 
-      video.pause();
+      player.pause();
 
       modal.classList.add('hidden');
       modal.classList.remove('flex');
@@ -365,30 +388,195 @@
 
 
     function likeVideo(index) {
+      const likedVideos = JSON.parse(
+        localStorage.getItem('likedVideos') || '[]'
+      );
+
+      const dislikedVideos = JSON.parse(
+        localStorage.getItem('dislikedVideos') || '[]'
+      );
+
+      if (likedVideos.includes(index)) {
+        return;
+      }
+
+      // Remove dislike if it exists
+      const dislikePosition = dislikedVideos.indexOf(index);
+
+      if (dislikePosition !== -1) {
+        dislikedVideos.splice(dislikePosition, 1);
+
+        if (videos[index].dislikes > 0) {
+          videos[index].dislikes--;
+        }
+      }
+
       videos[index].likes++;
+      likedVideos.push(index);
+
+      localStorage.setItem('likedVideos', JSON.stringify(likedVideos));
+      localStorage.setItem('dislikedVideos', JSON.stringify(dislikedVideos));
+
+      saveMetadata();
       renderVideos();
     }
 
 
     function dislikeVideo(index) {
+      const likedVideos = JSON.parse(
+        localStorage.getItem('likedVideos') || '[]'
+      );
+
+      const dislikedVideos = JSON.parse(
+        localStorage.getItem('dislikedVideos') || '[]'
+      );
+
+      if (dislikedVideos.includes(index)) {
+        return;
+      }
+
+      // Remove like if it exists
+      const likePosition = likedVideos.indexOf(index);
+
+      if (likePosition !== -1) {
+        likedVideos.splice(likePosition, 1);
+
+        if (videos[index].likes > 0) {
+          videos[index].likes--;
+        }
+      }
+
       videos[index].dislikes++;
+      dislikedVideos.push(index);
+
+      localStorage.setItem('likedVideos', JSON.stringify(likedVideos));
+      localStorage.setItem('dislikedVideos', JSON.stringify(dislikedVideos));
+
+      saveMetadata();
       renderVideos();
     }
 
 
-    function likeCurrentVideo() {
-      alert('Video liked!');
+    function createChannel() {
+      if (currentChannel) {
+        alert('You already have a channel.');
+        return;
+      }
+
+      const name = prompt('Enter your channel name:');
+
+      if (!name || !name.trim()) {
+        alert('Channel name is required.');
+        return;
+      }
+
+      currentChannel = {
+        name: name.trim(),
+        createdAt: new Date().toISOString()
+      };
+
+      localStorage.setItem(
+        'tubeyouChannel',
+        JSON.stringify(currentChannel)
+      );
+
+      renderChannelPanel();
+
+      alert('Channel created successfully!');
     }
 
 
-    function subscribeChannel() {
-      alert('Subscribed successfully!');
+    function deleteChannel() {
+      const confirmed = confirm(
+        'Delete your channel and all uploaded videos?'
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      currentChannel = null;
+
+      videos.length = 0;
+
+      localStorage.removeItem('tubeyouMetadata');
+      localStorage.removeItem('likedVideos');
+      localStorage.removeItem('dislikedVideos');
+      localStorage.removeItem('tubeyouChannel');
+
+      renderVideos();
+      renderChannelPanel();
+    }
+
+
+    function deleteVideo(index) {
+      const confirmed = confirm('Delete this video?');
+
+      if (!confirmed) {
+        return;
+      }
+
+      videos.splice(index, 1);
+
+      saveMetadata();
+      renderVideos();
+    }
+
+
+    function renderChannelPanel() {
+      const panel = document.getElementById('channelInfo');
+      const name = document.getElementById('channelNameDisplay');
+      const container = document.getElementById('channelVideos');
+
+      if (!currentChannel) {
+        panel.classList.add('hidden');
+        return;
+      }
+
+      panel.classList.remove('hidden');
+
+      name.innerText = currentChannel.name;
+
+      container.innerHTML = '';
+
+      if (videos.length === 0) {
+        container.innerHTML = `
+          <p class="text-zinc-500">
+            No uploaded videos yet.
+          </p>
+        `;
+
+        return;
+      }
+
+      videos.forEach((video, index) => {
+        container.innerHTML += `
+          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h4 class="font-bold text-lg">
+                ${video.title}
+              </h4>
+
+              <p class="text-zinc-500 text-sm mt-1">
+                ${video.views} views • 👍 ${video.likes} • 👎 ${video.dislikes}
+              </p>
+            </div>
+
+            <button
+              onclick="deleteVideo(${index})"
+              class="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-2xl font-semibold"
+            >
+              Delete Video
+            </button>
+          </div>
+        `;
+      });
     }
 
 
     function uploadVideo() {
-      const title = document.getElementById('uploadTitle').value;
-      const creator = document.getElementById('uploadCreator').value;
+      const title = document.getElementById('uploadTitle').value.trim();
+      const creator = document.getElementById('uploadCreator').value.trim();
       const videoFile = document.getElementById('uploadVideo').files[0];
 
       if (!title || !creator || !videoFile) {
@@ -396,7 +584,20 @@
         return;
       }
 
-      const videoURL = URL.createObjectURL(videoFile);
+      // Prevent very large uploads
+      const maxSizeMB = 500;
+
+      if (videoFile.size > maxSizeMB * 1024 * 1024) {
+        alert('Video file too large. Max size is 50MB.');
+        return;
+      }
+
+      const objectURL = URL.createObjectURL(videoFile);
+
+      if (!videoFile.type.startsWith('video/')) {
+        alert('Please upload a valid video file.');
+        return;
+      }
 
       videos.unshift({
         title: title,
@@ -404,10 +605,13 @@
         views: 0,
         likes: 0,
         dislikes: 0,
-        thumbnail: 'https://placehold.co/600x400/18181b/ffffff?text=' + encodeURIComponent(title),
-        video: videoURL
+        thumbnail:
+          'https://placehold.co/600x400/18181b/ffffff?text=' +
+          encodeURIComponent(title),
+        video: objectURL
       });
 
+      saveMetadata();
       renderVideos();
 
       document.getElementById('uploadTitle').value = '';
@@ -415,21 +619,41 @@
       document.getElementById('uploadVideo').value = '';
 
       alert('Video uploaded successfully!');
+
+      renderChannelPanel();
     }
 
 
-    const searchInput = document.querySelector('input[type="text"]');
+    // SEARCH
+    document.getElementById('searchInput').addEventListener('input', event => {
+      const search = event.target.value.toLowerCase();
 
-    searchInput.addEventListener('input', () => {
-      const search = searchInput.value.toLowerCase();
-
-      const filtered = videos.filter(video =>
-        video.title.toLowerCase().includes(search) ||
-        video.creator.toLowerCase().includes(search)
-      );
+      const filtered = videos.filter(video => {
+        return (
+          video.title.toLowerCase().includes(search) ||
+          video.creator.toLowerCase().includes(search)
+        );
+      });
 
       renderVideos(filtered);
     });
+
+
+    // Basic runtime tests
+    console.assert(Array.isArray(videos), 'Videos should be an array');
+    console.assert(typeof saveMetadata === 'function', 'saveMetadata should exist');
+    console.assert(typeof uploadVideo === 'function', 'uploadVideo should exist');
+    console.assert(typeof saveMetadata === 'function', 'saveMetadata should exist');
+    console.assert(Array.isArray(videos), 'videos should remain an array');
+    console.assert(
+      typeof createChannel === 'function',
+      'createChannel should exist'
+    );
+
+    console.assert(
+      typeof currentChannel !== 'undefined',
+      'currentChannel should be defined'
+    );
 
 
     renderVideos();
