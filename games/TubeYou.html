@@ -158,12 +158,9 @@
           class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
         />
 
-        <input
-          id="uploadCreator"
-          type="text"
-          placeholder="Creator name"
-          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
-        />
+        <div class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl text-zinc-400">
+          Videos upload directly to your current channel.
+        </div>
 
         <input
           id="uploadVideo"
@@ -213,6 +210,10 @@
 
     let currentChannel = JSON.parse(
       localStorage.getItem('tubeyouChannel') || 'null'
+    );
+
+    const existingChannels = JSON.parse(
+      localStorage.getItem('tubeyouAllChannels') || '[]'
     );
 
 
@@ -463,17 +464,35 @@
         return;
       }
 
-      const name = prompt('Enter your channel name:');
+      const name = prompt('Enter your unique channel name:');
 
       if (!name || !name.trim()) {
         alert('Channel name is required.');
         return;
       }
 
+      const cleanName = name.trim();
+
+      const alreadyExists = existingChannels.some(channelName =>
+        channelName.toLowerCase() === cleanName.toLowerCase()
+      );
+
+      if (alreadyExists) {
+        alert('That channel name already exists.');
+        return;
+      }
+
       currentChannel = {
-        name: name.trim(),
+        name: cleanName,
         createdAt: new Date().toISOString()
       };
+
+      existingChannels.push(cleanName);
+
+      localStorage.setItem(
+        'tubeyouAllChannels',
+        JSON.stringify(existingChannels)
+      );
 
       localStorage.setItem(
         'tubeyouChannel',
@@ -494,6 +513,21 @@
       if (!confirmed) {
         return;
       }
+
+      if (currentChannel) {
+        const channelIndex = existingChannels.findIndex(channelName =>
+          channelName.toLowerCase() === currentChannel.name.toLowerCase()
+        );
+
+        if (channelIndex !== -1) {
+          existingChannels.splice(channelIndex, 1);
+        }
+      }
+
+      localStorage.setItem(
+        'tubeyouAllChannels',
+        JSON.stringify(existingChannels)
+      );
 
       currentChannel = null;
 
@@ -575,6 +609,10 @@
 
 
     function uploadVideo() {
+      if (!currentChannel) {
+        alert('You need to create a channel before uploading videos.');
+        return;
+      }
       const title = document.getElementById('uploadTitle').value.trim();
       const creator = document.getElementById('uploadCreator').value.trim();
       const videoFile = document.getElementById('uploadVideo').files[0];
@@ -601,7 +639,7 @@
 
       videos.unshift({
         title: title,
-        creator: creator,
+        creator: currentChannel.name,
         views: 0,
         likes: 0,
         dislikes: 0,
@@ -640,19 +678,14 @@
 
 
     // Basic runtime tests
-    console.assert(Array.isArray(videos), 'Videos should be an array');
-    console.assert(typeof saveMetadata === 'function', 'saveMetadata should exist');
-    console.assert(typeof uploadVideo === 'function', 'uploadVideo should exist');
-    console.assert(typeof saveMetadata === 'function', 'saveMetadata should exist');
-    console.assert(Array.isArray(videos), 'videos should remain an array');
-    console.assert(
-      typeof createChannel === 'function',
-      'createChannel should exist'
-    );
-
     console.assert(
       typeof currentChannel !== 'undefined',
       'currentChannel should be defined'
+    );
+
+    console.assert(
+      Array.isArray(existingChannels),
+      'existingChannels should be an array'
     );
 
 
