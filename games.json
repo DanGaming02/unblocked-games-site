@@ -42,9 +42,9 @@
     "thumbnail": "games/C&A/Example.png"
   },
   {
-    "name": "CS2 Clicker",
+    "name": "TubeYou",
     "type": "html",
-    "path": "games/CS2 Clicker/index.html",
+    "path": "games/TubeYou.html",
     "thumbnail": "default-thumbnail.jpg"
   }
 ]
