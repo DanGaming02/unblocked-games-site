@@ -1,860 +1,1383 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TubeYou</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <script src="https://cdn.tailwindcss.com"></script>
+    :root {
+      --yt-red: #ff0000;
+      --yt-red-hover: #cc0000;
+      --bg: #0f0f0f;
+      --bg2: #181818;
+      --bg3: #212121;
+      --bg4: #2a2a2a;
+      --border: #3f3f3f;
+      --text: #f1f1f1;
+      --text2: #aaaaaa;
+      --text3: #717171;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      height: 56px;
+      gap: 8px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .logo-icon {
+      background: var(--yt-red);
+      border-radius: 8px;
+      width: 36px;
+      height: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-icon::after {
+      content: '▶';
+      color: white;
+      font-size: 12px;
+      margin-left: 2px;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--yt-red); }
+
+    .search-bar {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      max-width: 600px;
+      gap: 0;
+    }
+
+    .search-bar input {
+      flex: 1;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-right: none;
+      color: var(--text);
+      padding: 8px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      border-radius: 40px 0 0 40px;
+      outline: none;
+      height: 40px;
+    }
+
+    .search-bar input:focus { border-color: #1c62b9; }
+
+    .search-bar button {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-left: none;
+      color: var(--text);
+      padding: 0 20px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 0 40px 40px 0;
+      font-size: 16px;
+      transition: background 0.15s;
+    }
+
+    .search-bar button:hover { background: var(--bg4); }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-upload-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0 16px;
+      height: 36px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background 0.15s;
+      text-decoration: none;
+    }
+
+    .btn-upload-header:hover { background: var(--bg3); }
+
+    .btn-login-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid #3ea6ff;
+      color: #3ea6ff;
+      padding: 0 16px;
+      height: 36px;
+      border-radius: 18px;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+
+    .btn-login-header:hover { background: rgba(62,166,255,0.1); }
+
+    .avatar-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--yt-red);
+      border: none;
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* SIDEBAR + LAYOUT */
+    .app-body {
+      display: flex;
+    }
+
+    sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--bg);
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+      padding: 12px 0;
+      border-right: 1px solid var(--border);
+    }
+
+    .sidebar-section { padding: 0 0 12px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+    .sidebar-section:last-child { border-bottom: none; }
+    .sidebar-section-title { font-size: 14px; font-weight: 500; color: var(--text2); padding: 8px 24px 4px; text-transform: uppercase; letter-spacing: 0.4px; font-size: 12px; }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 24px;
+      height: 40px;
+      cursor: pointer;
+      border-radius: 10px;
+      margin: 0 8px;
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      transition: background 0.1s;
+    }
+
+    .sidebar-item:hover { background: var(--bg3); }
+    .sidebar-item.active { background: var(--bg3); font-weight: 500; }
+    .sidebar-item .icon { font-size: 18px; width: 22px; text-align: center; }
+
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      min-width: 0;
+      padding: 24px;
+    }
+
+    /* CHIPS */
+    .chips-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-bottom: 20px;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .chips-bar::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex-shrink: 0;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      padding: 0 12px;
+      height: 32px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+
+    .chip.inactive {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .chip:hover { opacity: 0.8; }
+
+    /* VIDEO GRID */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px 12px;
+    }
+
+    .video-card {
+      cursor: pointer;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.1s;
+    }
+
+    .video-card:hover { transform: translateY(-2px); }
+
+    .video-thumbnail {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: var(--bg3);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .video-thumbnail img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      background: rgba(0,0,0,0.3);
+      transition: opacity 0.15s;
+    }
+
+    .video-card:hover .play-overlay { opacity: 1; }
+
+    .play-btn-overlay {
+      background: rgba(0,0,0,0.8);
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      padding-left: 4px;
+    }
+
+    .duration-badge {
+      position: absolute;
+      bottom: 6px;
+      right: 6px;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .video-meta {
+      display: flex;
+      gap: 12px;
+      padding: 0 2px;
+    }
+
+    .video-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--yt-red);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      color: white;
+    }
+
+    .video-info { flex: 1; min-width: 0; }
+
+    .video-title {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+
+    .video-creator-name {
+      font-size: 13px;
+      color: var(--text2);
+      margin-bottom: 2px;
+    }
+
+    .video-stats {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .video-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .video-action-btn {
+      background: var(--bg3);
+      border: none;
+      color: var(--text);
+      padding: 4px 10px;
+      border-radius: 18px;
+      font-size: 12px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+
+    .video-action-btn:hover { background: var(--bg4); }
+
+    /* EMPTY STATE */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 20px;
+    }
+
+    .empty-state h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; color: var(--text2); }
+    .empty-state p { font-size: 16px; color: var(--text3); }
+
+    /* MODAL OVERLAY */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--bg2);
+      border-radius: 16px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 860px;
+      border: 1px solid var(--border);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 { font-size: 20px; font-weight: 600; }
+
+    .btn-close {
+      background: var(--bg3);
+      border: none;
+      color: var(--text);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .btn-close:hover { background: var(--bg4); }
+
+    #mainVideo {
+      width: 100%;
+      background: black;
+      max-height: 60vh;
+      display: block;
+    }
+
+    .modal-footer { padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    .modal-footer p { font-size: 14px; color: var(--text2); }
+
+    .like-dislike {
+      display: flex;
+      background: var(--bg3);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .ld-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      padding: 8px 16px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .ld-btn:hover { background: var(--bg4); }
+    .ld-btn + .ld-btn { border-left: 1px solid var(--border); }
+
+    /* AUTH MODAL */
+    .auth-modal {
+      background: var(--bg2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 440px;
+      border: 1px solid var(--border);
+      padding: 32px;
+    }
+
+    .auth-modal h2 { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+    .auth-modal p { font-size: 14px; color: var(--text2); margin-bottom: 24px; }
+
+    .auth-tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+    }
+
+    .auth-tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text2);
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      margin-bottom: -1px;
+    }
+
+    .auth-tab.active { color: var(--yt-red); border-bottom-color: var(--yt-red); }
+
+    .auth-form { display: flex; flex-direction: column; gap: 12px; }
+    .auth-form.hidden { display: none; }
+
+    .auth-form input {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .auth-form input:focus { border-color: #1c62b9; }
+
+    .btn-red {
+      background: var(--yt-red);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-red:hover { background: var(--yt-red-hover); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-ghost:hover { background: var(--bg3); }
+
+    /* UPLOAD MODAL */
+    .upload-modal {
+      background: var(--bg2);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 560px;
+      border: 1px solid var(--border);
+    }
+
+    .upload-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+
+    .upload-modal-body input[type="text"] {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .upload-modal-body input[type="text"]:focus { border-color: #1c62b9; }
+
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .file-drop:hover { border-color: var(--yt-red); background: rgba(255,0,0,0.04); }
+    .file-drop-icon { font-size: 40px; margin-bottom: 8px; }
+    .file-drop p { font-size: 14px; color: var(--text2); }
+    .file-drop strong { color: var(--text); }
+
+    /* ACCOUNT MENU */
+    .account-menu {
+      position: absolute;
+      top: 48px;
+      right: 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 0;
+      min-width: 200px;
+      display: none;
+      z-index: 300;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    .account-menu.open { display: block; }
+
+    .account-menu-header { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    .account-menu-header strong { display: block; font-size: 15px; }
+    .account-menu-header span { font-size: 12px; color: var(--text2); }
+
+    .account-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .account-menu-item:hover { background: var(--bg3); }
+    .account-menu-item.danger { color: #ff4444; }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      z-index: 500;
+      transition: transform 0.3s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* SECTION HEADER */
+    .section-header {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* CHANNEL PAGE */
+    .channel-page { padding: 0; }
+
+    .channel-banner {
+      height: 120px;
+      background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+      border-radius: 12px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .channel-profile {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .channel-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--yt-red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      margin-top: -40px;
+      border: 4px solid var(--bg);
+      flex-shrink: 0;
+    }
+
+    .channel-details h2 { font-size: 22px; font-weight: 700; }
+    .channel-details p { font-size: 13px; color: var(--text2); }
+
+    .channel-video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+
+    .channel-video-item {
+      background: var(--bg2);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .channel-video-item img { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+
+    .channel-video-item-info { padding: 10px 12px; }
+    .channel-video-item-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .channel-video-item-info p { font-size: 12px; color: var(--text2); }
+
+    .channel-video-actions { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--border); }
+    .channel-video-actions button { flex: 1; background: var(--bg3); border: none; color: var(--text); padding: 7px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; transition: background 0.15s; }
+    .channel-video-actions button:hover { background: var(--bg4); }
+    .channel-video-actions button.danger { color: #ff4444; }
+
+    @media (max-width: 900px) {
+      sidebar { display: none; }
+      .video-grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0 8px; }
+      .logo-text { font-size: 16px; }
+      .main-content { padding: 12px; }
+      .video-grid { grid-template-columns: 1fr; }
+      .btn-upload-header span { display: none; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="bg-zinc-950 text-white min-h-screen">
+<!-- HEADER -->
+<header>
+  <div class="logo" onclick="showHome()" style="cursor:pointer">
+    <div class="logo-icon"></div>
+    <div class="logo-text"><span>Tube</span>You</div>
+  </div>
 
-  <!-- HEADER -->
-  <header class="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur border-b border-zinc-800">
-    <div class="flex items-center justify-between px-6 py-4 flex-wrap gap-4">
+  <div class="search-bar">
+    <input id="searchInput" type="text" placeholder="Suchen" />
+    <button onclick="doSearch()">🔍</button>
+  </div>
 
-      <div class="flex items-center gap-3">
-        <div class="bg-red-600 px-4 py-2 rounded-2xl text-2xl font-black shadow-lg">
-          TubeYou
-        </div>
+  <div class="header-actions">
+    <button class="btn-upload-header" onclick="openUploadModal()">
+      ＋ <span>Hochladen</span>
+    </button>
+    <button id="btnLogin" class="btn-login-header" onclick="openAuthModal()">
+      👤 Anmelden
+    </button>
+    <button id="btnAvatar" class="avatar-btn" onclick="toggleAccountMenu()"></button>
+  </div>
+</header>
 
-        <p class="hidden md:block text-zinc-400">
-          No ads. Real human uploads only.
-        </p>
+<!-- ACCOUNT MENU -->
+<div class="account-menu" id="accountMenu">
+  <div class="account-menu-header">
+    <strong id="menuUsername">–</strong>
+    <span>Dein Kanal</span>
+  </div>
+  <div class="account-menu-item" onclick="showMyChannel()">📺 Mein Kanal</div>
+  <div class="account-menu-item danger" onclick="logoutChannel()">🚪 Abmelden</div>
+  <div class="account-menu-item danger" onclick="deleteChannel()">🗑️ Kanal löschen</div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <sidebar>
+    <div class="sidebar-section">
+      <div class="sidebar-item active" onclick="showHome(); setActiveNav(this)">
+        <span class="icon">🏠</span> Startseite
       </div>
-
-      <!-- SEARCH -->
-      <div class="flex items-center gap-2 w-full max-w-xl">
-        <input
-          id="searchInput"
-          type="text"
-          placeholder="Search videos or creators..."
-          class="w-full px-5 py-3 rounded-2xl bg-zinc-900 border border-zinc-700 outline-none focus:border-red-500"
-        />
+      <div class="sidebar-item" onclick="showTrending(); setActiveNav(this)">
+        <span class="icon">🔥</span> Trending
+      </div>
+      <div class="sidebar-item" onclick="showNew(); setActiveNav(this)">
+        <span class="icon">🆕</span> Neu
       </div>
     </div>
-  </header>
-
-
-  <!-- HERO -->
-  <section class="bg-gradient-to-br from-red-700 via-red-500 to-orange-500 py-20 px-6 text-center">
-    <h1 class="text-5xl md:text-7xl font-black mb-6">
-      Welcome to TubeYou
-    </h1>
-
-    <p class="text-xl text-red-100 max-w-3xl mx-auto">
-      Upload videos, watch content from real people, and enjoy an ad-free experience.
-    </p>
-  </section>
-
-
-  <!-- VIDEO PLAYER -->
-  <div
-    id="videoModal"
-    class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-6"
-  >
-    <div class="bg-zinc-900 rounded-3xl overflow-hidden max-w-5xl w-full border border-zinc-800">
-
-      <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
-        <h2 id="videoTitle" class="text-2xl font-bold">
-          Video Player
-        </h2>
-
-        <button
-          onclick="closeVideo()"
-          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl font-bold"
-        >
-          Close
-        </button>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Erkunden</div>
+      <div class="sidebar-item" onclick="filterCategory('Gaming'); setActiveNav(this)">
+        <span class="icon">🎮</span> Gaming
       </div>
+      <div class="sidebar-item" onclick="filterCategory('Musik'); setActiveNav(this)">
+        <span class="icon">🎵</span> Musik
+      </div>
+      <div class="sidebar-item" onclick="filterCategory('News'); setActiveNav(this)">
+        <span class="icon">📰</span> News
+      </div>
+      <div class="sidebar-item" onclick="filterCategory('Sport'); setActiveNav(this)">
+        <span class="icon">⚽</span> Sport
+      </div>
+      <div class="sidebar-item" onclick="filterCategory('Bildung'); setActiveNav(this)">
+        <span class="icon">📚</span> Bildung
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Mehr</div>
+      <div class="sidebar-item" onclick="openAuthModal()">
+        <span class="icon">⚙️</span> Einstellungen
+      </div>
+    </div>
+  </sidebar>
 
-      <video
-        id="mainVideo"
-        controls
-        autoplay
-        class="w-full bg-black max-h-[70vh]"
-      ></video>
+  <div class="main-content" id="mainContent">
+    <!-- chips -->
+    <div class="chips-bar" id="chipsBar">
+      <button class="chip" onclick="showHome(); setChip(this)">Alle</button>
+      <button class="chip inactive" onclick="filterCategory('Gaming'); setChip(this)">Gaming</button>
+      <button class="chip inactive" onclick="filterCategory('Musik'); setChip(this)">Musik</button>
+      <button class="chip inactive" onclick="filterCategory('News'); setChip(this)">News</button>
+      <button class="chip inactive" onclick="filterCategory('Sport'); setChip(this)">Sport</button>
+      <button class="chip inactive" onclick="filterCategory('Bildung'); setChip(this)">Bildung</button>
+    </div>
 
-      <div class="p-6">
-        <p class="text-zinc-400">
-          Uploaded by <span id="videoCreator"></span>
-        </p>
+    <!-- video grid -->
+    <div class="video-grid" id="videoGrid"></div>
+  </div>
+</div>
+
+<!-- VIDEO PLAYER MODAL -->
+<div class="modal-overlay" id="videoModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="videoTitle">–</h2>
+      <button class="btn-close" onclick="closeVideo()">✕</button>
+    </div>
+    <video id="mainVideo" controls autoplay></video>
+    <div class="modal-footer">
+      <p>Von <strong id="videoCreator"></strong> · <span id="videoViews"></span> Aufrufe</p>
+      <div class="like-dislike">
+        <button class="ld-btn" id="likeBtn" onclick="likeCurrentVideo()">👍 <span id="likeCount">0</span></button>
+        <button class="ld-btn" id="dislikeBtn" onclick="dislikeCurrentVideo()">👎 <span id="dislikeCount">0</span></button>
       </div>
     </div>
   </div>
+</div>
 
-
-  <!-- VIDEO GRID -->
-  <main
-    id="videoContainer"
-    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-8"
-  >
-  </main>
-
-
-  <!-- AUTH PANEL -->
-  <section class="px-6 py-10 border-t border-zinc-800">
-
-    <div class="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-10">
-      <h2 class="text-3xl font-black mb-6">
-        TubeYou Account
-      </h2>
-
-      <div class="grid md:grid-cols-2 gap-6">
-
-        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
-          <h3 class="text-2xl font-bold mb-5">
-            Create Channel
-          </h3>
-
-          <div class="grid gap-4">
-            <input
-              id="registerUsername"
-              type="text"
-              placeholder="Username"
-              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
-            />
-
-            <input
-              id="registerPassword"
-              type="password"
-              placeholder="Password"
-              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
-            />
-
-            <button
-              onclick="createChannel()"
-              class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl font-bold"
-            >
-              Create Channel
-            </button>
-          </div>
-        </div>
-
-
-        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
-          <h3 class="text-2xl font-bold mb-5">
-            Login
-          </h3>
-
-          <div class="grid gap-4">
-            <input
-              id="loginUsername"
-              type="text"
-              placeholder="Username"
-              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
-            />
-
-            <input
-              id="loginPassword"
-              type="password"
-              placeholder="Password"
-              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
-            />
-
-            <button
-              onclick="loginChannel()"
-              class="bg-white text-black hover:bg-zinc-200 px-6 py-4 rounded-2xl font-bold"
-            >
-              Login
-            </button>
-          </div>
-        </div>
-      </div>
+<!-- AUTH MODAL -->
+<div class="modal-overlay" id="authModal">
+  <div class="auth-modal">
+    <h2>TubeYou</h2>
+    <p>Melde dich an oder erstelle einen Kanal.</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login', this)">Anmelden</button>
+      <button class="auth-tab" onclick="switchTab('register', this)">Kanal erstellen</button>
     </div>
-  </section>
 
-
-  <!-- CHANNEL PANEL -->
-  <section class="px-6 py-10 border-t border-zinc-800">
-
-    <div class="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
-        <div>
-          <h2 class="text-3xl font-black">
-            Your Channel
-          </h2>
-
-          <p class="text-zinc-400 mt-2">
-            Create and manage your free TubeYou channel.
-          </p>
-        </div>
-
-        <button
-          onclick="createChannel()"
-          class="bg-red-600 hover:bg-red-500 px-6 py-3 rounded-2xl font-bold"
-        >
-          Create Free Channel
-        </button>
-      </div>
-
-      <div
-        id="channelInfo"
-        class="hidden bg-zinc-950 border border-zinc-800 rounded-2xl p-6"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h3 id="channelNameDisplay" class="text-2xl font-bold"></h3>
-            <p class="text-zinc-500 mt-1">
-              Manage your uploads below.
-            </p>
-          </div>
-
-          <button
-            onclick="deleteChannel()"
-            class="bg-zinc-800 hover:bg-zinc-700 px-5 py-3 rounded-2xl font-semibold"
-          >
-            Delete Channel
-          </button>
-        </div>
-
-        <div id="channelVideos" class="grid gap-4 mt-8"></div>
-      </div>
+    <!-- LOGIN -->
+    <div class="auth-form" id="formLogin">
+      <input id="loginUsername" type="text" placeholder="Benutzername" />
+      <input id="loginPassword" type="password" placeholder="Passwort" />
+      <button class="btn-red" onclick="loginChannel()">Anmelden</button>
+      <button class="btn-ghost" onclick="closeAuthModal()">Abbrechen</button>
     </div>
-  </section>
 
+    <!-- REGISTER -->
+    <div class="auth-form hidden" id="formRegister">
+      <input id="registerUsername" type="text" placeholder="Benutzername" />
+      <input id="registerPassword" type="password" placeholder="Passwort" />
+      <input id="registerPassword2" type="password" placeholder="Passwort bestätigen" />
+      <button class="btn-red" onclick="createChannel()">Kanal erstellen</button>
+      <button class="btn-ghost" onclick="closeAuthModal()">Abbrechen</button>
+    </div>
+  </div>
+</div>
 
-  <!-- UPLOAD -->
-  <section class="px-6 py-16 border-t border-zinc-800">
+<!-- UPLOAD MODAL -->
+<div class="modal-overlay" id="uploadModal">
+  <div class="upload-modal">
+    <div class="modal-header">
+      <h2>Video hochladen</h2>
+      <button class="btn-close" onclick="closeUploadModal()">✕</button>
+    </div>
+    <div class="upload-modal-body">
+      <input id="uploadTitle" type="text" placeholder="Videotitel" />
+      <select id="uploadCategory" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:8px;font-size:15px;font-family:inherit;outline:none;cursor:pointer;">
+        <option value="">Kategorie wählen</option>
+        <option value="Gaming">🎮 Gaming</option>
+        <option value="Musik">🎵 Musik</option>
+        <option value="News">📰 News</option>
+        <option value="Sport">⚽ Sport</option>
+        <option value="Bildung">📚 Bildung</option>
+        <option value="Sonstiges">📦 Sonstiges</option>
+      </select>
+      <div class="file-drop" onclick="document.getElementById('uploadFile').click()">
+        <div class="file-drop-icon">🎬</div>
+        <p><strong>Datei auswählen</strong> oder hier ablegen</p>
+        <p style="margin-top:6px;font-size:12px;">MP4, WebM, MOV – max. 500 MB</p>
+      </div>
+      <input id="uploadFile" type="file" accept="video/*" style="display:none" onchange="onFileSelected()" />
+      <div id="selectedFileName" style="font-size:13px;color:var(--text2);display:none;"></div>
+      <button class="btn-red" onclick="uploadVideo()">⬆ Video hochladen</button>
+    </div>
+  </div>
+</div>
 
-    <div class="max-w-3xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
-      <h2 class="text-3xl font-black mb-6">
-        Upload Your Video
-      </h2>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
-      <div class="grid gap-5">
-        <input
-          id="uploadTitle"
-          type="text"
-          placeholder="Video title"
-          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
-        />
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let videos = [];
+let currentChannel = JSON.parse(localStorage.getItem('ty_channel') || 'null');
+let currentVideoIndex = null;
+let currentView = 'home'; // home | trending | new | channel | search
 
-        <div class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl text-zinc-400">
-          Videos upload directly to your current channel.
-        </div>
+// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
+function getAccounts() { return JSON.parse(localStorage.getItem('ty_accounts') || '[]'); }
+function saveAccounts(arr) { localStorage.setItem('ty_accounts', JSON.stringify(arr)); }
+function getMetadata() { return JSON.parse(localStorage.getItem('ty_metadata') || '[]'); }
 
-        <input
-          id="uploadVideo"
-          type="file"
-          accept="video/*"
-          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl"
-        />
+function saveMetadata() {
+  const meta = videos.map(v => ({
+    title: v.title, creator: v.creator, views: v.views,
+    likes: v.likes, dislikes: v.dislikes, thumbnail: v.thumbnail,
+    category: v.category || 'Sonstiges', uploadedAt: v.uploadedAt || Date.now(),
+    score: v.score || 0
+  }));
+  localStorage.setItem('ty_metadata', JSON.stringify(meta));
+  localStorage.setItem('ty_channel', JSON.stringify(currentChannel));
+}
 
-        <button
-          onclick="uploadVideo()"
-          class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl font-bold text-lg"
-        >
-          Upload Video
-        </button>
+// ─── ALGORITHM ───────────────────────────────────────────────────────────────
+// Score = (likes * 3) + (views * 1) - (dislikes * 2) + recency_bonus
+function calcScore(v) {
+  const ageHours = (Date.now() - (v.uploadedAt || Date.now())) / 3600000;
+  const recency = Math.max(0, 100 - ageHours * 0.5); // drops over time
+  return (v.likes * 3) + (v.views * 1) - (v.dislikes * 2) + recency;
+}
 
-        <div class="text-zinc-500 text-sm">
-          Videos up to 500MB are supported in the current browser session.
-          Create a free channel to manage uploads, delete videos, and customize your content.
+function getRecommended() {
+  return [...videos]
+    .map(v => ({ ...v, score: calcScore(v) }))
+    .sort((a, b) => b.score - a.score);
+}
+
+function getTrending() {
+  return [...videos]
+    .sort((a, b) => b.views - a.views);
+}
+
+function getNew() {
+  return [...videos]
+    .sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderVideos(list = getRecommended()) {
+  const grid = document.getElementById('videoGrid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <h2>Noch keine Videos</h2>
+      <p>Lade das erste Video auf TubeYou hoch!</p>
+    </div>`;
+    return;
+  }
+  grid.innerHTML = list.map((video, i) => {
+    const realIndex = videos.indexOf(video);
+    const idx = realIndex !== -1 ? realIndex : i;
+    return `
+    <div class="video-card" onclick="playVideo(${idx})">
+      <div class="video-thumbnail">
+        <img src="${video.thumbnail}" alt="${escHtml(video.title)}" loading="lazy" />
+        <div class="play-overlay"><div class="play-btn-overlay">▶</div></div>
+        <div class="duration-badge">video</div>
+      </div>
+      <div class="video-meta">
+        <div class="video-avatar">${video.creator.charAt(0).toUpperCase()}</div>
+        <div class="video-info">
+          <div class="video-title">${escHtml(video.title)}</div>
+          <div class="video-creator-name">${escHtml(video.creator)}</div>
+          <div class="video-stats">${video.views} Aufrufe · ${video.category || ''}</div>
+          <div class="video-actions" onclick="event.stopPropagation()">
+            <button class="video-action-btn" onclick="likeVideo(${idx})">👍 ${video.likes}</button>
+            <button class="video-action-btn" onclick="dislikeVideo(${idx})">👎 ${video.dislikes}</button>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </div>`;
+  }).join('');
+}
 
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function showHome() {
+  currentView = 'home';
+  document.getElementById('chipsBar').style.display = '';
+  renderVideos(getRecommended());
+}
 
-  <!-- FOOTER -->
-  <footer class="border-t border-zinc-800 px-6 py-8 text-center text-zinc-500">
-    <p class="text-white text-lg font-semibold">
-      TubeYou © 2026
-    </p>
+function showTrending() {
+  currentView = 'trending';
+  document.getElementById('chipsBar').style.display = 'none';
+  renderSection('🔥 Trending', getTrending());
+}
 
-    <p class="mt-2">
-      Community-powered video sharing.
-    </p>
-  </footer>
+function showNew() {
+  currentView = 'new';
+  document.getElementById('chipsBar').style.display = 'none';
+  renderSection('🆕 Neu hochgeladen', getNew());
+}
 
+function filterCategory(cat) {
+  const filtered = getRecommended().filter(v => v.category === cat);
+  document.getElementById('chipsBar').style.display = '';
+  renderSection(`${cat}`, filtered);
+}
 
-  <script>
-
-    // Only metadata is saved in localStorage.
-    // Actual video blobs are kept in memory using object URLs.
-
-    const savedMetadata = JSON.parse(
-      localStorage.getItem('tubeyouMetadata') || '[]'
-    );
-
-    const videos = [];
-
-    let currentChannel = JSON.parse(
-      localStorage.getItem('tubeyouChannel') || 'null'
-    );
-
-    const existingChannels = JSON.parse(
-      localStorage.getItem('tubeyouAllChannels') || '[]'
-    );
-
-    const savedAccounts = JSON.parse(
-      localStorage.getItem('tubeyouAccounts') || '[]'
-    );
-
-
-    // Restore metadata only
-    savedMetadata.forEach(video => {
-      videos.push({
-        title: video.title,
-        creator: video.creator,
-        views: video.views,
-        likes: video.likes,
-        dislikes: video.dislikes,
-        thumbnail: video.thumbnail,
-        video: null
-      });
-    });
-
-
-    function saveMetadata() {
-      const metadata = videos.map(video => ({
-        title: video.title,
-        creator: video.creator,
-        views: video.views,
-        likes: video.likes,
-        dislikes: video.dislikes,
-        thumbnail: video.thumbnail
-      }));
-
-      localStorage.setItem(
-        'tubeyouChannel',
-        JSON.stringify(currentChannel)
-      );
-
-      localStorage.setItem(
-        'tubeyouMetadata',
-        JSON.stringify(metadata)
-      );
-
-      renderChannelPanel();
-    }
-
-
-    function renderVideos(filteredVideos = videos) {
-      const container = document.getElementById('videoContainer');
-
-      container.innerHTML = '';
-
-      if (filteredVideos.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center py-20">
-            <h2 class="text-4xl font-black mb-4 text-zinc-300">
-              No Videos Yet
-            </h2>
-
-            <p class="text-zinc-500 text-lg">
-              Upload the first real human video to TubeYou.
-            </p>
+function renderSection(title, list) {
+  const grid = document.getElementById('videoGrid');
+  grid.innerHTML = `<div class="section-header" style="grid-column:1/-1">${escHtml(title)}</div>`;
+  if (!list.length) {
+    grid.innerHTML += `<div class="empty-state" style="grid-column:1/-1"><h2>Keine Videos</h2><p>In dieser Kategorie gibt es noch nichts.</p></div>`;
+    return;
+  }
+  const tmp = document.createElement('div');
+  tmp.className = 'video-grid';
+  tmp.style.gridColumn = '1/-1';
+  tmp.innerHTML = list.map((video) => {
+    const idx = videos.indexOf(video);
+    return `
+    <div class="video-card" onclick="playVideo(${idx})">
+      <div class="video-thumbnail">
+        <img src="${video.thumbnail}" alt="${escHtml(video.title)}" loading="lazy" />
+        <div class="play-overlay"><div class="play-btn-overlay">▶</div></div>
+      </div>
+      <div class="video-meta">
+        <div class="video-avatar">${video.creator.charAt(0).toUpperCase()}</div>
+        <div class="video-info">
+          <div class="video-title">${escHtml(video.title)}</div>
+          <div class="video-creator-name">${escHtml(video.creator)}</div>
+          <div class="video-stats">${video.views} Aufrufe</div>
+          <div class="video-actions" onclick="event.stopPropagation()">
+            <button class="video-action-btn" onclick="likeVideo(${idx})">👍 ${video.likes}</button>
+            <button class="video-action-btn" onclick="dislikeVideo(${idx})">👎 ${video.dislikes}</button>
           </div>
-        `;
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  grid.innerHTML += tmp.outerHTML;
+}
 
-        return;
-      }
-
-
-      filteredVideos.forEach((video, index) => {
-        container.innerHTML += `
-          <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-red-500 transition group shadow-xl">
-
-            <div
-              class="overflow-hidden relative cursor-pointer"
-              onclick="playVideo(${index})"
-            >
-              <img
-                src="${video.thumbnail}"
-                class="w-full h-56 object-cover"
-              />
-
-              <div class="absolute inset-0 flex items-center justify-center">
-                <div class="bg-black/70 w-16 h-16 rounded-full flex items-center justify-center text-3xl">
-                  ▶
+function showMyChannel() {
+  closeAccountMenu();
+  if (!currentChannel) { openAuthModal(); return; }
+  document.getElementById('chipsBar').style.display = 'none';
+  const myVideos = videos.filter(v => v.creator === currentChannel.name);
+  const grid = document.getElementById('videoGrid');
+  grid.innerHTML = `
+    <div style="grid-column:1/-1">
+      <div class="channel-page">
+        <div class="channel-banner"></div>
+        <div class="channel-profile">
+          <div class="channel-avatar-large">${currentChannel.name.charAt(0).toUpperCase()}</div>
+          <div class="channel-details">
+            <h2>${escHtml(currentChannel.name)}</h2>
+            <p>${myVideos.length} Videos · Mitglied seit ${new Date(currentChannel.createdAt).toLocaleDateString('de-DE')}</p>
+          </div>
+        </div>
+        <div class="section-header">Meine Videos</div>
+        ${myVideos.length === 0
+          ? '<p style="color:var(--text2)">Du hast noch keine Videos hochgeladen.</p>'
+          : '<div class="channel-video-grid">' + myVideos.map((v) => {
+              const idx = videos.indexOf(v);
+              return `
+              <div class="channel-video-item">
+                <img src="${v.thumbnail}" />
+                <div class="channel-video-item-info">
+                  <h4>${escHtml(v.title)}</h4>
+                  <p>${v.views} Aufrufe · 👍 ${v.likes} · 👎 ${v.dislikes}</p>
                 </div>
-              </div>
-            </div>
-
-            <div class="p-5">
-              <h2 class="text-lg font-bold mb-2">
-                ${video.title}
-              </h2>
-
-              <p class="text-zinc-400 text-sm mb-1">
-                ${video.creator}
-              </p>
-
-              <p class="text-zinc-500 text-sm mb-5">
-                ${video.views} views
-              </p>
-
-              <div class="flex gap-2 flex-wrap">
-
-                <button
-                  onclick="playVideo(${index})"
-                  class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold"
-                >
-                  ▶ Watch
-                </button>
-
-                <button
-                  onclick="likeVideo(${index})"
-                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold"
-                >
-                  👍 ${video.likes}
-                </button>
-
-                <button
-                  onclick="dislikeVideo(${index})"
-                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold"
-                >
-                  👎 ${video.dislikes}
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-
-    function playVideo(index) {
-      const currentVideo = videos[index];
-
-      if (!currentVideo.video) {
-        alert(
-          'This uploaded video is no longer available because browser session storage was cleared. Please upload it again.'
-        );
-
-        return;
-      }
-
-      if (!currentVideo.video.startsWith('blob:') &&
-          !currentVideo.video.startsWith('data:') &&
-          !currentVideo.video.startsWith('http')) {
-        alert('Unsupported video format.');
-        return;
-      }
-
-      currentVideo.views++;
-      saveMetadata();
-      renderVideos();
-    renderChannelPanel();
-
-      document.getElementById('videoTitle').innerText = currentVideo.title;
-      document.getElementById('videoCreator').innerText = currentVideo.creator;
-
-      const player = document.getElementById('mainVideo');
-      player.src = currentVideo.video;
-
-      const modal = document.getElementById('videoModal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-
-      player.play();
-    }
-
-
-    function closeVideo() {
-      const modal = document.getElementById('videoModal');
-      const player = document.getElementById('mainVideo');
-
-      player.pause();
-
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-    }
-
-
-    function likeVideo(index) {
-      const likedVideos = JSON.parse(
-        localStorage.getItem('likedVideos') || '[]'
-      );
-
-      const dislikedVideos = JSON.parse(
-        localStorage.getItem('dislikedVideos') || '[]'
-      );
-
-      if (likedVideos.includes(index)) {
-        return;
-      }
-
-      // Remove dislike if it exists
-      const dislikePosition = dislikedVideos.indexOf(index);
-
-      if (dislikePosition !== -1) {
-        dislikedVideos.splice(dislikePosition, 1);
-
-        if (videos[index].dislikes > 0) {
-          videos[index].dislikes--;
+                <div class="channel-video-actions">
+                  <button onclick="playVideo(${idx})">▶ Ansehen</button>
+                  <button class="danger" onclick="deleteVideo(${idx})">🗑️ Löschen</button>
+                </div>
+              </div>`;
+            }).join('') + '</div>'
         }
-      }
-
-      videos[index].likes++;
-      likedVideos.push(index);
-
-      localStorage.setItem('likedVideos', JSON.stringify(likedVideos));
-      localStorage.setItem('dislikedVideos', JSON.stringify(dislikedVideos));
-
-      saveMetadata();
-      renderVideos();
-    }
-
-
-    function dislikeVideo(index) {
-      const likedVideos = JSON.parse(
-        localStorage.getItem('likedVideos') || '[]'
-      );
-
-      const dislikedVideos = JSON.parse(
-        localStorage.getItem('dislikedVideos') || '[]'
-      );
-
-      if (dislikedVideos.includes(index)) {
-        return;
-      }
-
-      // Remove like if it exists
-      const likePosition = likedVideos.indexOf(index);
-
-      if (likePosition !== -1) {
-        likedVideos.splice(likePosition, 1);
-
-        if (videos[index].likes > 0) {
-          videos[index].likes--;
-        }
-      }
-
-      videos[index].dislikes++;
-      dislikedVideos.push(index);
-
-      localStorage.setItem('likedVideos', JSON.stringify(likedVideos));
-      localStorage.setItem('dislikedVideos', JSON.stringify(dislikedVideos));
-
-      saveMetadata();
-      renderVideos();
-    }
-
-
-    function generateUsername(baseName) {
-      const randomNumber = Math.floor(Math.random() * 9999);
-      return `${baseName}${randomNumber}`;
-    }
-
-
-    function createChannel() {
-      if (currentChannel) {
-        alert('You are already logged into a channel.');
-        return;
-      }
-
-      const usernameInput = document.getElementById('registerUsername');
-      const passwordInput = document.getElementById('registerPassword');
-
-      let username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
-
-      if (!username || !password) {
-        alert('Username and password are required.');
-        return;
-      }
-
-      const alreadyExists = savedAccounts.some(account =>
-        account.username.toLowerCase() === username.toLowerCase()
-      );
-
-      if (alreadyExists) {
-        const suggestedName = generateUsername(username);
-
-        alert(
-          `Username already taken. Suggested username: ${suggestedName}`
-        );
-
-        username = suggestedName;
-      }
-
-      const newAccount = {
-        username: username,
-        password: password,
-        createdAt: new Date().toISOString()
-      };
-
-      savedAccounts.push(newAccount);
-
-      currentChannel = {
-        name: username,
-        createdAt: new Date().toISOString()
-      };
-
-      existingChannels.push(username);
-
-      localStorage.setItem(
-        'tubeyouAccounts',
-        JSON.stringify(savedAccounts)
-      );
-
-      localStorage.setItem(
-        'tubeyouAllChannels',
-        JSON.stringify(existingChannels)
-      );
-
-      localStorage.setItem(
-        'tubeyouChannel',
-        JSON.stringify(currentChannel)
-      );
-
-      usernameInput.value = '';
-      passwordInput.value = '';
-
-      renderChannelPanel();
-
-      alert(`Channel created successfully as ${username}!`);
-    }
-
-
-    function loginChannel() {
-      const username = document.getElementById('loginUsername').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-
-      const foundAccount = savedAccounts.find(account =>
-        account.username === username &&
-        account.password === password
-      );
-
-      if (!foundAccount) {
-        alert('Invalid username or password.');
-        return;
-      }
-
-      currentChannel = {
-        name: foundAccount.username,
-        createdAt: foundAccount.createdAt
-      };
-
-      localStorage.setItem(
-        'tubeyouChannel',
-        JSON.stringify(currentChannel)
-      );
-
-      renderChannelPanel();
-
-      alert(`Logged in as ${foundAccount.username}`);
-    }
-
-
-    function deleteChannel() {
-      if (!currentChannel) {
-        return;
-      }
-
-      const confirmed = confirm(
-        'Delete your channel and ALL uploaded videos forever?'
-      );
-
-      if (!confirmed) {
-        return;
-      }
-
-      const accountIndex = savedAccounts.findIndex(account =>
-        account.username === currentChannel.name
-      );
-
-      if (accountIndex !== -1) {
-        savedAccounts.splice(accountIndex, 1);
-      }
-
-      const channelIndex = existingChannels.findIndex(channelName =>
-        channelName === currentChannel.name
-      );
-
-      if (channelIndex !== -1) {
-        existingChannels.splice(channelIndex, 1);
-      }
-
-      for (let i = videos.length - 1; i >= 0; i--) {
-        if (videos[i].creator === currentChannel.name) {
-          videos.splice(i, 1);
-        }
-      }
-
-      localStorage.setItem(
-        'tubeyouAccounts',
-        JSON.stringify(savedAccounts)
-      );
-
-      localStorage.setItem(
-        'tubeyouAllChannels',
-        JSON.stringify(existingChannels)
-      );
-
-      currentChannel = null;
-
-      localStorage.removeItem('tubeyouChannel');
-
-      saveMetadata();
-      renderVideos();
-      renderChannelPanel();
-
-      alert('Channel deleted successfully.');
-    }
-
-
-    function deleteVideo(index) {
-      const confirmed = confirm('Delete this video?');
-
-      if (!confirmed) {
-        return;
-      }
-
-      videos.splice(index, 1);
-
-      saveMetadata();
-      renderVideos();
-    }
-
-
-    function renderChannelPanel() {
-      const panel = document.getElementById('channelInfo');
-      const name = document.getElementById('channelNameDisplay');
-      const container = document.getElementById('channelVideos');
-
-      if (!currentChannel) {
-        panel.classList.add('hidden');
-        return;
-      }
-
-      panel.classList.remove('hidden');
-
-      name.innerText = currentChannel.name;
-
-      container.innerHTML = '';
-
-      if (videos.length === 0) {
-        container.innerHTML = `
-          <p class="text-zinc-500">
-            No uploaded videos yet.
-          </p>
-        `;
-
-        return;
-      }
-
-      videos.forEach((video, index) => {
-        if (currentChannel && video.creator !== currentChannel.name) {
-          return;
-        }
-        container.innerHTML += `
-          <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h4 class="font-bold text-lg">
-                ${video.title}
-              </h4>
-
-              <p class="text-zinc-500 text-sm mt-1">
-                ${video.views} views • 👍 ${video.likes} • 👎 ${video.dislikes}
-              </p>
-            </div>
-
-            <button
-              onclick="deleteVideo(${index})"
-              class="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-2xl font-semibold"
-            >
-              Delete Video
-            </button>
-          </div>
-        `;
-      });
-    }
-
-
-    function uploadVideo() {
-      if (!currentChannel) {
-        alert('You need to create a channel before uploading videos.');
-        return;
-      }
-      const title = document.getElementById('uploadTitle').value.trim();
-      const creator = document.getElementById('uploadCreator').value.trim();
-      const videoFile = document.getElementById('uploadVideo').files[0];
-
-      if (!title || !creator || !videoFile) {
-        alert('Please complete all upload fields.');
-        return;
-      }
-
-      // Prevent very large uploads
-      const maxSizeMB = 500;
-
-      if (videoFile.size > maxSizeMB * 1024 * 1024) {
-        alert('Video file too large. Max size is 50MB.');
-        return;
-      }
-
-      const objectURL = URL.createObjectURL(videoFile);
-
-      if (!videoFile.type.startsWith('video/')) {
-        alert('Please upload a valid video file.');
-        return;
-      }
-
-      videos.unshift({
-        title: title,
-        creator: currentChannel.name,
-        views: 0,
-        likes: 0,
-        dislikes: 0,
-        thumbnail:
-          'https://placehold.co/600x400/18181b/ffffff?text=' +
-          encodeURIComponent(title),
-        video: objectURL
-      });
-
-      saveMetadata();
-      renderVideos();
-
-      document.getElementById('uploadTitle').value = '';
-      document.getElementById('uploadCreator').value = '';
-      document.getElementById('uploadVideo').value = '';
-
-      alert('Video uploaded successfully!');
-
-      renderChannelPanel();
-    }
-
-
-    // SEARCH
-    document.getElementById('searchInput').addEventListener('input', event => {
-      const search = event.target.value.toLowerCase();
-
-      const filtered = videos.filter(video => {
-        return (
-          video.title.toLowerCase().includes(search) ||
-          video.creator.toLowerCase().includes(search)
-        );
-      });
-
-      renderVideos(filtered);
-    });
-
-
-    // Basic runtime tests
-    console.assert(
-      Array.isArray(existingChannels),
-      'existingChannels should be an array'
-    );
-
-    console.assert(
-      Array.isArray(savedAccounts),
-      'savedAccounts should be an array'
-    );
-
-    console.assert(
-      typeof loginChannel === 'function',
-      'loginChannel should exist'
-    );
-
-
-    renderVideos();
-
-  </script>
-
+      </div>
+    </div>`;
+}
+
+function doSearch() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  if (!q) { showHome(); return; }
+  const filtered = videos.filter(v =>
+    v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q)
+  );
+  document.getElementById('chipsBar').style.display = 'none';
+  renderSection(`Suchergebnisse für "${q}"`, filtered);
+}
+
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+// ─── CHIP / NAV HELPERS ───────────────────────────────────────────────────────
+function setChip(el) {
+  document.querySelectorAll('.chip').forEach(c => c.classList.add('inactive'));
+  el.classList.remove('inactive');
+}
+
+function setActiveNav(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── VIDEO PLAYER ─────────────────────────────────────────────────────────────
+function playVideo(idx) {
+  const v = videos[idx];
+  if (!v) return;
+  if (!v.video) {
+    toast('Dieses Video ist nicht mehr verfügbar (Session beendet). Bitte erneut hochladen.');
+    return;
+  }
+  currentVideoIndex = idx;
+  v.views++;
+  saveMetadata();
+  renderVideos(getRecommended());
+
+  document.getElementById('videoTitle').textContent = v.title;
+  document.getElementById('videoCreator').textContent = v.creator;
+  document.getElementById('videoViews').textContent = v.views;
+  document.getElementById('likeCount').textContent = v.likes;
+  document.getElementById('dislikeCount').textContent = v.dislikes;
+  document.getElementById('mainVideo').src = v.video;
+  document.getElementById('videoModal').classList.add('open');
+  document.getElementById('mainVideo').play();
+}
+
+function closeVideo() {
+  document.getElementById('mainVideo').pause();
+  document.getElementById('videoModal').classList.remove('open');
+}
+
+function likeCurrentVideo() {
+  if (currentVideoIndex === null) return;
+  likeVideo(currentVideoIndex);
+  document.getElementById('likeCount').textContent = videos[currentVideoIndex].likes;
+  document.getElementById('dislikeCount').textContent = videos[currentVideoIndex].dislikes;
+}
+
+function dislikeCurrentVideo() {
+  if (currentVideoIndex === null) return;
+  dislikeVideo(currentVideoIndex);
+  document.getElementById('likeCount').textContent = videos[currentVideoIndex].likes;
+  document.getElementById('dislikeCount').textContent = videos[currentVideoIndex].dislikes;
+}
+
+// ─── LIKE / DISLIKE ───────────────────────────────────────────────────────────
+function getLiked() { return JSON.parse(localStorage.getItem('ty_liked') || '[]'); }
+function getDisliked() { return JSON.parse(localStorage.getItem('ty_disliked') || '[]'); }
+
+function likeVideo(idx) {
+  const liked = getLiked(), disliked = getDisliked();
+  if (liked.includes(idx)) return;
+  const di = disliked.indexOf(idx);
+  if (di !== -1) { disliked.splice(di, 1); if (videos[idx].dislikes > 0) videos[idx].dislikes--; }
+  videos[idx].likes++;
+  liked.push(idx);
+  localStorage.setItem('ty_liked', JSON.stringify(liked));
+  localStorage.setItem('ty_disliked', JSON.stringify(disliked));
+  saveMetadata();
+  renderVideos(getRecommended());
+  toast('👍 Gefällt dir!');
+}
+
+function dislikeVideo(idx) {
+  const liked = getLiked(), disliked = getDisliked();
+  if (disliked.includes(idx)) return;
+  const li = liked.indexOf(idx);
+  if (li !== -1) { liked.splice(li, 1); if (videos[idx].likes > 0) videos[idx].likes--; }
+  videos[idx].dislikes++;
+  disliked.push(idx);
+  localStorage.setItem('ty_liked', JSON.stringify(liked));
+  localStorage.setItem('ty_disliked', JSON.stringify(disliked));
+  saveMetadata();
+  renderVideos(getRecommended());
+}
+
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
+function openAuthModal() { document.getElementById('authModal').classList.add('open'); }
+function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('formLogin').classList.toggle('hidden', tab !== 'login');
+  document.getElementById('formRegister').classList.toggle('hidden', tab !== 'register');
+}
+
+function createChannel() {
+  const username = document.getElementById('registerUsername').value.trim();
+  const pw = document.getElementById('registerPassword').value;
+  const pw2 = document.getElementById('registerPassword2').value;
+
+  if (!username || !pw) { toast('Benutzername und Passwort sind Pflichtfelder.'); return; }
+  if (pw !== pw2) { toast('Passwörter stimmen nicht überein.'); return; }
+  if (username.length < 3) { toast('Benutzername muss mindestens 3 Zeichen haben.'); return; }
+
+  const accounts = getAccounts();
+
+  // ─── DUPLICATE CHECK ──────────────────────────────────────────────
+  const exists = accounts.some(a => a.username.toLowerCase() === username.toLowerCase());
+  if (exists) {
+    toast(`❌ Der Benutzername "${username}" ist bereits vergeben. Bitte wähle einen anderen.`);
+    return;
+  }
+
+  const newAcc = { username, password: pw, createdAt: new Date().toISOString() };
+  accounts.push(newAcc);
+  saveAccounts(accounts);
+
+  currentChannel = { name: username, createdAt: newAcc.createdAt };
+  saveMetadata();
+  updateHeaderAuth();
+  closeAuthModal();
+  toast(`✅ Kanal "${username}" erstellt! Willkommen!`);
+}
+
+function loginChannel() {
+  const username = document.getElementById('loginUsername').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const accounts = getAccounts();
+  const acc = accounts.find(a => a.username === username && a.password === pw);
+  if (!acc) { toast('❌ Falscher Benutzername oder Passwort.'); return; }
+  currentChannel = { name: acc.username, createdAt: acc.createdAt };
+  saveMetadata();
+  updateHeaderAuth();
+  closeAuthModal();
+  toast(`👋 Willkommen zurück, ${acc.username}!`);
+}
+
+function logoutChannel() {
+  closeAccountMenu();
+  currentChannel = null;
+  localStorage.removeItem('ty_channel');
+  updateHeaderAuth();
+  toast('Abgemeldet.');
+}
+
+function deleteChannel() {
+  closeAccountMenu();
+  if (!currentChannel) return;
+  if (!confirm(`Kanal "${currentChannel.name}" und alle Videos wirklich löschen?`)) return;
+  const accounts = getAccounts().filter(a => a.username !== currentChannel.name);
+  saveAccounts(accounts);
+  for (let i = videos.length - 1; i >= 0; i--) {
+    if (videos[i].creator === currentChannel.name) videos.splice(i, 1);
+  }
+  currentChannel = null;
+  localStorage.removeItem('ty_channel');
+  saveMetadata();
+  updateHeaderAuth();
+  renderVideos(getRecommended());
+  toast('Kanal gelöscht.');
+}
+
+function toggleAccountMenu() {
+  document.getElementById('accountMenu').classList.toggle('open');
+}
+function closeAccountMenu() {
+  document.getElementById('accountMenu').classList.remove('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('#accountMenu') && !e.target.closest('#btnAvatar')) closeAccountMenu();
+  if (!e.target.closest('#authModal') && e.target === document.getElementById('authModal')) closeAuthModal();
+  if (!e.target.closest('.modal') && e.target === document.getElementById('videoModal')) closeVideo();
+  if (!e.target.closest('.upload-modal') && e.target === document.getElementById('uploadModal')) closeUploadModal();
+});
+
+function updateHeaderAuth() {
+  const btnLogin = document.getElementById('btnLogin');
+  const btnAvatar = document.getElementById('btnAvatar');
+  const menuUsername = document.getElementById('menuUsername');
+  if (currentChannel) {
+    btnLogin.style.display = 'none';
+    btnAvatar.style.display = 'flex';
+    btnAvatar.textContent = currentChannel.name.charAt(0).toUpperCase();
+    menuUsername.textContent = currentChannel.name;
+  } else {
+    btnLogin.style.display = '';
+    btnAvatar.style.display = 'none';
+  }
+}
+
+// ─── UPLOAD ───────────────────────────────────────────────────────────────────
+function openUploadModal() {
+  if (!currentChannel) { openAuthModal(); return; }
+  document.getElementById('uploadModal').classList.add('open');
+}
+function closeUploadModal() { document.getElementById('uploadModal').classList.remove('open'); }
+
+function onFileSelected() {
+  const f = document.getElementById('uploadFile').files[0];
+  const el = document.getElementById('selectedFileName');
+  if (f) {
+    el.textContent = `📎 ${f.name} (${(f.size/1024/1024).toFixed(1)} MB)`;
+    el.style.display = '';
+  }
+}
+
+function uploadVideo() {
+  if (!currentChannel) { toast('Bitte zuerst anmelden.'); return; }
+  const title = document.getElementById('uploadTitle').value.trim();
+  const category = document.getElementById('uploadCategory').value;
+  const file = document.getElementById('uploadFile').files[0];
+  if (!title) { toast('Bitte einen Titel eingeben.'); return; }
+  if (!file) { toast('Bitte ein Video auswählen.'); return; }
+  if (!file.type.startsWith('video/')) { toast('Nur Videodateien erlaubt.'); return; }
+  if (file.size > 500 * 1024 * 1024) { toast('Video zu groß (max. 500 MB).'); return; }
+
+  const objectURL = URL.createObjectURL(file);
+  videos.unshift({
+    title,
+    creator: currentChannel.name,
+    views: 0, likes: 0, dislikes: 0,
+    thumbnail: `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`,
+    video: objectURL,
+    category: category || 'Sonstiges',
+    uploadedAt: Date.now()
+  });
+
+  saveMetadata();
+  renderVideos(getRecommended());
+  closeUploadModal();
+  document.getElementById('uploadTitle').value = '';
+  document.getElementById('uploadCategory').value = '';
+  document.getElementById('uploadFile').value = '';
+  document.getElementById('selectedFileName').style.display = 'none';
+  toast('✅ Video erfolgreich hochgeladen!');
+}
+
+// ─── DELETE VIDEO ─────────────────────────────────────────────────────────────
+function deleteVideo(idx) {
+  if (!confirm('Dieses Video wirklich löschen?')) return;
+  videos.splice(idx, 1);
+  saveMetadata();
+  renderVideos(getRecommended());
+  showMyChannel();
+  toast('Video gelöscht.');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+(function init() {
+  const meta = getMetadata();
+  meta.forEach(v => videos.push({ ...v, video: null }));
+  updateHeaderAuth();
+  renderVideos(getRecommended());
+})();
+</script>
 </body>
 </html>
