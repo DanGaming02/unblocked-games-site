@@ -78,101 +78,111 @@
     </div>
   </section>
 
+  <!-- VIDEO PLAYER MODAL -->
+  <div
+    id="videoModal"
+    class="hidden fixed inset-0 bg-black/90 z-50 items-center justify-center p-6"
+  >
+    <div class="bg-zinc-900 rounded-3xl overflow-hidden max-w-5xl w-full border border-zinc-800 shadow-2xl">
+
+      <div class="flex items-center justify-between px-6 py-4 border-b border-zinc-800">
+        <h2 id="videoTitle" class="text-2xl font-bold">
+          Video Player
+        </h2>
+
+        <button
+          onclick="closeVideo()"
+          class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl font-bold"
+        >
+          Close
+        </button>
+      </div>
+
+      <video
+        id="mainVideo"
+        controls
+        autoplay
+        class="w-full bg-black max-h-[70vh]"
+      >
+      </video>
+
+      <div class="p-6">
+        <div class="flex flex-wrap gap-4 items-center justify-between">
+          <div>
+            <p class="text-zinc-400">
+              Uploaded by <span id="videoCreator"></span>
+            </p>
+          </div>
+
+          <div class="flex gap-3">
+            <button
+              onclick="subscribeChannel()"
+              class="bg-red-600 hover:bg-red-500 px-5 py-3 rounded-2xl font-semibold"
+            >
+              Subscribe
+            </button>
+
+            <button
+              onclick="likeCurrentVideo()"
+              id="modalLikeBtn"
+              class="border border-zinc-700 hover:border-red-500 px-5 py-3 rounded-2xl font-semibold"
+            >
+              ❤️ Like
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
   <!-- VIDEO GRID -->
-  <main class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-8">
-
-    <!-- VIDEO CARD -->
-    <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-red-500 transition group shadow-xl">
-
-      <div class="overflow-hidden relative">
-        <img
-          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop"
-          alt="Mountain Drone Video"
-          class="w-full h-56 object-cover group-hover:scale-105 transition duration-300"
-        />
-
-        <div class="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded-lg text-xs font-semibold">
-          HD
-        </div>
-      </div>
-
-      <div class="p-5">
-        <h2 class="text-lg font-bold mb-2 group-hover:text-red-400 transition">
-          Epic Mountain Drone Shots
-        </h2>
-
-        <p class="text-zinc-400 text-sm mb-1">
-          SkyView Films
-        </p>
-
-        <p class="text-zinc-500 text-sm mb-5">
-          2.3M views
-        </p>
-
-        <div class="flex justify-between items-center">
-          <button
-            class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold transition"
-          >
-            ▶ Watch
-          </button>
-
-          <button
-            onclick="likeVideo(this)"
-            class="border border-zinc-700 hover:border-red-500 hover:text-red-400 px-4 py-2 rounded-xl text-sm font-semibold transition"
-          >
-            ❤️ <span>120K</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- SECOND VIDEO CARD -->
-    <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-red-500 transition group shadow-xl">
-
-      <div class="overflow-hidden relative">
-        <img
-          src="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop"
-          alt="Coding Video"
-          class="w-full h-56 object-cover group-hover:scale-105 transition duration-300"
-        />
-
-        <div class="absolute bottom-3 right-3 bg-black/80 px-2 py-1 rounded-lg text-xs font-semibold">
-          HD
-        </div>
-      </div>
-
-      <div class="p-5">
-        <h2 class="text-lg font-bold mb-2 group-hover:text-red-400 transition">
-          Top 10 Coding Tricks
-        </h2>
-
-        <p class="text-zinc-400 text-sm mb-1">
-          DevMaster
-        </p>
-
-        <p class="text-zinc-500 text-sm mb-5">
-          1.1M views
-        </p>
-
-        <div class="flex justify-between items-center">
-          <button
-            class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold transition"
-          >
-            ▶ Watch
-          </button>
-
-          <button
-            onclick="likeVideo(this)"
-            class="border border-zinc-700 hover:border-red-500 hover:text-red-400 px-4 py-2 rounded-xl text-sm font-semibold transition"
-          >
-            ❤️ <span>76K</span>
-          </button>
-        </div>
-      </div>
-    </div>
-
+  <main
+    id="videoContainer"
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 px-6 py-8"
+  >
   </main>
+
+
+  <!-- UPLOAD SECTION -->
+  <section class="px-6 py-16 border-t border-zinc-800">
+
+    <div class="max-w-3xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8">
+      <h2 class="text-3xl font-black mb-6">
+        Upload Your Video
+      </h2>
+
+      <div class="grid gap-5">
+        <input
+          id="uploadTitle"
+          type="text"
+          placeholder="Video title"
+          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
+        />
+
+        <input
+          id="uploadCreator"
+          type="text"
+          placeholder="Channel name"
+          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl outline-none focus:border-red-500"
+        />
+
+        <input
+          id="uploadVideo"
+          type="file"
+          accept="video/*"
+          class="bg-zinc-950 border border-zinc-700 px-5 py-4 rounded-2xl"
+        />
+
+        <button
+          onclick="uploadVideo()"
+          class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl font-bold text-lg"
+        >
+          Upload Video
+        </button>
+      </div>
+    </div>
+  </section>
 
 
   <!-- FEATURES -->
@@ -232,10 +242,201 @@
 
   <!-- JAVASCRIPT -->
   <script>
-    function likeVideo(button) {
-      button.classList.add('text-red-400');
-      button.classList.add('border-red-500');
+
+    const videos = [
+      {
+        title: 'Mountain Adventure Vlog',
+        creator: 'Alex Johnson',
+        views: 421,
+        likes: 12,
+        dislikes: 1,
+        thumbnail: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
+        video: 'https://www.w3schools.com/html/mov_bbb.mp4'
+      },
+      {
+        title: 'JavaScript Tutorial',
+        creator: 'Sarah Codes',
+        views: 912,
+        likes: 44,
+        dislikes: 3,
+        thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop',
+        video: 'https://www.w3schools.com/html/movie.mp4'
+      }
+    ];
+
+
+    function renderVideos(filteredVideos = videos) {
+      const container = document.getElementById('videoContainer');
+
+      container.innerHTML = '';
+
+      filteredVideos.forEach((video, index) => {
+        container.innerHTML += `
+          <div class="bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 hover:border-red-500 transition group shadow-xl">
+
+            <div
+              class="overflow-hidden relative cursor-pointer"
+              onclick="playVideo(${index})"
+            >
+              <img
+                src="${video.thumbnail}"
+                class="w-full h-56 object-cover group-hover:scale-105 transition duration-300"
+              />
+
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="bg-black/70 w-16 h-16 rounded-full flex items-center justify-center text-3xl">
+                  ▶
+                </div>
+              </div>
+            </div>
+
+            <div class="p-5">
+              <h2 class="text-lg font-bold mb-2">
+                ${video.title}
+              </h2>
+
+              <p class="text-zinc-400 text-sm mb-1">
+                ${video.creator}
+              </p>
+
+              <p class="text-zinc-500 text-sm mb-5">
+                ${video.views} views
+              </p>
+
+              <div class="flex gap-2 flex-wrap">
+
+                <button
+                  onclick="playVideo(${index})"
+                  class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                >
+                  ▶ Watch
+                </button>
+
+                <button
+                  onclick="likeVideo(${index})"
+                  id="like-${index}"
+                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                >
+                  👍 ${video.likes}
+                </button>
+
+                <button
+                  onclick="dislikeVideo(${index})"
+                  id="dislike-${index}"
+                  class="border border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition"
+                >
+                  👎 ${video.dislikes}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
     }
+
+
+    function playVideo(index) {
+      const modal = document.getElementById('videoModal');
+      const videoPlayer = document.getElementById('mainVideo');
+      const currentVideo = videos[index];
+
+      document.getElementById('videoTitle').innerText = currentVideo.title;
+      document.getElementById('videoCreator').innerText = currentVideo.creator;
+
+      videoPlayer.src = currentVideo.video;
+
+      currentVideo.views++;
+
+      renderVideos();
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      videoPlayer.play();
+    }
+
+
+    function closeVideo() {
+      const modal = document.getElementById('videoModal');
+      const video = document.getElementById('mainVideo');
+
+      video.pause();
+
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+
+    function likeVideo(index) {
+      videos[index].likes++;
+      renderVideos();
+    }
+
+
+    function dislikeVideo(index) {
+      videos[index].dislikes++;
+      renderVideos();
+    }
+
+
+    function likeCurrentVideo() {
+      alert('Video liked!');
+    }
+
+
+    function subscribeChannel() {
+      alert('Subscribed successfully!');
+    }
+
+
+    function uploadVideo() {
+      const title = document.getElementById('uploadTitle').value;
+      const creator = document.getElementById('uploadCreator').value;
+      const videoFile = document.getElementById('uploadVideo').files[0];
+
+      if (!title || !creator || !videoFile) {
+        alert('Please complete all upload fields.');
+        return;
+      }
+
+      const videoURL = URL.createObjectURL(videoFile);
+
+      videos.unshift({
+        title: title,
+        creator: creator,
+        views: 0,
+        likes: 0,
+        dislikes: 0,
+        thumbnail: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1200&auto=format&fit=crop',
+        video: videoURL
+      });
+
+      renderVideos();
+
+      document.getElementById('uploadTitle').value = '';
+      document.getElementById('uploadCreator').value = '';
+      document.getElementById('uploadVideo').value = '';
+
+      alert('Video uploaded successfully!');
+    }
+
+
+    const searchInput = document.querySelector('input[type="text"]');
+
+    searchInput.addEventListener('input', () => {
+      const search = searchInput.value.toLowerCase();
+
+      const filtered = videos.filter(video =>
+        video.title.toLowerCase().includes(search) ||
+        video.creator.toLowerCase().includes(search)
+      );
+
+      renderVideos(filtered);
+    });
+
+
+    renderVideos();
+
   </script>
 
 </body>
