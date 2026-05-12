@@ -243,32 +243,29 @@
   <!-- JAVASCRIPT -->
   <script>
 
-    const videos = [
-      {
-        title: 'Mountain Adventure Vlog',
-        creator: 'Alex Johnson',
-        views: 421,
-        likes: 12,
-        dislikes: 1,
-        thumbnail: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1200&auto=format&fit=crop',
-        video: 'https://www.w3schools.com/html/mov_bbb.mp4'
-      },
-      {
-        title: 'JavaScript Tutorial',
-        creator: 'Sarah Codes',
-        views: 912,
-        likes: 44,
-        dislikes: 3,
-        thumbnail: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?q=80&w=1200&auto=format&fit=crop',
-        video: 'https://www.w3schools.com/html/movie.mp4'
-      }
-    ];
+    const videos = [];
 
 
     function renderVideos(filteredVideos = videos) {
       const container = document.getElementById('videoContainer');
 
       container.innerHTML = '';
+
+      if (filteredVideos.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-20">
+            <h2 class="text-4xl font-black mb-4 text-zinc-300">
+              No Videos Yet
+            </h2>
+
+            <p class="text-zinc-500 text-lg">
+              Upload the first real human video to TubeYou.
+            </p>
+          </div>
+        `;
+
+        return;
+      };
 
       filteredVideos.forEach((video, index) => {
         container.innerHTML += `
@@ -407,7 +404,7 @@
         views: 0,
         likes: 0,
         dislikes: 0,
-        thumbnail: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1200&auto=format&fit=crop',
+        thumbnail: 'https://placehold.co/600x400/18181b/ffffff?text=' + encodeURIComponent(title),
         video: videoURL
       });
 
