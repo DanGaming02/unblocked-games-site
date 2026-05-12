@@ -93,6 +93,79 @@
   </main>
 
 
+  <!-- AUTH PANEL -->
+  <section class="px-6 py-10 border-t border-zinc-800">
+
+    <div class="max-w-4xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-8 mb-10">
+      <h2 class="text-3xl font-black mb-6">
+        TubeYou Account
+      </h2>
+
+      <div class="grid md:grid-cols-2 gap-6">
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+          <h3 class="text-2xl font-bold mb-5">
+            Create Channel
+          </h3>
+
+          <div class="grid gap-4">
+            <input
+              id="registerUsername"
+              type="text"
+              placeholder="Username"
+              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
+            />
+
+            <input
+              id="registerPassword"
+              type="password"
+              placeholder="Password"
+              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
+            />
+
+            <button
+              onclick="createChannel()"
+              class="bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl font-bold"
+            >
+              Create Channel
+            </button>
+          </div>
+        </div>
+
+
+        <div class="bg-zinc-950 border border-zinc-800 rounded-2xl p-6">
+          <h3 class="text-2xl font-bold mb-5">
+            Login
+          </h3>
+
+          <div class="grid gap-4">
+            <input
+              id="loginUsername"
+              type="text"
+              placeholder="Username"
+              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
+            />
+
+            <input
+              id="loginPassword"
+              type="password"
+              placeholder="Password"
+              class="bg-zinc-900 border border-zinc-700 px-5 py-4 rounded-2xl"
+            />
+
+            <button
+              onclick="loginChannel()"
+              class="bg-white text-black hover:bg-zinc-200 px-6 py-4 rounded-2xl font-bold"
+            >
+              Login
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
   <!-- CHANNEL PANEL -->
   <section class="px-6 py-10 border-t border-zinc-800">
 
@@ -214,6 +287,10 @@
 
     const existingChannels = JSON.parse(
       localStorage.getItem('tubeyouAllChannels') || '[]'
+    );
+
+    const savedAccounts = JSON.parse(
+      localStorage.getItem('tubeyouAccounts') || '[]'
     );
 
 
@@ -458,36 +535,62 @@
     }
 
 
+    function generateUsername(baseName) {
+      const randomNumber = Math.floor(Math.random() * 9999);
+      return `${baseName}${randomNumber}`;
+    }
+
+
     function createChannel() {
       if (currentChannel) {
-        alert('You already have a channel.');
+        alert('You are already logged into a channel.');
         return;
       }
 
-      const name = prompt('Enter your unique channel name:');
+      const usernameInput = document.getElementById('registerUsername');
+      const passwordInput = document.getElementById('registerPassword');
 
-      if (!name || !name.trim()) {
-        alert('Channel name is required.');
+      let username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!username || !password) {
+        alert('Username and password are required.');
         return;
       }
 
-      const cleanName = name.trim();
-
-      const alreadyExists = existingChannels.some(channelName =>
-        channelName.toLowerCase() === cleanName.toLowerCase()
+      const alreadyExists = savedAccounts.some(account =>
+        account.username.toLowerCase() === username.toLowerCase()
       );
 
       if (alreadyExists) {
-        alert('That channel name already exists.');
-        return;
+        const suggestedName = generateUsername(username);
+
+        alert(
+          `Username already taken. Suggested username: ${suggestedName}`
+        );
+
+        username = suggestedName;
       }
 
-      currentChannel = {
-        name: cleanName,
+      const newAccount = {
+        username: username,
+        password: password,
         createdAt: new Date().toISOString()
       };
 
-      existingChannels.push(cleanName);
+      savedAccounts.push(newAccount);
+
+      currentChannel = {
+        name: username,
+        createdAt: new Date().toISOString()
+      };
+
+      existingChannels.push(username);
+
+      localStorage.setItem(
+        'tubeyouAccounts',
+        JSON.stringify(savedAccounts)
+      );
 
       localStorage.setItem(
         'tubeyouAllChannels',
@@ -499,30 +602,84 @@
         JSON.stringify(currentChannel)
       );
 
+      usernameInput.value = '';
+      passwordInput.value = '';
+
       renderChannelPanel();
 
-      alert('Channel created successfully!');
+      alert(`Channel created successfully as ${username}!`);
+    }
+
+
+    function loginChannel() {
+      const username = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+
+      const foundAccount = savedAccounts.find(account =>
+        account.username === username &&
+        account.password === password
+      );
+
+      if (!foundAccount) {
+        alert('Invalid username or password.');
+        return;
+      }
+
+      currentChannel = {
+        name: foundAccount.username,
+        createdAt: foundAccount.createdAt
+      };
+
+      localStorage.setItem(
+        'tubeyouChannel',
+        JSON.stringify(currentChannel)
+      );
+
+      renderChannelPanel();
+
+      alert(`Logged in as ${foundAccount.username}`);
     }
 
 
     function deleteChannel() {
+      if (!currentChannel) {
+        return;
+      }
+
       const confirmed = confirm(
-        'Delete your channel and all uploaded videos?'
+        'Delete your channel and ALL uploaded videos forever?'
       );
 
       if (!confirmed) {
         return;
       }
 
-      if (currentChannel) {
-        const channelIndex = existingChannels.findIndex(channelName =>
-          channelName.toLowerCase() === currentChannel.name.toLowerCase()
-        );
+      const accountIndex = savedAccounts.findIndex(account =>
+        account.username === currentChannel.name
+      );
 
-        if (channelIndex !== -1) {
-          existingChannels.splice(channelIndex, 1);
+      if (accountIndex !== -1) {
+        savedAccounts.splice(accountIndex, 1);
+      }
+
+      const channelIndex = existingChannels.findIndex(channelName =>
+        channelName === currentChannel.name
+      );
+
+      if (channelIndex !== -1) {
+        existingChannels.splice(channelIndex, 1);
+      }
+
+      for (let i = videos.length - 1; i >= 0; i--) {
+        if (videos[i].creator === currentChannel.name) {
+          videos.splice(i, 1);
         }
       }
+
+      localStorage.setItem(
+        'tubeyouAccounts',
+        JSON.stringify(savedAccounts)
+      );
 
       localStorage.setItem(
         'tubeyouAllChannels',
@@ -531,15 +688,13 @@
 
       currentChannel = null;
 
-      videos.length = 0;
-
-      localStorage.removeItem('tubeyouMetadata');
-      localStorage.removeItem('likedVideos');
-      localStorage.removeItem('dislikedVideos');
       localStorage.removeItem('tubeyouChannel');
 
+      saveMetadata();
       renderVideos();
       renderChannelPanel();
+
+      alert('Channel deleted successfully.');
     }
 
 
@@ -584,6 +739,9 @@
       }
 
       videos.forEach((video, index) => {
+        if (currentChannel && video.creator !== currentChannel.name) {
+          return;
+        }
         container.innerHTML += `
           <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -679,13 +837,18 @@
 
     // Basic runtime tests
     console.assert(
-      typeof currentChannel !== 'undefined',
-      'currentChannel should be defined'
+      Array.isArray(existingChannels),
+      'existingChannels should be an array'
     );
 
     console.assert(
-      Array.isArray(existingChannels),
-      'existingChannels should be an array'
+      Array.isArray(savedAccounts),
+      'savedAccounts should be an array'
+    );
+
+    console.assert(
+      typeof loginChannel === 'function',
+      'loginChannel should exist'
     );
 
 
