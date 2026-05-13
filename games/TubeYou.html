@@ -81,7 +81,6 @@
       display: flex;
       align-items: center;
       flex: 1;
-      max-width: 600px;
       gap: 0;
     }
 
@@ -115,6 +114,39 @@
     }
 
     .search-bar button:hover { background: var(--bg4); }
+
+    .search-suggestions {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 0 0 16px 16px;
+      overflow: hidden;
+      z-index: 200;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .search-suggestions.open { display: block; }
+
+    .suggestion-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .suggestion-item:hover { background: var(--bg3); }
+    .suggestion-item .s-icon { font-size: 16px; color: var(--text2); flex-shrink: 0; }
+    .suggestion-item .s-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .suggestion-item .s-creator { font-size: 12px; color: var(--text3); }
+
+    .search-wrapper { position: relative; flex: 1; max-width: 600px; display: flex; flex-direction: column; }
 
     .header-actions {
       display: flex;
@@ -751,9 +783,12 @@
     <div class="logo-text"><span>Tube</span>You</div>
   </div>
 
-  <div class="search-bar">
-    <input id="searchInput" type="text" placeholder="Suchen" />
-    <button onclick="doSearch()">🔍</button>
+  <div class="search-wrapper">
+    <div class="search-bar">
+      <input id="searchInput" type="text" placeholder="Suchen" autocomplete="off" />
+      <button onclick="doSearch()">🔍</button>
+    </div>
+    <div class="search-suggestions" id="searchSuggestions"></div>
   </div>
 
   <div class="header-actions">
@@ -920,7 +955,12 @@
 let videos = [];
 let currentChannel = JSON.parse(localStorage.getItem('ty_channel') || 'null');
 let currentVideoIndex = null;
-let currentView = 'home'; // home | trending | new | channel | search
+let currentView = 'home';
+
+// Tracks which video titles have been watched (persists across sessions)
+function getWatchedSet() { return new Set(JSON.parse(localStorage.getItem('ty_watched') || '[]')); }
+function markWatched(title) { const w = getWatchedSet(); w.add(title); localStorage.setItem('ty_watched', JSON.stringify([...w])); }
+function hasWatched(title) { return getWatchedSet().has(title); }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
 function getAccounts() { return JSON.parse(localStorage.getItem('ty_accounts') || '[]'); }
@@ -1108,7 +1148,61 @@ function doSearch() {
   renderSection(`Suchergebnisse für "${q}"`, filtered);
 }
 
-document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') { closeSuggestions(); doSearch(); } if (e.key === 'Escape') closeSuggestions(); });
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) { closeSuggestions(); return; }
+  const matches = videos.filter(v =>
+    v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q)
+  ).slice(0, 6);
+  showSuggestions(q, matches);
+});
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrapper')) closeSuggestions();
+});
+
+function showSuggestions(q, matches) {
+  const box = document.getElementById('searchSuggestions');
+  if (!matches.length) { closeSuggestions(); return; }
+  box.innerHTML = matches.map((v, i) => `
+    <div class="suggestion-item" onclick="pickSuggestion(${videos.indexOf(v)})">
+      <span class="s-icon">🔍</span>
+      <div style="flex:1;min-width:0">
+        <div class="s-text">${escHtml(highlight(v.title, q))}</div>
+        <div class="s-creator">${escHtml(v.creator)} · ${v.views} Aufrufe</div>
+      </div>
+    </div>
+  `).join('');
+  box.classList.add('open');
+}
+
+function highlight(text, q) {
+  // Wrap matching part in bold — safe because escHtml is called on the outer string
+  // We do it manually to avoid XSS
+  const lower = text.toLowerCase();
+  const i = lower.indexOf(q);
+  if (i === -1) return text;
+  return text.slice(0, i) + '【' + text.slice(i, i + q.length) + '】' + text.slice(i + q.length);
+}
+
+// After escHtml, replace 【】 markers with <strong>
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    .replace(/【/g, '<strong>').replace(/】/g, '</strong>');
+}
+
+function pickSuggestion(idx) {
+  closeSuggestions();
+  document.getElementById('searchInput').value = videos[idx]?.title || '';
+  playVideo(idx);
+}
+
+function closeSuggestions() {
+  document.getElementById('searchSuggestions').classList.remove('open');
+}
 
 // ─── CHIP / NAV HELPERS ───────────────────────────────────────────────────────
 function setChip(el) {
@@ -1130,9 +1224,13 @@ function playVideo(idx) {
     return;
   }
   currentVideoIndex = idx;
-  v.views++;
-  saveMetadata();
-  renderVideos(getRecommended());
+  // Only count one view per unique video (tracked by title as stable ID)
+  if (!hasWatched(v.title)) {
+    v.views++;
+    markWatched(v.title);
+    saveMetadata();
+    renderVideos(getRecommended());
+  }
 
   document.getElementById('videoTitle').textContent = v.title;
   document.getElementById('videoCreator').textContent = v.creator;
@@ -1357,10 +1455,7 @@ function deleteVideo(idx) {
   toast('Video gelöscht.');
 }
 
-// ─── UTILS ────────────────────────────────────────────────────────────────────
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
+// ─── UTILS (escHtml defined above with highlight support) ─────────────────────
 
 let toastTimer;
 function toast(msg) {
