@@ -944,7 +944,7 @@
       <div class="file-drop" onclick="document.getElementById('uploadFile').click()">
         <div class="file-drop-icon">🎬</div>
         <p><strong>Video auswählen</strong> oder hier ablegen</p>
-        <p style="margin-top:6px;font-size:12px;">MP4, WebM, MOV – max. 8 MB (lokal gespeichert, für alle sichtbar)</p>
+        <p style="margin-top:6px;font-size:12px;">MP4, WebM, MOV – max. 512 MB</p>
       </div>
       <input id="uploadFile" type="file" accept="video/*" style="display:none" onchange="onFileSelected()" />
       <div id="selectedFileName" style="font-size:13px;color:var(--text2);display:none;"></div>
@@ -961,6 +961,14 @@
           <img id="thumbPreview" style="display:none;height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;" />
         </div>
         <input id="uploadThumb" type="file" accept="image/*" style="display:none" onchange="onThumbSelected()" />
+      </div>
+
+      <!-- Progress bar -->
+      <div id="uploadProgress" style="display:none;">
+        <div style="font-size:13px;color:var(--text2);margin-bottom:6px;" id="uploadProgressText">Verarbeite…</div>
+        <div style="background:var(--bg4);border-radius:99px;height:8px;overflow:hidden;">
+          <div id="uploadProgressBar" style="height:100%;width:0%;background:var(--yt-red);border-radius:99px;transition:width 0.2s ease;"></div>
+        </div>
       </div>
 
       <button class="btn-red" onclick="uploadVideo()">⬆ Video hochladen</button>
@@ -985,24 +993,67 @@ function markWatched(id) { const w = getWatchedSet(); w.add(id); localStorage.se
 function hasWatched(id) { return getWatchedSet().has(id); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
+// ─── INDEXEDDB — video blobs stored here, not in localStorage ────────────────
+// Metadata (title, views, likes etc.) stays in localStorage (tiny).
+// The actual video File/Blob goes into IndexedDB which supports gigabytes.
+
+const DB_NAME = 'tubeyou_db';
+const DB_VER  = 1;
+const STORE   = 'videos';
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    if (db) { resolve(db); return; }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      e.target.result.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = e => { db = e.target.result; resolve(db); };
+    req.onerror   = e => reject(e.target.error);
+  });
+}
+
+function dbPut(id, blob) {
+  return openDB().then(d => new Promise((res, rej) => {
+    const tx = d.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).put({ id, blob });
+    tx.oncomplete = res;
+    tx.onerror = e => rej(e.target.error);
+  }));
+}
+
+function dbGet(id) {
+  return openDB().then(d => new Promise((res, rej) => {
+    const req = d.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+    req.onsuccess = e => res(e.target.result?.blob || null);
+    req.onerror   = e => rej(e.target.error);
+  }));
+}
+
+function dbDelete(id) {
+  return openDB().then(d => new Promise((res, rej) => {
+    const tx = d.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = res;
+    tx.onerror = e => rej(e.target.error);
+  }));
+}
+
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
 function getAccounts() { return JSON.parse(localStorage.getItem('ty_accounts') || '[]'); }
 function saveAccounts(arr) { localStorage.setItem('ty_accounts', JSON.stringify(arr)); }
 function getMetadata() { return JSON.parse(localStorage.getItem('ty_metadata') || '[]'); }
 
 function saveMetadata() {
+  // Never store the blob/URL in localStorage — only lightweight metadata
   const meta = videos.map(v => ({
     id: v.id, title: v.title, desc: v.desc || '', creator: v.creator, views: v.views,
     likes: v.likes, dislikes: v.dislikes, thumbnail: v.thumbnail,
     category: v.category || 'Sonstiges', uploadedAt: v.uploadedAt || Date.now(),
-    score: v.score || 0,
-    video: v.video || null   // base64 data URL stored here
+    score: v.score || 0
   }));
-  try {
-    localStorage.setItem('ty_metadata', JSON.stringify(meta));
-  } catch(e) {
-    toast('⚠️ Speicher voll! Lösche alte Videos um Platz zu schaffen.');
-  }
+  localStorage.setItem('ty_metadata', JSON.stringify(meta));
   localStorage.setItem('ty_channel', JSON.stringify(currentChannel));
 }
 
@@ -1248,13 +1299,25 @@ function setActiveNav(el) {
 }
 
 // ─── VIDEO PLAYER ─────────────────────────────────────────────────────────────
-function playVideo(idx) {
+async function playVideo(idx) {
   const v = videos[idx];
   if (!v) return;
+
+  // If blob URL expired (page reload), reload from IndexedDB
   if (!v.video) {
-    toast('Dieses Video hat keine abspielbare Datei (älterer Upload). Bitte erneut hochladen.');
-    return;
+    try {
+      const blob = await dbGet(v.id);
+      if (!blob) {
+        toast('Video nicht mehr im Speicher. Bitte erneut hochladen.');
+        return;
+      }
+      v.video = URL.createObjectURL(blob);
+    } catch(e) {
+      toast('Fehler beim Laden des Videos.');
+      return;
+    }
   }
+
   currentVideoIndex = idx;
   // Count only one view per unique video ID per browser (persists across sessions)
   if (!hasWatched(v.id)) {
@@ -1391,9 +1454,11 @@ function deleteChannel() {
   if (!confirm(`Kanal "${currentChannel.name}" und alle Videos wirklich löschen?`)) return;
   const accounts = getAccounts().filter(a => a.username !== currentChannel.name);
   saveAccounts(accounts);
+  const toDelete = videos.filter(v => v.creator === currentChannel.name).map(v => v.id);
   for (let i = videos.length - 1; i >= 0; i--) {
     if (videos[i].creator === currentChannel.name) videos.splice(i, 1);
   }
+  toDelete.forEach(id => dbDelete(id).catch(() => {}));
   currentChannel = null;
   localStorage.removeItem('ty_channel');
   saveMetadata();
@@ -1467,97 +1532,116 @@ function uploadVideo() {
   if (!title) { toast('Bitte einen Titel eingeben.'); return; }
   if (!file)  { toast('Bitte ein Video auswählen.'); return; }
   if (!file.type.startsWith('video/')) { toast('Nur Videodateien erlaubt.'); return; }
-  if (file.size > 8 * 1024 * 1024) {
-    toast('Video zu groß! Max. 8 MB (für lokale Speicherung). Kleinere Clips oder niedrigere Auflösung nutzen.');
-    return;
-  }
+  if (file.size > 512 * 1024 * 1024) { toast('Video zu groß! Max. 512 MB.'); return; }
   if (thumbFile && !thumbFile.type.startsWith('image/')) { toast('Thumbnail muss ein Bild sein.'); return; }
 
-  // Show uploading state
   const btn = document.querySelector('#uploadModal .btn-red');
-  btn.textContent = '⏳ Wird verarbeitet…';
+  const progressWrap = document.getElementById('uploadProgress');
+  const progressBar  = document.getElementById('uploadProgressBar');
+  const progressText = document.getElementById('uploadProgressText');
+
   btn.disabled = true;
+  progressWrap.style.display = '';
 
-  const videoId = genId();
+  const videoId  = genId();
+  const blobURL  = URL.createObjectURL(file);
 
-  // Read video file as base64
-  const videoReader = new FileReader();
-  videoReader.onload = (ve) => {
-    const videoDataUrl = ve.target.result;
-
-    const finalize = (thumbDataUrl) => {
-      videos.unshift({
-        id: videoId, title, desc,
-        creator: currentChannel.name,
-        views: 0, likes: 0, dislikes: 0,
-        thumbnail: thumbDataUrl,
-        video: videoDataUrl,          // base64 — persists in localStorage
-        category: category || 'Sonstiges',
-        uploadedAt: Date.now()
-      });
-      saveMetadata();
-      renderVideos(getRecommended());
-      closeUploadModal();
-      btn.textContent = '⬆ Video hochladen';
+  const finalize = async (thumbDataUrl) => {
+    progressText.textContent = 'Wird gespeichert…';
+    progressBar.style.width = '95%';
+    try {
+      // Store the raw File blob in IndexedDB
+      await dbPut(videoId, file);
+    } catch(e) {
+      toast('❌ IndexedDB-Fehler: ' + e.message);
       btn.disabled = false;
-      document.getElementById('uploadTitle').value = '';
-      document.getElementById('uploadDesc').value = '';
-      document.getElementById('uploadCategory').value = '';
-      document.getElementById('uploadFile').value = '';
-      document.getElementById('uploadThumb').value = '';
-      document.getElementById('selectedFileName').style.display = 'none';
-      document.getElementById('thumbPreview').style.display = 'none';
-      toast('✅ Video hochgeladen – jetzt für alle sichtbar!');
-    };
-
-    if (thumbFile) {
-      const tr = new FileReader();
-      tr.onload = e => finalize(e.target.result);
-      tr.readAsDataURL(thumbFile);
-    } else {
-      // Auto-capture frame at 25% of video duration
-      captureVideoFrame(videoDataUrl, (dataUrl) => {
-        finalize(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`);
-      });
+      progressWrap.style.display = 'none';
+      URL.revokeObjectURL(blobURL);
+      return;
     }
-  };
-  videoReader.onerror = () => {
-    btn.textContent = '⬆ Video hochladen';
+
+    videos.unshift({
+      id: videoId, title, desc,
+      creator: currentChannel.name,
+      views: 0, likes: 0, dislikes: 0,
+      thumbnail: thumbDataUrl,
+      video: blobURL,   // live blob URL for this session
+      category: category || 'Sonstiges',
+      uploadedAt: Date.now()
+    });
+
+    saveMetadata();
+    renderVideos(getRecommended());
+    closeUploadModal();
+
     btn.disabled = false;
-    toast('❌ Fehler beim Lesen der Datei.');
+    progressWrap.style.display = 'none';
+    progressBar.style.width = '0%';
+
+    document.getElementById('uploadTitle').value = '';
+    document.getElementById('uploadDesc').value = '';
+    document.getElementById('uploadCategory').value = '';
+    document.getElementById('uploadFile').value = '';
+    document.getElementById('uploadThumb').value = '';
+    document.getElementById('selectedFileName').style.display = 'none';
+    document.getElementById('thumbPreview').style.display = 'none';
+    toast('✅ Video hochgeladen – jetzt für alle sichtbar!');
   };
-  videoReader.readAsDataURL(file);
+
+  // Simulate progress while thumbnail is being generated
+  let prog = 0;
+  const progInterval = setInterval(() => {
+    prog = Math.min(prog + Math.random() * 8, 88);
+    progressBar.style.width = prog + '%';
+    progressText.textContent = `Verarbeite… ${Math.round(prog)}%`;
+  }, 200);
+
+  const afterThumb = (thumbDataUrl) => {
+    clearInterval(progInterval);
+    progressBar.style.width = '90%';
+    finalize(thumbDataUrl);
+  };
+
+  if (thumbFile) {
+    const tr = new FileReader();
+    tr.onload = e => afterThumb(e.target.result);
+    tr.readAsDataURL(thumbFile);
+  } else {
+    captureVideoFrame(blobURL, (dataUrl) => {
+      afterThumb(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`);
+    });
+  }
 }
 
 function captureVideoFrame(src, callback) {
   const vid = document.createElement('video');
-  vid.crossOrigin = 'anonymous';
   vid.muted = true;
   vid.preload = 'metadata';
   vid.src = src;
+  let done = false;
+  const finish = (result) => { if (!done) { done = true; callback(result); } };
   vid.addEventListener('loadedmetadata', () => {
-    // Seek to 25% of the video
-    vid.currentTime = Math.min(vid.duration * 0.25, vid.duration - 0.1);
+    vid.currentTime = Math.max(0, Math.min(vid.duration * 0.25, vid.duration - 0.1));
   });
   vid.addEventListener('seeked', () => {
     try {
       const canvas = document.createElement('canvas');
       canvas.width = 640; canvas.height = 360;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(vid, 0, 0, 640, 360);
-      callback(canvas.toDataURL('image/jpeg', 0.85));
-    } catch(e) {
-      callback(null);
-    }
+      canvas.getContext('2d').drawImage(vid, 0, 0, 640, 360);
+      finish(canvas.toDataURL('image/jpeg', 0.82));
+    } catch(e) { finish(null); }
   });
-  vid.addEventListener('error', () => callback(null));
+  vid.addEventListener('error', () => finish(null));
+  setTimeout(() => finish(null), 8000); // fallback timeout
 }
 
 // ─── DELETE VIDEO ─────────────────────────────────────────────────────────────
-function deleteVideo(idx) {
+async function deleteVideo(idx) {
   if (!confirm('Dieses Video wirklich löschen?')) return;
+  const id = videos[idx].id;
   videos.splice(idx, 1);
   saveMetadata();
+  try { await dbDelete(id); } catch(e) {}
   renderVideos(getRecommended());
   showMyChannel();
   toast('Video gelöscht.');
@@ -1577,8 +1661,8 @@ function toast(msg) {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (function init() {
   const meta = getMetadata();
-  meta.forEach(v => videos.push({ ...v, id: v.id || genId() }));
-  // v.video is now the stored base64 data URL (or null for very old entries)
+  // video blob is NOT in localStorage — loaded lazily from IndexedDB when played
+  meta.forEach(v => videos.push({ ...v, id: v.id || genId(), video: null }));
   updateHeaderAuth();
   renderVideos(getRecommended());
 })();
