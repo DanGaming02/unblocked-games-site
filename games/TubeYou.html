@@ -994,50 +994,77 @@ function hasWatched(id) { return getWatchedSet().has(id); }
 function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 // ─── INDEXEDDB — video blobs stored here, not in localStorage ────────────────
-// Metadata (title, views, likes etc.) stays in localStorage (tiny).
-// The actual video File/Blob goes into IndexedDB which supports gigabytes.
+// Falls back to in-memory Map when IndexedDB is unavailable (e.g. file:// protocol).
+// createObjectURL handles any file size — no base64 conversion needed.
 
 const DB_NAME = 'tubeyou_db';
 const DB_VER  = 1;
 const STORE   = 'videos';
 let db = null;
+let dbAvailable = true;
+
+// In-memory fallback (survives tab session even without IndexedDB)
+const blobMemory = new Map(); // id → File/Blob
 
 function openDB() {
   return new Promise((resolve, reject) => {
+    if (!dbAvailable) { reject(new Error('IDB unavailable')); return; }
     if (db) { resolve(db); return; }
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = e => {
-      e.target.result.createObjectStore(STORE, { keyPath: 'id' });
-    };
-    req.onsuccess = e => { db = e.target.result; resolve(db); };
-    req.onerror   = e => reject(e.target.error);
+    try {
+      const req = indexedDB.open(DB_NAME, DB_VER);
+      req.onupgradeneeded = e => {
+        e.target.result.createObjectStore(STORE, { keyPath: 'id' });
+      };
+      req.onsuccess = e => { db = e.target.result; resolve(db); };
+      req.onerror   = e => { dbAvailable = false; reject(e.target.error); };
+      req.onblocked = () => { dbAvailable = false; reject(new Error('IDB blocked')); };
+    } catch(e) { dbAvailable = false; reject(e); }
   });
 }
 
-function dbPut(id, blob) {
-  return openDB().then(d => new Promise((res, rej) => {
-    const tx = d.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put({ id, blob });
-    tx.oncomplete = res;
-    tx.onerror = e => rej(e.target.error);
-  }));
+async function dbPut(id, blob) {
+  blobMemory.set(id, blob); // always store in memory too
+  try {
+    const d = await openDB();
+    await new Promise((res, rej) => {
+      const tx = d.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put({ id, blob });
+      tx.oncomplete = res;
+      tx.onerror = e => rej(e.target.error);
+    });
+  } catch(e) {
+    // IndexedDB failed (file://) — memory fallback already set, that's fine
+  }
 }
 
-function dbGet(id) {
-  return openDB().then(d => new Promise((res, rej) => {
-    const req = d.transaction(STORE, 'readonly').objectStore(STORE).get(id);
-    req.onsuccess = e => res(e.target.result?.blob || null);
-    req.onerror   = e => rej(e.target.error);
-  }));
+async function dbGet(id) {
+  // Check memory first (fastest, always works)
+  if (blobMemory.has(id)) return blobMemory.get(id);
+  try {
+    const d = await openDB();
+    const blob = await new Promise((res, rej) => {
+      const req = d.transaction(STORE, 'readonly').objectStore(STORE).get(id);
+      req.onsuccess = e => res(e.target.result?.blob || null);
+      req.onerror   = e => rej(e.target.error);
+    });
+    if (blob) blobMemory.set(id, blob); // cache it
+    return blob;
+  } catch(e) {
+    return null;
+  }
 }
 
-function dbDelete(id) {
-  return openDB().then(d => new Promise((res, rej) => {
-    const tx = d.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete(id);
-    tx.oncomplete = res;
-    tx.onerror = e => rej(e.target.error);
-  }));
+async function dbDelete(id) {
+  blobMemory.delete(id);
+  try {
+    const d = await openDB();
+    await new Promise((res, rej) => {
+      const tx = d.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(id);
+      tx.oncomplete = res;
+      tx.onerror = e => rej(e.target.error);
+    });
+  } catch(e) {}
 }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
@@ -1303,19 +1330,15 @@ async function playVideo(idx) {
   const v = videos[idx];
   if (!v) return;
 
-  // If blob URL expired (page reload), reload from IndexedDB
+  // If blob URL not in memory, try to restore from IndexedDB
   if (!v.video) {
-    try {
-      const blob = await dbGet(v.id);
-      if (!blob) {
-        toast('Video nicht mehr im Speicher. Bitte erneut hochladen.');
-        return;
-      }
-      v.video = URL.createObjectURL(blob);
-    } catch(e) {
-      toast('Fehler beim Laden des Videos.');
+    toast('⏳ Video wird geladen…');
+    const blob = await dbGet(v.id);
+    if (!blob) {
+      toast('❌ Video nicht mehr verfügbar. Bitte erneut hochladen.');
       return;
     }
+    v.video = URL.createObjectURL(blob);
   }
 
   currentVideoIndex = idx;
@@ -1535,7 +1558,7 @@ function uploadVideo() {
   if (file.size > 512 * 1024 * 1024) { toast('Video zu groß! Max. 512 MB.'); return; }
   if (thumbFile && !thumbFile.type.startsWith('image/')) { toast('Thumbnail muss ein Bild sein.'); return; }
 
-  const btn = document.querySelector('#uploadModal .btn-red');
+  const btn          = document.querySelector('#uploadModal .btn-red');
   const progressWrap = document.getElementById('uploadProgress');
   const progressBar  = document.getElementById('uploadProgressBar');
   const progressText = document.getElementById('uploadProgressText');
@@ -1544,28 +1567,21 @@ function uploadVideo() {
   progressWrap.style.display = '';
 
   const videoId  = genId();
-  const blobURL  = URL.createObjectURL(file);
+  const blobURL  = URL.createObjectURL(file); // works for any file size, no conversion
 
   const finalize = async (thumbDataUrl) => {
     progressText.textContent = 'Wird gespeichert…';
     progressBar.style.width = '95%';
-    try {
-      // Store the raw File blob in IndexedDB
-      await dbPut(videoId, file);
-    } catch(e) {
-      toast('❌ IndexedDB-Fehler: ' + e.message);
-      btn.disabled = false;
-      progressWrap.style.display = 'none';
-      URL.revokeObjectURL(blobURL);
-      return;
-    }
+
+    // Store raw File blob (async, fails silently on file://)
+    await dbPut(videoId, file);
 
     videos.unshift({
       id: videoId, title, desc,
       creator: currentChannel.name,
       views: 0, likes: 0, dislikes: 0,
       thumbnail: thumbDataUrl,
-      video: blobURL,   // live blob URL for this session
+      video: blobURL,
       category: category || 'Sonstiges',
       uploadedAt: Date.now()
     });
@@ -1585,19 +1601,19 @@ function uploadVideo() {
     document.getElementById('uploadThumb').value = '';
     document.getElementById('selectedFileName').style.display = 'none';
     document.getElementById('thumbPreview').style.display = 'none';
-    toast('✅ Video hochgeladen – jetzt für alle sichtbar!');
+    toast('✅ Video hochgeladen!');
   };
 
-  // Simulate progress while thumbnail is being generated
+  // Animate progress bar while thumbnail is being prepared
   let prog = 0;
-  const progInterval = setInterval(() => {
-    prog = Math.min(prog + Math.random() * 8, 88);
+  const iv = setInterval(() => {
+    prog = Math.min(prog + Math.random() * 12, 88);
     progressBar.style.width = prog + '%';
     progressText.textContent = `Verarbeite… ${Math.round(prog)}%`;
-  }, 200);
+  }, 150);
 
   const afterThumb = (thumbDataUrl) => {
-    clearInterval(progInterval);
+    clearInterval(iv);
     progressBar.style.width = '90%';
     finalize(thumbDataUrl);
   };
@@ -1607,9 +1623,9 @@ function uploadVideo() {
     tr.onload = e => afterThumb(e.target.result);
     tr.readAsDataURL(thumbFile);
   } else {
-    captureVideoFrame(blobURL, (dataUrl) => {
-      afterThumb(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`);
-    });
+    captureVideoFrame(blobURL, dataUrl =>
+      afterThumb(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`)
+    );
   }
 }
 
