@@ -117,7 +117,7 @@
 
     .search-suggestions {
       position: absolute;
-      top: calc(100% + 4px);
+      top: 44px;
       left: 0;
       right: 0;
       background: var(--bg2);
@@ -146,7 +146,7 @@
     .suggestion-item .s-text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .suggestion-item .s-creator { font-size: 12px; color: var(--text3); }
 
-    .search-wrapper { position: relative; flex: 1; max-width: 600px; display: flex; flex-direction: column; }
+    .search-wrapper { position: relative; flex: 1; max-width: 600px; display: flex; align-items: center; }
 
     .header-actions {
       display: flex;
@@ -879,7 +879,10 @@
     </div>
     <video id="mainVideo" controls autoplay></video>
     <div class="modal-footer">
-      <p>Von <strong id="videoCreator"></strong> · <span id="videoViews"></span> Aufrufe</p>
+      <div>
+        <p>Von <strong id="videoCreator"></strong> · <span id="videoViews"></span> Aufrufe</p>
+        <p id="videoDesc" style="font-size:13px;color:var(--text3);margin-top:4px;max-width:560px;line-height:1.5;"></p>
+      </div>
       <div class="like-dislike">
         <button class="ld-btn" id="likeBtn" onclick="likeCurrentVideo()">👍 <span id="likeCount">0</span></button>
         <button class="ld-btn" id="dislikeBtn" onclick="dislikeCurrentVideo()">👎 <span id="dislikeCount">0</span></button>
@@ -925,7 +928,8 @@
       <button class="btn-close" onclick="closeUploadModal()">✕</button>
     </div>
     <div class="upload-modal-body">
-      <input id="uploadTitle" type="text" placeholder="Videotitel" />
+      <input id="uploadTitle" type="text" placeholder="Videotitel *" />
+      <textarea id="uploadDesc" placeholder="Beschreibung (optional)" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:8px;font-size:14px;font-family:inherit;outline:none;resize:vertical;min-height:72px;line-height:1.5;"></textarea>
       <select id="uploadCategory" style="background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:12px 16px;border-radius:8px;font-size:15px;font-family:inherit;outline:none;cursor:pointer;">
         <option value="">Kategorie wählen</option>
         <option value="Gaming">🎮 Gaming</option>
@@ -935,13 +939,30 @@
         <option value="Bildung">📚 Bildung</option>
         <option value="Sonstiges">📦 Sonstiges</option>
       </select>
+
+      <!-- Video file -->
       <div class="file-drop" onclick="document.getElementById('uploadFile').click()">
         <div class="file-drop-icon">🎬</div>
-        <p><strong>Datei auswählen</strong> oder hier ablegen</p>
+        <p><strong>Video auswählen</strong> oder hier ablegen</p>
         <p style="margin-top:6px;font-size:12px;">MP4, WebM, MOV – max. 500 MB</p>
       </div>
       <input id="uploadFile" type="file" accept="video/*" style="display:none" onchange="onFileSelected()" />
       <div id="selectedFileName" style="font-size:13px;color:var(--text2);display:none;"></div>
+
+      <!-- Thumbnail -->
+      <div style="border:1px solid var(--border);border-radius:8px;padding:14px;background:var(--bg3);">
+        <div style="font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+          🖼️ Thumbnail <span style="color:var(--text3);font-weight:400;">(optional – sonst wird automatisch ein Bild aus dem Video erstellt)</span>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;">
+          <button onclick="document.getElementById('uploadThumb').click()" style="background:var(--bg4);border:1px dashed var(--border);color:var(--text);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;">
+            📁 Bild hochladen
+          </button>
+          <img id="thumbPreview" style="display:none;height:80px;border-radius:6px;border:1px solid var(--border);object-fit:cover;" />
+        </div>
+        <input id="uploadThumb" type="file" accept="image/*" style="display:none" onchange="onThumbSelected()" />
+      </div>
+
       <button class="btn-red" onclick="uploadVideo()">⬆ Video hochladen</button>
     </div>
   </div>
@@ -957,10 +978,12 @@ let currentChannel = JSON.parse(localStorage.getItem('ty_channel') || 'null');
 let currentVideoIndex = null;
 let currentView = 'home';
 
-// Tracks which video titles have been watched (persists across sessions)
+// Each video gets a stable unique ID at upload time, stored in metadata.
+// Views are tracked by ID so the same user can never inflate views by re-watching.
 function getWatchedSet() { return new Set(JSON.parse(localStorage.getItem('ty_watched') || '[]')); }
-function markWatched(title) { const w = getWatchedSet(); w.add(title); localStorage.setItem('ty_watched', JSON.stringify([...w])); }
-function hasWatched(title) { return getWatchedSet().has(title); }
+function markWatched(id) { const w = getWatchedSet(); w.add(id); localStorage.setItem('ty_watched', JSON.stringify([...w])); }
+function hasWatched(id) { return getWatchedSet().has(id); }
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 // ─── PERSISTENCE ─────────────────────────────────────────────────────────────
 function getAccounts() { return JSON.parse(localStorage.getItem('ty_accounts') || '[]'); }
@@ -969,7 +992,7 @@ function getMetadata() { return JSON.parse(localStorage.getItem('ty_metadata') |
 
 function saveMetadata() {
   const meta = videos.map(v => ({
-    title: v.title, creator: v.creator, views: v.views,
+    id: v.id, title: v.title, desc: v.desc || '', creator: v.creator, views: v.views,
     likes: v.likes, dislikes: v.dislikes, thumbnail: v.thumbnail,
     category: v.category || 'Sonstiges', uploadedAt: v.uploadedAt || Date.now(),
     score: v.score || 0
@@ -1166,15 +1189,19 @@ document.addEventListener('click', e => {
 function showSuggestions(q, matches) {
   const box = document.getElementById('searchSuggestions');
   if (!matches.length) { closeSuggestions(); return; }
-  box.innerHTML = matches.map((v, i) => `
-    <div class="suggestion-item" onclick="pickSuggestion(${videos.indexOf(v)})">
-      <span class="s-icon">🔍</span>
+  box.innerHTML = matches.map((v) => {
+    const idx = videos.indexOf(v);
+    const titleHL = escHtml(highlight(v.title, q));
+    const creatorHL = escHtml(highlight(v.creator, q));
+    return `
+    <div class="suggestion-item" onclick="pickSuggestion(${idx})">
+      <img src="${v.thumbnail}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;" />
       <div style="flex:1;min-width:0">
-        <div class="s-text">${escHtml(highlight(v.title, q))}</div>
-        <div class="s-creator">${escHtml(v.creator)} · ${v.views} Aufrufe</div>
+        <div class="s-text">${titleHL}</div>
+        <div class="s-creator">${creatorHL} · ${v.views} Aufrufe</div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   box.classList.add('open');
 }
 
@@ -1224,17 +1251,17 @@ function playVideo(idx) {
     return;
   }
   currentVideoIndex = idx;
-  // Only count one view per unique video (tracked by title as stable ID)
-  if (!hasWatched(v.title)) {
+  // Count only one view per unique video ID per browser (persists across sessions)
+  if (!hasWatched(v.id)) {
     v.views++;
-    markWatched(v.title);
+    markWatched(v.id);
     saveMetadata();
-    renderVideos(getRecommended());
   }
 
   document.getElementById('videoTitle').textContent = v.title;
   document.getElementById('videoCreator').textContent = v.creator;
   document.getElementById('videoViews').textContent = v.views;
+  document.getElementById('videoDesc').textContent = v.desc || '';
   document.getElementById('likeCount').textContent = v.likes;
   document.getElementById('dislikeCount').textContent = v.dislikes;
   document.getElementById('mainVideo').src = v.video;
@@ -1414,35 +1441,93 @@ function onFileSelected() {
   }
 }
 
+function onThumbSelected() {
+  const f = document.getElementById('uploadThumb').files[0];
+  const preview = document.getElementById('thumbPreview');
+  if (f) {
+    const reader = new FileReader();
+    reader.onload = e => { preview.src = e.target.result; preview.style.display = ''; };
+    reader.readAsDataURL(f);
+  }
+}
+
 function uploadVideo() {
   if (!currentChannel) { toast('Bitte zuerst anmelden.'); return; }
   const title = document.getElementById('uploadTitle').value.trim();
+  const desc  = document.getElementById('uploadDesc').value.trim();
   const category = document.getElementById('uploadCategory').value;
   const file = document.getElementById('uploadFile').files[0];
+  const thumbFile = document.getElementById('uploadThumb').files[0];
+
   if (!title) { toast('Bitte einen Titel eingeben.'); return; }
-  if (!file) { toast('Bitte ein Video auswählen.'); return; }
+  if (!file)  { toast('Bitte ein Video auswählen.'); return; }
   if (!file.type.startsWith('video/')) { toast('Nur Videodateien erlaubt.'); return; }
   if (file.size > 500 * 1024 * 1024) { toast('Video zu groß (max. 500 MB).'); return; }
+  if (thumbFile && !thumbFile.type.startsWith('image/')) { toast('Thumbnail muss ein Bild sein.'); return; }
 
   const objectURL = URL.createObjectURL(file);
-  videos.unshift({
-    title,
-    creator: currentChannel.name,
-    views: 0, likes: 0, dislikes: 0,
-    thumbnail: `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`,
-    video: objectURL,
-    category: category || 'Sonstiges',
-    uploadedAt: Date.now()
-  });
+  const videoId = genId();
 
-  saveMetadata();
-  renderVideos(getRecommended());
-  closeUploadModal();
-  document.getElementById('uploadTitle').value = '';
-  document.getElementById('uploadCategory').value = '';
-  document.getElementById('uploadFile').value = '';
-  document.getElementById('selectedFileName').style.display = 'none';
-  toast('✅ Video erfolgreich hochgeladen!');
+  const finalize = (thumbDataUrl) => {
+    videos.unshift({
+      id: videoId,
+      title, desc,
+      creator: currentChannel.name,
+      views: 0, likes: 0, dislikes: 0,
+      thumbnail: thumbDataUrl,
+      video: objectURL,
+      category: category || 'Sonstiges',
+      uploadedAt: Date.now()
+    });
+    saveMetadata();
+    renderVideos(getRecommended());
+    closeUploadModal();
+    // reset fields
+    document.getElementById('uploadTitle').value = '';
+    document.getElementById('uploadDesc').value = '';
+    document.getElementById('uploadCategory').value = '';
+    document.getElementById('uploadFile').value = '';
+    document.getElementById('uploadThumb').value = '';
+    document.getElementById('selectedFileName').style.display = 'none';
+    document.getElementById('thumbPreview').style.display = 'none';
+    toast('✅ Video erfolgreich hochgeladen!');
+  };
+
+  if (thumbFile) {
+    // User uploaded a custom thumbnail image
+    const reader = new FileReader();
+    reader.onload = e => finalize(e.target.result);
+    reader.readAsDataURL(thumbFile);
+  } else {
+    // Auto-capture a frame from the video at ~25% duration
+    captureVideoFrame(objectURL, (dataUrl) => {
+      finalize(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`);
+    });
+  }
+}
+
+function captureVideoFrame(src, callback) {
+  const vid = document.createElement('video');
+  vid.crossOrigin = 'anonymous';
+  vid.muted = true;
+  vid.preload = 'metadata';
+  vid.src = src;
+  vid.addEventListener('loadedmetadata', () => {
+    // Seek to 25% of the video
+    vid.currentTime = Math.min(vid.duration * 0.25, vid.duration - 0.1);
+  });
+  vid.addEventListener('seeked', () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 640; canvas.height = 360;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(vid, 0, 0, 640, 360);
+      callback(canvas.toDataURL('image/jpeg', 0.85));
+    } catch(e) {
+      callback(null);
+    }
+  });
+  vid.addEventListener('error', () => callback(null));
 }
 
 // ─── DELETE VIDEO ─────────────────────────────────────────────────────────────
@@ -1469,7 +1554,7 @@ function toast(msg) {
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 (function init() {
   const meta = getMetadata();
-  meta.forEach(v => videos.push({ ...v, video: null }));
+  meta.forEach(v => videos.push({ ...v, id: v.id || genId(), video: null }));
   updateHeaderAuth();
   renderVideos(getRecommended());
 })();
