@@ -979,709 +979,155 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<script>
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let videos = [];
-let currentChannel = JSON.parse(localStorage.getItem('ty_channel') || 'null');
-let currentVideoIndex = null;
-let currentView = 'home';
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-// Each video gets a stable unique ID at upload time, stored in metadata.
-// Views are tracked by ID so the same user can never inflate views by re-watching.
-function getWatchedSet() { return new Set(JSON.parse(localStorage.getItem('ty_watched') || '[]')); }
-function markWatched(id) { const w = getWatchedSet(); w.add(id); localStorage.setItem('ty_watched', JSON.stringify([...w])); }
-function hasWatched(id) { return getWatchedSet().has(id); }
-function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+// ─────────────────────────────────────────────────────────────
+// SUPABASE
+// ─────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'PASTE_YOUR_SUPABASE_URL_HERE'
+const SUPABASE_ANON_KEY = 'PASTE_YOUR_SUPABASE_ANON_KEY_HERE'
 
-// ─── INDEXEDDB — video blobs stored here, not in localStorage ────────────────
-// Falls back to in-memory Map when IndexedDB is unavailable (e.g. file:// protocol).
-// createObjectURL handles any file size — no base64 conversion needed.
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-const DB_NAME = 'tubeyou_db';
-const DB_VER  = 1;
-const STORE   = 'videos';
-let db = null;
-let dbAvailable = true;
+// ─────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────
+let videos = []
+let currentChannel = JSON.parse(localStorage.getItem('ty_channel') || 'null')
+let currentVideoIndex = null
 
-// In-memory fallback (survives tab session even without IndexedDB)
-const blobMemory = new Map(); // id → File/Blob
-
-function openDB() {
-  return new Promise((resolve, reject) => {
-    if (!dbAvailable) { reject(new Error('IDB unavailable')); return; }
-    if (db) { resolve(db); return; }
-    try {
-      const req = indexedDB.open(DB_NAME, DB_VER);
-      req.onupgradeneeded = e => {
-        e.target.result.createObjectStore(STORE, { keyPath: 'id' });
-      };
-      req.onsuccess = e => { db = e.target.result; resolve(db); };
-      req.onerror   = e => { dbAvailable = false; reject(e.target.error); };
-      req.onblocked = () => { dbAvailable = false; reject(new Error('IDB blocked')); };
-    } catch(e) { dbAvailable = false; reject(e); }
-  });
+// ─────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────
+function genId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2)
 }
 
-async function dbPut(id, blob) {
-  blobMemory.set(id, blob); // always store in memory too
-  try {
-    const d = await openDB();
-    await new Promise((res, rej) => {
-      const tx = d.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).put({ id, blob });
-      tx.oncomplete = res;
-      tx.onerror = e => rej(e.target.error);
-    });
-  } catch(e) {
-    // IndexedDB failed (file://) — memory fallback already set, that's fine
-  }
-}
-
-async function dbGet(id) {
-  // Check memory first (fastest, always works)
-  if (blobMemory.has(id)) return blobMemory.get(id);
-  try {
-    const d = await openDB();
-    const blob = await new Promise((res, rej) => {
-      const req = d.transaction(STORE, 'readonly').objectStore(STORE).get(id);
-      req.onsuccess = e => res(e.target.result?.blob || null);
-      req.onerror   = e => rej(e.target.error);
-    });
-    if (blob) blobMemory.set(id, blob); // cache it
-    return blob;
-  } catch(e) {
-    return null;
-  }
-}
-
-async function dbDelete(id) {
-  blobMemory.delete(id);
-  try {
-    const d = await openDB();
-    await new Promise((res, rej) => {
-      const tx = d.transaction(STORE, 'readwrite');
-      tx.objectStore(STORE).delete(id);
-      tx.oncomplete = res;
-      tx.onerror = e => rej(e.target.error);
-    });
-  } catch(e) {}
-}
-
-// ─── PERSISTENCE ─────────────────────────────────────────────────────────────
-function getAccounts() { return JSON.parse(localStorage.getItem('ty_accounts') || '[]'); }
-function saveAccounts(arr) { localStorage.setItem('ty_accounts', JSON.stringify(arr)); }
-function getMetadata() { return JSON.parse(localStorage.getItem('ty_metadata') || '[]'); }
-
-function saveMetadata() {
-  // Never store the blob/URL in localStorage — only lightweight metadata
-  const meta = videos.map(v => ({
-    id: v.id, title: v.title, desc: v.desc || '', creator: v.creator, views: v.views,
-    likes: v.likes, dislikes: v.dislikes, thumbnail: v.thumbnail,
-    category: v.category || 'Sonstiges', uploadedAt: v.uploadedAt || Date.now(),
-    score: v.score || 0
-  }));
-  localStorage.setItem('ty_metadata', JSON.stringify(meta));
-  localStorage.setItem('ty_channel', JSON.stringify(currentChannel));
-}
-
-// ─── ALGORITHM ───────────────────────────────────────────────────────────────
-// Score = (likes * 3) + (views * 1) - (dislikes * 2) + recency_bonus
-function calcScore(v) {
-  const ageHours = (Date.now() - (v.uploadedAt || Date.now())) / 3600000;
-  const recency = Math.max(0, 100 - ageHours * 0.5); // drops over time
-  return (v.likes * 3) + (v.views * 1) - (v.dislikes * 2) + recency;
-}
-
-function getRecommended() {
-  return [...videos]
-    .map(v => ({ ...v, score: calcScore(v) }))
-    .sort((a, b) => b.score - a.score);
-}
-
-function getTrending() {
-  return [...videos]
-    .sort((a, b) => b.views - a.views);
-}
-
-function getNew() {
-  return [...videos]
-    .sort((a, b) => (b.uploadedAt || 0) - (a.uploadedAt || 0));
-}
-
-// ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderVideos(list = getRecommended()) {
-  const grid = document.getElementById('videoGrid');
-  if (!list.length) {
-    grid.innerHTML = `<div class="empty-state">
-      <h2>Noch keine Videos</h2>
-      <p>Lade das erste Video auf TubeYou hoch!</p>
-    </div>`;
-    return;
-  }
-  grid.innerHTML = list.map((video, i) => {
-    const realIndex = videos.indexOf(video);
-    const idx = realIndex !== -1 ? realIndex : i;
-    return `
-    <div class="video-card" onclick="playVideo(${idx})">
-      <div class="video-thumbnail">
-        <img src="${video.thumbnail}" alt="${escHtml(video.title)}" loading="lazy" />
-        <div class="play-overlay"><div class="play-btn-overlay">▶</div></div>
-        <div class="duration-badge">video</div>
-      </div>
-      <div class="video-meta">
-        <div class="video-avatar">${video.creator.charAt(0).toUpperCase()}</div>
-        <div class="video-info">
-          <div class="video-title">${escHtml(video.title)}</div>
-          <div class="video-creator-name">${escHtml(video.creator)}</div>
-          <div class="video-stats">${video.views} Aufrufe · ${video.category || ''}</div>
-          <div class="video-actions" onclick="event.stopPropagation()">
-            <button class="video-action-btn" onclick="likeVideo(${idx})">👍 ${video.likes}</button>
-            <button class="video-action-btn" onclick="dislikeVideo(${idx})">👎 ${video.dislikes}</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ─── NAVIGATION ──────────────────────────────────────────────────────────────
-function showHome() {
-  currentView = 'home';
-  document.getElementById('chipsBar').style.display = '';
-  renderVideos(getRecommended());
-}
-
-function showTrending() {
-  currentView = 'trending';
-  document.getElementById('chipsBar').style.display = 'none';
-  renderSection('🔥 Trending', getTrending());
-}
-
-function showNew() {
-  currentView = 'new';
-  document.getElementById('chipsBar').style.display = 'none';
-  renderSection('🆕 Neu hochgeladen', getNew());
-}
-
-function filterCategory(cat) {
-  const filtered = getRecommended().filter(v => v.category === cat);
-  document.getElementById('chipsBar').style.display = '';
-  renderSection(`${cat}`, filtered);
-}
-
-function renderSection(title, list) {
-  const grid = document.getElementById('videoGrid');
-  grid.innerHTML = `<div class="section-header" style="grid-column:1/-1">${escHtml(title)}</div>`;
-  if (!list.length) {
-    grid.innerHTML += `<div class="empty-state" style="grid-column:1/-1"><h2>Keine Videos</h2><p>In dieser Kategorie gibt es noch nichts.</p></div>`;
-    return;
-  }
-  const tmp = document.createElement('div');
-  tmp.className = 'video-grid';
-  tmp.style.gridColumn = '1/-1';
-  tmp.innerHTML = list.map((video) => {
-    const idx = videos.indexOf(video);
-    return `
-    <div class="video-card" onclick="playVideo(${idx})">
-      <div class="video-thumbnail">
-        <img src="${video.thumbnail}" alt="${escHtml(video.title)}" loading="lazy" />
-        <div class="play-overlay"><div class="play-btn-overlay">▶</div></div>
-      </div>
-      <div class="video-meta">
-        <div class="video-avatar">${video.creator.charAt(0).toUpperCase()}</div>
-        <div class="video-info">
-          <div class="video-title">${escHtml(video.title)}</div>
-          <div class="video-creator-name">${escHtml(video.creator)}</div>
-          <div class="video-stats">${video.views} Aufrufe</div>
-          <div class="video-actions" onclick="event.stopPropagation()">
-            <button class="video-action-btn" onclick="likeVideo(${idx})">👍 ${video.likes}</button>
-            <button class="video-action-btn" onclick="dislikeVideo(${idx})">👎 ${video.dislikes}</button>
-          </div>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-  grid.innerHTML += tmp.outerHTML;
-}
-
-function showMyChannel() {
-  closeAccountMenu();
-  if (!currentChannel) { openAuthModal(); return; }
-  document.getElementById('chipsBar').style.display = 'none';
-  const myVideos = videos.filter(v => v.creator === currentChannel.name);
-  const grid = document.getElementById('videoGrid');
-  grid.innerHTML = `
-    <div style="grid-column:1/-1">
-      <div class="channel-page">
-        <div class="channel-banner"></div>
-        <div class="channel-profile">
-          <div class="channel-avatar-large">${currentChannel.name.charAt(0).toUpperCase()}</div>
-          <div class="channel-details">
-            <h2>${escHtml(currentChannel.name)}</h2>
-            <p>${myVideos.length} Videos · Mitglied seit ${new Date(currentChannel.createdAt).toLocaleDateString('de-DE')}</p>
-          </div>
-        </div>
-        <div class="section-header">Meine Videos</div>
-        ${myVideos.length === 0
-          ? '<p style="color:var(--text2)">Du hast noch keine Videos hochgeladen.</p>'
-          : '<div class="channel-video-grid">' + myVideos.map((v) => {
-              const idx = videos.indexOf(v);
-              return `
-              <div class="channel-video-item">
-                <img src="${v.thumbnail}" />
-                <div class="channel-video-item-info">
-                  <h4>${escHtml(v.title)}</h4>
-                  <p>${v.views} Aufrufe · 👍 ${v.likes} · 👎 ${v.dislikes}</p>
-                </div>
-                <div class="channel-video-actions">
-                  <button onclick="playVideo(${idx})">▶ Ansehen</button>
-                  <button class="danger" onclick="deleteVideo(${idx})">🗑️ Löschen</button>
-                </div>
-              </div>`;
-            }).join('') + '</div>'
-        }
-      </div>
-    </div>`;
-}
-
-function doSearch() {
-  const q = document.getElementById('searchInput').value.trim().toLowerCase();
-  if (!q) { showHome(); return; }
-  const filtered = videos.filter(v =>
-    v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q)
-  );
-  document.getElementById('chipsBar').style.display = 'none';
-  renderSection(`Suchergebnisse für "${q}"`, filtered);
-}
-
-document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') { closeSuggestions(); doSearch(); } if (e.key === 'Escape') closeSuggestions(); });
-
-document.getElementById('searchInput').addEventListener('input', e => {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) { closeSuggestions(); return; }
-  const matches = videos.filter(v =>
-    v.title.toLowerCase().includes(q) || v.creator.toLowerCase().includes(q)
-  ).slice(0, 6);
-  showSuggestions(q, matches);
-});
-
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-wrapper')) closeSuggestions();
-});
-
-function showSuggestions(q, matches) {
-  const box = document.getElementById('searchSuggestions');
-  if (!matches.length) { closeSuggestions(); return; }
-  box.innerHTML = matches.map((v) => {
-    const idx = videos.indexOf(v);
-    const titleHL = escHtml(highlight(v.title, q));
-    const creatorHL = escHtml(highlight(v.creator, q));
-    return `
-    <div class="suggestion-item" onclick="pickSuggestion(${idx})">
-      <img src="${v.thumbnail}" style="width:56px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0;" />
-      <div style="flex:1;min-width:0">
-        <div class="s-text">${titleHL}</div>
-        <div class="s-creator">${creatorHL} · ${v.views} Aufrufe</div>
-      </div>
-    </div>`;
-  }).join('');
-  box.classList.add('open');
-}
-
-function highlight(text, q) {
-  // Wrap matching part in bold — safe because escHtml is called on the outer string
-  // We do it manually to avoid XSS
-  const lower = text.toLowerCase();
-  const i = lower.indexOf(q);
-  if (i === -1) return text;
-  return text.slice(0, i) + '【' + text.slice(i, i + q.length) + '】' + text.slice(i + q.length);
-}
-
-// After escHtml, replace 【】 markers with <strong>
-function escHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-    .replace(/【/g, '<strong>').replace(/】/g, '</strong>');
-}
-
-function pickSuggestion(idx) {
-  closeSuggestions();
-  document.getElementById('searchInput').value = videos[idx]?.title || '';
-  playVideo(idx);
-}
-
-function closeSuggestions() {
-  document.getElementById('searchSuggestions').classList.remove('open');
-}
-
-// ─── CHIP / NAV HELPERS ───────────────────────────────────────────────────────
-function setChip(el) {
-  document.querySelectorAll('.chip').forEach(c => c.classList.add('inactive'));
-  el.classList.remove('inactive');
-}
-
-function setActiveNav(el) {
-  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
-  el.classList.add('active');
-}
-
-// ─── VIDEO PLAYER ─────────────────────────────────────────────────────────────
-async function playVideo(idx) {
-  const v = videos[idx];
-  if (!v) return;
-
-  // If blob URL not in memory, try to restore from IndexedDB
-  if (!v.video) {
-    toast('⏳ Video wird geladen…');
-    const blob = await dbGet(v.id);
-    if (!blob) {
-      toast('❌ Video nicht mehr verfügbar. Bitte erneut hochladen.');
-      return;
-    }
-    v.video = URL.createObjectURL(blob);
-  }
-
-  currentVideoIndex = idx;
-  // Count only one view per unique video ID per browser (persists across sessions)
-  if (!hasWatched(v.id)) {
-    v.views++;
-    markWatched(v.id);
-    saveMetadata();
-  }
-
-  document.getElementById('videoTitle').textContent = v.title;
-  document.getElementById('videoCreator').textContent = v.creator;
-  document.getElementById('videoViews').textContent = v.views;
-  document.getElementById('videoDesc').textContent = v.desc || '';
-  document.getElementById('likeCount').textContent = v.likes;
-  document.getElementById('dislikeCount').textContent = v.dislikes;
-  document.getElementById('mainVideo').src = v.video;
-  document.getElementById('videoModal').classList.add('open');
-  document.getElementById('mainVideo').play();
-}
-
-function closeVideo() {
-  document.getElementById('mainVideo').pause();
-  document.getElementById('videoModal').classList.remove('open');
-}
-
-function likeCurrentVideo() {
-  if (currentVideoIndex === null) return;
-  likeVideo(currentVideoIndex);
-  document.getElementById('likeCount').textContent = videos[currentVideoIndex].likes;
-  document.getElementById('dislikeCount').textContent = videos[currentVideoIndex].dislikes;
-}
-
-function dislikeCurrentVideo() {
-  if (currentVideoIndex === null) return;
-  dislikeVideo(currentVideoIndex);
-  document.getElementById('likeCount').textContent = videos[currentVideoIndex].likes;
-  document.getElementById('dislikeCount').textContent = videos[currentVideoIndex].dislikes;
-}
-
-// ─── LIKE / DISLIKE ───────────────────────────────────────────────────────────
-function getLiked() { return JSON.parse(localStorage.getItem('ty_liked') || '[]'); }
-function getDisliked() { return JSON.parse(localStorage.getItem('ty_disliked') || '[]'); }
-
-function likeVideo(idx) {
-  const liked = getLiked(), disliked = getDisliked();
-  if (liked.includes(idx)) return;
-  const di = disliked.indexOf(idx);
-  if (di !== -1) { disliked.splice(di, 1); if (videos[idx].dislikes > 0) videos[idx].dislikes--; }
-  videos[idx].likes++;
-  liked.push(idx);
-  localStorage.setItem('ty_liked', JSON.stringify(liked));
-  localStorage.setItem('ty_disliked', JSON.stringify(disliked));
-  saveMetadata();
-  renderVideos(getRecommended());
-  toast('👍 Gefällt dir!');
-}
-
-function dislikeVideo(idx) {
-  const liked = getLiked(), disliked = getDisliked();
-  if (disliked.includes(idx)) return;
-  const li = liked.indexOf(idx);
-  if (li !== -1) { liked.splice(li, 1); if (videos[idx].likes > 0) videos[idx].likes--; }
-  videos[idx].dislikes++;
-  disliked.push(idx);
-  localStorage.setItem('ty_liked', JSON.stringify(liked));
-  localStorage.setItem('ty_disliked', JSON.stringify(disliked));
-  saveMetadata();
-  renderVideos(getRecommended());
-}
-
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
-function openAuthModal() { document.getElementById('authModal').classList.add('open'); }
-function closeAuthModal() { document.getElementById('authModal').classList.remove('open'); }
-
-function switchTab(tab, el) {
-  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('formLogin').classList.toggle('hidden', tab !== 'login');
-  document.getElementById('formRegister').classList.toggle('hidden', tab !== 'register');
-}
-
-function createChannel() {
-  const username = document.getElementById('registerUsername').value.trim();
-  const pw = document.getElementById('registerPassword').value;
-  const pw2 = document.getElementById('registerPassword2').value;
-
-  if (!username || !pw) { toast('Benutzername und Passwort sind Pflichtfelder.'); return; }
-  if (pw !== pw2) { toast('Passwörter stimmen nicht überein.'); return; }
-  if (username.length < 3) { toast('Benutzername muss mindestens 3 Zeichen haben.'); return; }
-
-  const accounts = getAccounts();
-
-  // ─── DUPLICATE CHECK ──────────────────────────────────────────────
-  const exists = accounts.some(a => a.username.toLowerCase() === username.toLowerCase());
-  if (exists) {
-    toast(`❌ Der Benutzername "${username}" ist bereits vergeben. Bitte wähle einen anderen.`);
-    return;
-  }
-
-  const newAcc = { username, password: pw, createdAt: new Date().toISOString() };
-  accounts.push(newAcc);
-  saveAccounts(accounts);
-
-  currentChannel = { name: username, createdAt: newAcc.createdAt };
-  saveMetadata();
-  updateHeaderAuth();
-  closeAuthModal();
-  toast(`✅ Kanal "${username}" erstellt! Willkommen!`);
-}
-
-function loginChannel() {
-  const username = document.getElementById('loginUsername').value.trim();
-  const pw = document.getElementById('loginPassword').value;
-  const accounts = getAccounts();
-  const acc = accounts.find(a => a.username === username && a.password === pw);
-  if (!acc) { toast('❌ Falscher Benutzername oder Passwort.'); return; }
-  currentChannel = { name: acc.username, createdAt: acc.createdAt };
-  saveMetadata();
-  updateHeaderAuth();
-  closeAuthModal();
-  toast(`👋 Willkommen zurück, ${acc.username}!`);
-}
-
-function logoutChannel() {
-  closeAccountMenu();
-  currentChannel = null;
-  localStorage.removeItem('ty_channel');
-  updateHeaderAuth();
-  toast('Abgemeldet.');
-}
-
-function deleteChannel() {
-  closeAccountMenu();
-  if (!currentChannel) return;
-  if (!confirm(`Kanal "${currentChannel.name}" und alle Videos wirklich löschen?`)) return;
-  const accounts = getAccounts().filter(a => a.username !== currentChannel.name);
-  saveAccounts(accounts);
-  const toDelete = videos.filter(v => v.creator === currentChannel.name).map(v => v.id);
-  for (let i = videos.length - 1; i >= 0; i--) {
-    if (videos[i].creator === currentChannel.name) videos.splice(i, 1);
-  }
-  toDelete.forEach(id => dbDelete(id).catch(() => {}));
-  currentChannel = null;
-  localStorage.removeItem('ty_channel');
-  saveMetadata();
-  updateHeaderAuth();
-  renderVideos(getRecommended());
-  toast('Kanal gelöscht.');
-}
-
-function toggleAccountMenu() {
-  document.getElementById('accountMenu').classList.toggle('open');
-}
-function closeAccountMenu() {
-  document.getElementById('accountMenu').classList.remove('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('#accountMenu') && !e.target.closest('#btnAvatar')) closeAccountMenu();
-  if (!e.target.closest('#authModal') && e.target === document.getElementById('authModal')) closeAuthModal();
-  if (!e.target.closest('.modal') && e.target === document.getElementById('videoModal')) closeVideo();
-  if (!e.target.closest('.upload-modal') && e.target === document.getElementById('uploadModal')) closeUploadModal();
-});
-
-function updateHeaderAuth() {
-  const btnLogin = document.getElementById('btnLogin');
-  const btnAvatar = document.getElementById('btnAvatar');
-  const menuUsername = document.getElementById('menuUsername');
-  if (currentChannel) {
-    btnLogin.style.display = 'none';
-    btnAvatar.style.display = 'flex';
-    btnAvatar.textContent = currentChannel.name.charAt(0).toUpperCase();
-    menuUsername.textContent = currentChannel.name;
-  } else {
-    btnLogin.style.display = '';
-    btnAvatar.style.display = 'none';
-  }
-}
-
-// ─── UPLOAD ───────────────────────────────────────────────────────────────────
-function openUploadModal() {
-  if (!currentChannel) { openAuthModal(); return; }
-  document.getElementById('uploadModal').classList.add('open');
-}
-function closeUploadModal() { document.getElementById('uploadModal').classList.remove('open'); }
-
-function onFileSelected() {
-  const f = document.getElementById('uploadFile').files[0];
-  const el = document.getElementById('selectedFileName');
-  if (f) {
-    el.textContent = `📎 ${f.name} (${(f.size/1024/1024).toFixed(1)} MB)`;
-    el.style.display = '';
-  }
-}
-
-function onThumbSelected() {
-  const f = document.getElementById('uploadThumb').files[0];
-  const preview = document.getElementById('thumbPreview');
-  if (f) {
-    const reader = new FileReader();
-    reader.onload = e => { preview.src = e.target.result; preview.style.display = ''; };
-    reader.readAsDataURL(f);
-  }
-}
-
-function uploadVideo() {
-  if (!currentChannel) { toast('Bitte zuerst anmelden.'); return; }
-  const title    = document.getElementById('uploadTitle').value.trim();
-  const desc     = document.getElementById('uploadDesc').value.trim();
-  const category = document.getElementById('uploadCategory').value;
-  const file     = document.getElementById('uploadFile').files[0];
-  const thumbFile= document.getElementById('uploadThumb').files[0];
-
-  if (!title) { toast('Bitte einen Titel eingeben.'); return; }
-  if (!file)  { toast('Bitte ein Video auswählen.'); return; }
-  if (!file.type.startsWith('video/')) { toast('Nur Videodateien erlaubt.'); return; }
-  if (file.size > 512 * 1024 * 1024) { toast('Video zu groß! Max. 512 MB.'); return; }
-  if (thumbFile && !thumbFile.type.startsWith('image/')) { toast('Thumbnail muss ein Bild sein.'); return; }
-
-  const btn          = document.querySelector('#uploadModal .btn-red');
-  const progressWrap = document.getElementById('uploadProgress');
-  const progressBar  = document.getElementById('uploadProgressBar');
-  const progressText = document.getElementById('uploadProgressText');
-
-  btn.disabled = true;
-  progressWrap.style.display = '';
-
-  const videoId  = genId();
-  const blobURL  = URL.createObjectURL(file); // works for any file size, no conversion
-
-  const finalize = async (thumbDataUrl) => {
-    progressText.textContent = 'Wird gespeichert…';
-    progressBar.style.width = '95%';
-
-    // Store raw File blob (async, fails silently on file://)
-    await dbPut(videoId, file);
-
-    videos.unshift({
-      id: videoId, title, desc,
-      creator: currentChannel.name,
-      views: 0, likes: 0, dislikes: 0,
-      thumbnail: thumbDataUrl,
-      video: blobURL,
-      category: category || 'Sonstiges',
-      uploadedAt: Date.now()
-    });
-
-    saveMetadata();
-    renderVideos(getRecommended());
-    closeUploadModal();
-
-    btn.disabled = false;
-    progressWrap.style.display = 'none';
-    progressBar.style.width = '0%';
-
-    document.getElementById('uploadTitle').value = '';
-    document.getElementById('uploadDesc').value = '';
-    document.getElementById('uploadCategory').value = '';
-    document.getElementById('uploadFile').value = '';
-    document.getElementById('uploadThumb').value = '';
-    document.getElementById('selectedFileName').style.display = 'none';
-    document.getElementById('thumbPreview').style.display = 'none';
-    toast('✅ Video hochgeladen!');
-  };
-
-  // Animate progress bar while thumbnail is being prepared
-  let prog = 0;
-  const iv = setInterval(() => {
-    prog = Math.min(prog + Math.random() * 12, 88);
-    progressBar.style.width = prog + '%';
-    progressText.textContent = `Verarbeite… ${Math.round(prog)}%`;
-  }, 150);
-
-  const afterThumb = (thumbDataUrl) => {
-    clearInterval(iv);
-    progressBar.style.width = '90%';
-    finalize(thumbDataUrl);
-  };
-
-  if (thumbFile) {
-    const tr = new FileReader();
-    tr.onload = e => afterThumb(e.target.result);
-    tr.readAsDataURL(thumbFile);
-  } else {
-    captureVideoFrame(blobURL, dataUrl =>
-      afterThumb(dataUrl || `https://placehold.co/640x360/212121/ffffff?text=${encodeURIComponent(title)}`)
-    );
-  }
-}
-
-function captureVideoFrame(src, callback) {
-  const vid = document.createElement('video');
-  vid.muted = true;
-  vid.preload = 'metadata';
-  vid.src = src;
-  let done = false;
-  const finish = (result) => { if (!done) { done = true; callback(result); } };
-  vid.addEventListener('loadedmetadata', () => {
-    vid.currentTime = Math.max(0, Math.min(vid.duration * 0.25, vid.duration - 0.1));
-  });
-  vid.addEventListener('seeked', () => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = 640; canvas.height = 360;
-      canvas.getContext('2d').drawImage(vid, 0, 0, 640, 360);
-      finish(canvas.toDataURL('image/jpeg', 0.82));
-    } catch(e) { finish(null); }
-  });
-  vid.addEventListener('error', () => finish(null));
-  setTimeout(() => finish(null), 8000); // fallback timeout
-}
-
-// ─── DELETE VIDEO ─────────────────────────────────────────────────────────────
-async function deleteVideo(idx) {
-  if (!confirm('Dieses Video wirklich löschen?')) return;
-  const id = videos[idx].id;
-  videos.splice(idx, 1);
-  saveMetadata();
-  try { await dbDelete(id); } catch(e) {}
-  renderVideos(getRecommended());
-  showMyChannel();
-  toast('Video gelöscht.');
-}
-
-// ─── UTILS (escHtml defined above with highlight support) ─────────────────────
-
-let toastTimer;
 function toast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  const el = document.getElementById('toast')
+  el.textContent = msg
+  el.classList.add('show')
+
+  setTimeout(() => {
+    el.classList.remove('show')
+  }, 3000)
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-(function init() {
-  const meta = getMetadata();
-  // video blob is NOT in localStorage — loaded lazily from IndexedDB when played
-  meta.forEach(v => videos.push({ ...v, id: v.id || genId(), video: null }));
-  updateHeaderAuth();
-  renderVideos(getRecommended());
-})();
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOAD VIDEOS
+// ─────────────────────────────────────────────────────────────
+async function loadVideos() {
+  const { data, error } = await supabase
+    .from('videos')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error(error)
+    toast('Fehler beim Laden der Videos')
+    return
+  }
+
+  videos = data || []
+  renderVideos(videos)
+}
+
+// ─────────────────────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────────────────────
+function renderVideos(list) {
+  const grid = document.getElementById('videoGrid')
+
+  if (!list.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <h2>Keine Videos</h2>
+        <p>Lade dein erstes Video hoch.</p>
+      </div>
+    `
+    return
+  }
+
+  grid.innerHTML = list.map((video, i) => {
+
+// ─────────────────────────────────────────────────────────────
+// SEARCH
+// ─────────────────────────────────────────────────────────────
+window.doSearch = function() {
+  const q = document.getElementById('searchInput').value.toLowerCase()
+
+  if (!q) {
+    renderVideos(videos)
+    return
+  }
+
+  const filtered = videos.filter(v => {
+    return (
+      v.title.toLowerCase().includes(q) ||
+      v.creator.toLowerCase().includes(q)
+    )
+  })
+
+  renderVideos(filtered)
+}
+
+// ─────────────────────────────────────────────────────────────
+// FILTERS
+// ─────────────────────────────────────────────────────────────
+window.filterCategory = function(cat) {
+  const filtered = videos.filter(v => v.category === cat)
+  renderVideos(filtered)
+}
+
+window.showHome = function() {
+  renderVideos(videos)
+}
+
+window.showTrending = function() {
+  const sorted = [...videos].sort((a, b) => b.views - a.views)
+  renderVideos(sorted)
+}
+
+window.showNew = function() {
+  const sorted = [...videos].sort((a, b) => {
+    return new Date(b.created_at) - new Date(a.created_at)
+  })
+
+  renderVideos(sorted)
+}
+
+// ─────────────────────────────────────────────────────────────
+// ACCOUNT MENU
+// ─────────────────────────────────────────────────────────────
+window.toggleAccountMenu = function() {
+  document.getElementById('accountMenu').classList.toggle('open')
+}
+
+function closeAccountMenu() {
+  document.getElementById('accountMenu').classList.remove('open')
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#btnAvatar')) {
+    closeAccountMenu()
+  }
+})
+
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
+updateHeaderAuth()
+loadVideos()
+
 </script>
 </body>
 </html>
