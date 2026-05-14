@@ -1058,6 +1058,78 @@ function renderVideos(list) {
   }
 
   grid.innerHTML = list.map((video, i) => {
+    return `
+      <div class="video-card" onclick="playVideo(${i})">
+        <div class="video-thumbnail">
+          <img src="${video.thumbnail_url}" />
+
+          <div class="play-overlay">
+            <div class="play-btn-overlay">▶</div>
+          </div>
+        </div>
+
+        <div class="video-meta">
+          <div class="video-avatar">
+            ${video.creator.charAt(0).toUpperCase()}
+          </div>
+
+          <div class="video-info">
+            <div class="video-title">
+              ${escHtml(video.title)}
+            </div>
+
+            <div class="video-creator-name">
+              ${escHtml(video.creator)}
+            </div>
+
+            <div class="video-stats">
+              ${video.views} Aufrufe
+            </div>
+
+            <div class="video-actions" onclick="event.stopPropagation()">
+              <button class="video-action-btn" onclick="likeVideo(${i})">
+                👍 ${video.likes}
+              </button>
+
+              <button class="video-action-btn" onclick="dislikeVideo(${i})">
+                👎 ${video.dislikes}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+  }).join('')
+}
+
+// ─────────────────────────────────────────────────────────────
+// LIKES
+// ─────────────────────────────────────────────────────────────
+window.likeVideo = async function(idx) {
+  const video = videos[idx]
+
+  video.likes++
+
+  await supabase
+    .from('videos')
+    .update({ likes: video.likes })
+    .eq('id', video.id)
+
+  renderVideos(videos)
+}
+
+window.dislikeVideo = async function(idx) {
+  const video = videos[idx]
+
+  video.dislikes++
+
+  await supabase
+    .from('videos')
+    .update({ dislikes: video.dislikes })
+    .eq('id', video.id)
+
+  renderVideos(videos)
+}
 
 // ─────────────────────────────────────────────────────────────
 // SEARCH
@@ -1129,5 +1201,8 @@ updateHeaderAuth()
 loadVideos()
 
 </script>
+
+</script>
+
 </body>
 </html>
