@@ -985,7 +985,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 // ─────────────────────────────────────────────────────────────
 // SUPABASE
 // ─────────────────────────────────────────────────────────────
-const SUPABASE_URL = 'https://uvptpkilxpepzaphylhu.supabase.co'
+const SUPABASE_URL = 'Phttps://uvptpkilxpepzaphylhu.supabase.co'
 const SUPABASE_ANON_KEY = 'sb_publishable_v19_4HS6MDNWG0TSgWjlKA_dpWsDHn4'
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -1199,6 +1199,31 @@ document.addEventListener('click', e => {
 // ─────────────────────────────────────────────────────────────
 updateHeaderAuth()
 loadVideos()
+
+// expose functions to HTML onclick
+window.showHome = showHome;
+window.showTrending = showTrending;
+window.showNew = showNew;
+window.filterCategory = filterCategory;
+window.doSearch = doSearch;
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
+window.openUploadModal = openUploadModal;
+window.closeUploadModal = closeUploadModal;
+window.updateHeaderAuth = updateHeaderAuth;
+window.playVideo = playVideo;
+window.likeVideo = likeVideo;
+window.dislikeVideo = dislikeVideo;
+window.loginChannel = loginChannel;
+window.createChannel = createChannel;
+window.logoutChannel = logoutChannel;
+window.deleteChannel = deleteChannel;
+window.toggleAccountMenu = toggleAccountMenu;
+window.showMyChannel = showMyChannel;
+window.uploadVideo = uploadVideo;
+window.pickSuggestion = pickSuggestion;
+window.setChip = setChip;
+window.setActiveNav = setActiveNav;
 
 </script>
 
