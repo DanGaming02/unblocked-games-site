@@ -1,523 +1,401 @@
+cat > /tmp/cs2_part1.txt << 'EOF'
 <!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CS2 Clicker – Ultimate Edition</title>
+<title>CS2 Clicker</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Share+Tech+Mono&display=swap');
-*{box-sizing:border-box;margin:0;padding:0;}
-html,body{background:#0a0e14;font-family:'Rajdhani',sans-serif;color:#e8e0c8;overflow-x:hidden;min-height:100vh;}
-.cs{position:relative;padding:10px;max-width:960px;margin:0 auto;}
-.scan{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);pointer-events:none;z-index:0;}
-.z1{position:relative;z-index:1;}
-.flash{position:fixed;inset:0;pointer-events:none;z-index:50;opacity:0;transition:opacity .05s;}.flash.on{opacity:1;}
-.floater{position:fixed;font-weight:700;font-size:17px;font-family:'Rajdhani',sans-serif;pointer-events:none;z-index:9999;animation:fUp .85s ease forwards;}
-@keyframes fUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-58px) scale(1.35)}}
-.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:5px 9px;background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.2);border-radius:6px;}
-.topbar-title{font-size:17px;font-weight:700;letter-spacing:3px;}
-.top-btns{display:flex;gap:5px;}
-.tbtn{padding:4px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid;transition:background .15s;}
-.tbtn.gold{color:#f0c040;border-color:rgba(255,200,50,.4);background:rgba(255,200,50,.08);}.tbtn.gold:hover{background:rgba(255,200,50,.2);}
-.tbtn.green{color:#66ff88;border-color:rgba(102,255,136,.4);background:rgba(102,255,136,.07);}.tbtn.green:hover{background:rgba(102,255,136,.18);}
-.hud{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap;}
-.sbox{background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.28);border-radius:4px;padding:4px 6px;text-align:center;flex:1;min-width:48px;}
-.slabel{font-size:7px;color:#f0c040;letter-spacing:1px;font-family:'Share Tech Mono',monospace;white-space:nowrap;}
-.sval{font-size:14px;font-weight:700;color:#fff;line-height:1.1;}
-.sval.g{color:#66ff88;}.sval.o{color:#ff9900;}.sval.y{color:#f0c040;}.sval.p{color:#c084fc;}.sval.teal{color:#22d3ee;}.sval.r{color:#ef4444;}
-.nav{display:flex;gap:3px;margin-bottom:10px;flex-wrap:wrap;}
-.navbtn{flex:1;min-width:44px;padding:5px 2px;background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.2);color:#f0c040;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;transition:background .15s;position:relative;}
-.navbtn.active{background:rgba(255,200,50,.15);border-color:#f0c040;color:#fff;}
-.navbtn:hover{background:rgba(255,200,50,.1);}
-.nbadge{position:absolute;top:1px;right:1px;background:#ef4444;color:#fff;font-size:7px;font-family:'Share Tech Mono',monospace;padding:0 3px;border-radius:3px;line-height:13px;}
-.panel{display:none;}.panel.active{display:block;}
-.weapon-area{display:flex;flex-direction:column;align-items:center;margin:3px 0;}
-.wbtn{background:transparent;border:none;cursor:crosshair;padding:0;outline:none;user-select:none;-webkit-user-select:none;transition:transform .07s;}
-.wbtn:active{transform:scale(.94) rotate(-2deg);}
-.game-svg{width:min(300px,92vw);height:110px;display:block;}
-.wbtn:hover .game-svg{filter:drop-shadow(0 0 12px rgba(255,180,0,.4));}
-.chint{font-size:9px;color:rgba(255,200,50,.4);letter-spacing:3px;font-family:'Share Tech Mono',monospace;margin-top:2px;}
-.eq-banner{display:flex;align-items:center;gap:8px;background:rgba(255,200,50,.05);border:.5px solid rgba(255,200,50,.2);border-radius:5px;padding:5px 9px;margin-top:6px;}
-.glove-banner{display:flex;align-items:center;gap:8px;background:rgba(34,211,238,.05);border:.5px solid rgba(34,211,238,.25);border-radius:5px;padding:5px 9px;margin-top:5px;}
-.rankbar{display:flex;gap:4px;margin-top:6px;}
-.rbadge{background:rgba(255,200,50,.05);border:.5px solid rgba(255,200,50,.15);border-radius:4px;padding:4px 5px;font-size:9px;font-family:'Share Tech Mono',monospace;color:#f0c040;flex:1;text-align:center;}
-.rbname{font-size:11px;font-weight:700;font-family:'Rajdhani',sans-serif;color:#fff;margin-top:1px;}
-.rank-prog{margin-top:7px;background:rgba(255,200,50,.03);border:.5px solid rgba(255,200,50,.14);border-radius:6px;padding:8px 10px;}
-.sec-title{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.45);letter-spacing:2px;margin-bottom:7px;}
-.rk-row{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:.5px solid rgba(255,255,255,.04);}
-.rk-rank{font-size:10px;font-weight:700;min-width:110px;}
-.rk-reward-lbl{font-size:9px;font-family:'Share Tech Mono',monospace;flex:1;}
-.rk-badge{font-size:8px;font-family:'Share Tech Mono',monospace;padding:1px 5px;border-radius:3px;white-space:nowrap;}
-.rk-badge.done{background:rgba(102,255,136,.1);color:#66ff88;border:.5px solid rgba(102,255,136,.3);}
-.rk-badge.locked{background:rgba(255,255,255,.04);color:rgba(255,255,255,.28);border:.5px solid rgba(255,255,255,.07);}
-.kfeed{margin-top:7px;}
-.kftitle{font-size:9px;color:rgba(255,200,50,.4);letter-spacing:3px;font-family:'Share Tech Mono',monospace;margin-bottom:3px;}
-.kentry{display:flex;align-items:center;gap:6px;padding:2px 6px;background:rgba(255,255,255,.03);border-left:2px solid #f0c040;margin-bottom:2px;font-size:10px;font-family:'Share Tech Mono',monospace;animation:sIn .2s ease;border-radius:0 3px 3px 0;}
-@keyframes sIn{from{opacity:0;transform:translateX(-7px)}to{opacity:1;transform:none}}
-.kl{color:#66ccff;}.kv{color:#ff6666;}
-.shoprow{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.12);border-radius:6px;margin-bottom:6px;}
-.shopinfo{flex:1;}.shoptitle{font-size:13px;font-weight:700;color:#fff;}.shopdesc{font-size:9px;color:rgba(255,200,50,.5);font-family:'Share Tech Mono',monospace;margin-top:1px;}
-.shopbtn{padding:5px 11px;background:rgba(255,200,50,.1);border:.5px solid #f0c040;color:#f0c040;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;transition:background .15s;white-space:nowrap;}
-.shopbtn:hover{background:rgba(255,200,50,.22);}
-.toastarea{min-height:22px;margin-bottom:6px;}
-.toast{font-size:10px;font-family:'Share Tech Mono',monospace;padding:3px 8px;border-radius:4px;display:inline-block;}
-.toast.ok{background:rgba(102,255,136,.09);color:#66ff88;border:.5px solid rgba(102,255,136,.28);}
-.toast.err{background:rgba(255,100,100,.09);color:#ff6666;border:.5px solid rgba(255,100,100,.28);}
-.upg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:7px;margin-top:5px;}
-.upg-card{background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.16);border-radius:7px;padding:9px 8px;}
-.upg-card.afk{border-color:rgba(34,211,238,.25);background:rgba(34,211,238,.03);}
-.upg-icon{font-size:20px;margin-bottom:3px;}.upg-title{font-size:12px;font-weight:700;color:#fff;}
-.upg-desc{font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.48);margin-top:2px;min-height:22px;}
-.upg-level{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:3px;color:#66ccff;}
-.upg-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:3px;overflow:hidden;}
-.upg-bar-fill{height:100%;background:linear-gradient(90deg,#f0c040,#ff9900);border-radius:2px;transition:width .3s;}
-.upg-bar-fill.teal{background:linear-gradient(90deg,#22d3ee,#0891b2);}
-.upg-buy{width:100%;margin-top:6px;padding:4px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid #f0c040;background:rgba(255,200,50,.09);color:#f0c040;transition:background .15s;}
-.upg-buy:hover{background:rgba(255,200,50,.2);}.upg-buy:disabled{opacity:.33;cursor:not-allowed;}
-.upg-buy.teal{border-color:#22d3ee;color:#22d3ee;background:rgba(34,211,238,.08);}.upg-buy.teal:hover{background:rgba(34,211,238,.18);}
-.upg-maxed{width:100%;margin-top:6px;padding:4px;font-family:'Rajdhani',sans-serif;font-size:10px;border-radius:4px;border:.5px solid #66ff88;background:rgba(102,255,136,.07);color:#66ff88;text-align:center;}
-.cases-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:8px;}
-.casebox{border-radius:8px;padding:10px;}
-.casebox.default{background:rgba(74,105,255,.05);border:.5px solid rgba(74,105,255,.26);}
-.casebox.default2{background:rgba(74,105,255,.03);border:.5px dashed rgba(74,105,255,.2);}
-.casebox.rare{background:rgba(136,71,255,.05);border:.5px solid rgba(136,71,255,.26);}
-.casebox.rare2{background:rgba(136,71,255,.03);border:.5px dashed rgba(136,71,255,.2);}
-.casebox.epic{background:rgba(211,44,230,.05);border:.5px solid rgba(211,44,230,.26);}
-.casebox.epic2{background:rgba(211,44,230,.03);border:.5px dashed rgba(211,44,230,.2);}
-.casebox.legendary{background:rgba(228,174,57,.07);border:1px solid rgba(228,174,57,.38);}
-.casebox.legendary2{background:rgba(228,174,57,.04);border:1px dashed rgba(228,174,57,.22);}
-.casebox.knife-only{background:rgba(228,174,57,.04);border:1.5px solid rgba(228,174,57,.5);}
-.casebox.weapon-case{background:rgba(239,68,68,.04);border:1.5px solid rgba(239,68,68,.45);}
-.casetop{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:5px;}
-.casesvg-wrap{display:flex;justify-content:center;margin-bottom:5px;}
-.openbtn{width:100%;padding:7px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;transition:all .15s;border:.5px solid;}
-.openbtn:disabled{opacity:.33;cursor:not-allowed;}
-.drops-section{margin-top:5px;border-top:.5px solid rgba(255,255,255,.05);padding-top:5px;}
-.drop-row{display:flex;align-items:center;gap:6px;padding:2px 0;border-bottom:.5px solid rgba(255,255,255,.03);}
-.spin-modal{background:rgba(8,12,20,.99);border-radius:9px;padding:11px;margin-top:8px;border:1px solid;}
-.spin-track-wrap{overflow:hidden;border-radius:6px;border:.5px solid rgba(255,255,255,.1);position:relative;height:94px;margin-bottom:8px;}
-.spin-track{display:flex;align-items:center;height:94px;will-change:transform;}
-.spin-item{flex-shrink:0;width:112px;height:88px;margin:0 2px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid;padding:2px;overflow:hidden;}
-.spin-item-svg{width:96px;height:48px;display:block;overflow:visible;}
-.spin-item-name{font-size:7.5px;font-weight:700;text-align:center;line-height:1.1;margin-top:1px;padding:0 2px;}
-.spin-item-rar{font-size:6.5px;font-family:'Share Tech Mono',monospace;opacity:.7;}
-.spin-needle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#f0c040;transform:translateX(-50%);z-index:5;pointer-events:none;}
-.spin-needle::before{content:'';position:absolute;top:-1px;left:-5px;border:6px solid transparent;border-top-color:#f0c040;}
-.spin-needle::after{content:'';position:absolute;bottom:-1px;left:-5px;border:6px solid transparent;border-bottom-color:#f0c040;}
-.spin-result{text-align:center;padding:6px 0 3px;animation:fadeIn .4s ease;}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0a0e14;font-family:'Rajdhani',sans-serif;color:#e8e0c8;min-height:100vh}
+.wrap{padding:10px;max-width:900px;margin:0 auto;position:relative;z-index:1}
+.scan{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.05) 2px,rgba(0,0,0,.05) 4px);pointer-events:none;z-index:0}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;transition:opacity .05s}
+.flash.on{opacity:1}
+.floater{position:fixed;font-weight:700;font-size:16px;pointer-events:none;z-index:999;animation:fUp .8s ease forwards}
+@keyframes fUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+/* TOPBAR */
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.2);border-radius:6px;margin-bottom:8px}
+.topbar-title{font-size:16px;font-weight:700;letter-spacing:3px}
+.top-btns{display:flex;gap:5px}
+.tbtn{padding:4px 10px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid;transition:all .15s}
+.tbtn.gold{color:#f0c040;border-color:rgba(255,200,50,.4);background:rgba(255,200,50,.08)}
+.tbtn.gold:hover{background:rgba(255,200,50,.2)}
+.tbtn.grn{color:#66ff88;border-color:rgba(102,255,136,.4);background:rgba(102,255,136,.07)}
+.tbtn.grn:hover{background:rgba(102,255,136,.18)}
+/* HUD */
+.hud{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap}
+.sbox{flex:1;min-width:48px;background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.25);border-radius:4px;padding:4px 5px;text-align:center}
+.slbl{font-size:7px;color:#f0c040;letter-spacing:1px;font-family:'Share Tech Mono',monospace}
+.sval{font-size:13px;font-weight:700;color:#fff}
+.sval.g{color:#66ff88}.sval.r{color:#ef4444}.sval.y{color:#f0c040}.sval.p{color:#c084fc}.sval.t{color:#22d3ee}.sval.o{color:#ff9900}
+/* NAV */
+.nav{display:flex;gap:3px;margin-bottom:10px;flex-wrap:wrap}
+.nb{flex:1;min-width:42px;padding:5px 2px;background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.2);color:#f0c040;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;transition:background .15s;position:relative;text-align:center}
+.nb.on{background:rgba(255,200,50,.15);border-color:#f0c040;color:#fff}
+.nb:hover{background:rgba(255,200,50,.1)}
+.nbadge{position:absolute;top:1px;right:1px;background:#ef4444;color:#fff;font-size:7px;font-family:'Share Tech Mono',monospace;padding:0 3px;border-radius:3px;line-height:13px}
+/* PANELS */
+.panel{display:none}.panel.on{display:block}
+/* GAME PANEL */
+.weapon-area{display:flex;flex-direction:column;align-items:center;padding:5px 0}
+.wbtn{background:none;border:none;cursor:crosshair;padding:0;outline:none;user-select:none;-webkit-user-select:none;transition:transform .07s}
+.wbtn:active{transform:scale(.93) rotate(-2deg)}
+.gsvg{width:min(300px,92vw);height:110px;display:block}
+.wbtn:hover .gsvg{filter:drop-shadow(0 0 10px rgba(255,180,0,.4))}
+.chint{font-size:9px;color:rgba(255,200,50,.4);letter-spacing:3px;font-family:'Share Tech Mono',monospace;margin-top:2px}
+.eqbanner{display:flex;align-items:center;gap:8px;background:rgba(255,200,50,.05);border:.5px solid rgba(255,200,50,.2);border-radius:5px;padding:5px 9px;margin-top:6px}
+.glbanner{display:flex;align-items:center;gap:8px;background:rgba(34,211,238,.04);border:.5px solid rgba(34,211,238,.22);border-radius:5px;padding:5px 9px;margin-top:5px}
+.rankbar{display:flex;gap:4px;margin-top:6px}
+.rbdg{flex:1;background:rgba(255,200,50,.04);border:.5px solid rgba(255,200,50,.14);border-radius:4px;padding:4px 5px;font-size:9px;font-family:'Share Tech Mono',monospace;color:#f0c040;text-align:center}
+.rbdg .rn{font-size:11px;font-weight:700;font-family:'Rajdhani',sans-serif;color:#fff;margin-top:1px}
+.rprg{margin-top:7px;background:rgba(255,200,50,.02);border:.5px solid rgba(255,200,50,.13);border-radius:6px;padding:8px 10px}
+.stitle{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.44);letter-spacing:2px;margin-bottom:7px}
+.rkrow{display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:.5px solid rgba(255,255,255,.04)}
+.rkrow .rn2{font-size:10px;font-weight:700;min-width:115px}
+.rkrow .rl{font-size:9px;font-family:'Share Tech Mono',monospace;flex:1}
+.rktag{font-size:8px;font-family:'Share Tech Mono',monospace;padding:1px 5px;border-radius:3px}
+.rktag.done{background:rgba(102,255,136,.1);color:#66ff88;border:.5px solid rgba(102,255,136,.3)}
+.rktag.lock{background:rgba(255,255,255,.04);color:rgba(255,255,255,.28);border:.5px solid rgba(255,255,255,.07)}
+.kfeed{margin-top:7px}
+.kftitle{font-size:9px;color:rgba(255,200,50,.4);letter-spacing:3px;font-family:'Share Tech Mono',monospace;margin-bottom:3px}
+.kentry{display:flex;align-items:center;gap:6px;padding:2px 6px;background:rgba(255,255,255,.03);border-left:2px solid #f0c040;margin-bottom:2px;font-size:10px;font-family:'Share Tech Mono',monospace;animation:sIn .2s ease;border-radius:0 3px 3px 0}
+@keyframes sIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+.kl{color:#66ccff}.kv{color:#ff6666}
+/* SHOP */
+.srow{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.12);border-radius:6px;margin-bottom:6px}
+.sinfo{flex:1}.stit{font-size:13px;font-weight:700;color:#fff}.sdsc{font-size:9px;color:rgba(255,200,50,.5);font-family:'Share Tech Mono',monospace;margin-top:1px}
+.sbtn{padding:5px 11px;background:rgba(255,200,50,.1);border:.5px solid #f0c040;color:#f0c040;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;transition:background .15s;white-space:nowrap}
+.sbtn:hover{background:rgba(255,200,50,.22)}
+/* TOAST */
+.ta{min-height:22px;margin-bottom:6px}
+.toast{font-size:10px;font-family:'Share Tech Mono',monospace;padding:3px 8px;border-radius:4px;display:inline-block}
+.toast.ok{background:rgba(102,255,136,.08);color:#66ff88;border:.5px solid rgba(102,255,136,.28)}
+.toast.er{background:rgba(255,100,100,.08);color:#ff6666;border:.5px solid rgba(255,100,100,.28)}
+/* UPGRADES */
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(172px,1fr));gap:7px;margin-top:5px}
+.ucard{background:rgba(255,255,255,.03);border:.5px solid rgba(255,200,50,.15);border-radius:7px;padding:9px 8px}
+.ucard.afk{border-color:rgba(34,211,238,.24);background:rgba(34,211,238,.02)}
+.uicon{font-size:20px;margin-bottom:3px}.utitle{font-size:12px;font-weight:700;color:#fff}
+.udesc{font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.46);margin-top:2px;min-height:20px}
+.ulvl{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:3px;color:#66ccff}
+.ubar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:3px;overflow:hidden}
+.ubfill{height:100%;border-radius:2px;transition:width .3s;background:linear-gradient(90deg,#f0c040,#ff9900)}
+.ubfill.tl{background:linear-gradient(90deg,#22d3ee,#0891b2)}
+.ubuy{width:100%;margin-top:6px;padding:4px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid #f0c040;background:rgba(255,200,50,.09);color:#f0c040;transition:background .15s}
+.ubuy:hover{background:rgba(255,200,50,.2)}.ubuy:disabled{opacity:.3;cursor:not-allowed}
+.ubuy.tl{border-color:#22d3ee;color:#22d3ee;background:rgba(34,211,238,.07)}.ubuy.tl:hover{background:rgba(34,211,238,.17)}
+.umaxed{width:100%;margin-top:6px;padding:4px;font-family:'Rajdhani',sans-serif;font-size:10px;border-radius:4px;border:.5px solid #66ff88;background:rgba(102,255,136,.07);color:#66ff88;text-align:center}
+/* CASES */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.cbox{border-radius:8px;padding:10px}
+.cbox.default{background:rgba(74,105,255,.05);border:.5px solid rgba(74,105,255,.25)}
+.cbox.default2{background:rgba(74,105,255,.03);border:.5px dashed rgba(74,105,255,.18)}
+.cbox.rare{background:rgba(136,71,255,.05);border:.5px solid rgba(136,71,255,.25)}
+.cbox.rare2{background:rgba(136,71,255,.03);border:.5px dashed rgba(136,71,255,.18)}
+.cbox.epic{background:rgba(211,44,230,.05);border:.5px solid rgba(211,44,230,.25)}
+.cbox.epic2{background:rgba(211,44,230,.03);border:.5px dashed rgba(211,44,230,.18)}
+.cbox.legendary{background:rgba(228,174,57,.07);border:1px solid rgba(228,174,57,.35)}
+.cbox.legendary2{background:rgba(228,174,57,.04);border:1px dashed rgba(228,174,57,.2)}
+.cbox.knife-only{background:rgba(228,174,57,.04);border:1.5px solid rgba(228,174,57,.48)}
+.cbox.weapon-case{background:rgba(239,68,68,.04);border:1.5px solid rgba(239,68,68,.42)}
+.ctop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px}
+.csvgw{display:flex;justify-content:center;margin-bottom:5px}
+.obtn{width:100%;padding:7px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;border:.5px solid;transition:all .15s}
+.obtn:disabled{opacity:.3;cursor:not-allowed}
+.drsec{margin-top:5px;border-top:.5px solid rgba(255,255,255,.05);padding-top:5px}
+.drow{display:flex;align-items:center;gap:5px;padding:2px 0;border-bottom:.5px solid rgba(255,255,255,.03)}
+/* SPIN */
+.spmod{background:rgba(6,10,18,.99);border-radius:9px;padding:10px;margin-top:8px;border:1px solid}
+.spwrap{overflow:hidden;border-radius:5px;border:.5px solid rgba(255,255,255,.1);position:relative;height:92px;margin-bottom:8px}
+.sptrack{display:flex;align-items:center;height:92px;will-change:transform}
+.sitem{flex-shrink:0;width:110px;height:86px;margin:0 2px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid;padding:2px;overflow:hidden}
+.sitem svg{width:94px;height:46px;display:block;overflow:visible}
+.siname{font-size:7.5px;font-weight:700;text-align:center;line-height:1.1;margin-top:1px;padding:0 2px}
+.sirar{font-size:6.5px;font-family:'Share Tech Mono',monospace;opacity:.7}
+.spneedle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#f0c040;transform:translateX(-50%);z-index:5;pointer-events:none}
+.spneedle::before{content:'';position:absolute;top:-1px;left:-5px;border:6px solid transparent;border-top-color:#f0c040}
+.spneedle::after{content:'';position:absolute;bottom:-1px;left:-5px;border:6px solid transparent;border-bottom-color:#f0c040}
+.spres{text-align:center;padding:5px 0 3px;animation:fadeIn .4s ease}
 @keyframes fadeIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-.spin-close{padding:4px 12px;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.2);color:#e8e0c8;font-family:'Rajdhani',sans-serif;font-size:11px;cursor:pointer;border-radius:4px;margin-right:6px;}
-.spin-equip{padding:4px 12px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid;}
-.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:5px;margin-top:6px;}
-.invcard{border-radius:6px;padding:7px 6px;text-align:center;position:relative;}
-.invcard.equipped{outline:2px solid #f0c040;}
-.invcard.glove-equipped{outline:2px solid #22d3ee;}
-.inv-rarity-bar{height:3px;border-radius:2px;margin-bottom:4px;}
-.inv-name{font-size:9px;font-weight:700;color:#fff;margin-bottom:2px;line-height:1.2;}
-.inv-val{font-size:9px;font-family:'Share Tech Mono',monospace;}
-.inv-mult{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:1px;}
-.inv-btns{display:flex;gap:2px;margin-top:4px;}
-.inv-equip{flex:1;padding:2px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;}
-.inv-sell{flex:1;padding:2px;background:rgba(255,200,50,.07);border:.5px solid rgba(255,200,50,.2);color:#f0c040;font-size:9px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;border-radius:3px;}
-.inv-market{width:100%;margin-top:2px;padding:2px;background:rgba(102,255,136,.06);border:.5px solid rgba(102,255,136,.22);color:#66ff88;font-size:8px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;border-radius:3px;}
-.eq-badge{position:absolute;top:3px;right:3px;font-size:7px;font-family:'Share Tech Mono',monospace;background:rgba(255,200,50,.2);color:#f0c040;padding:1px 3px;border-radius:2px;}
-.glove-eq-badge{position:absolute;top:3px;right:3px;font-size:7px;font-family:'Share Tech Mono',monospace;background:rgba(34,211,238,.2);color:#22d3ee;padding:1px 3px;border-radius:2px;}
-.empty-inv{color:rgba(255,200,50,.33);font-family:'Share Tech Mono',monospace;font-size:10px;padding:16px;text-align:center;}
-.weekly-wrap{background:rgba(255,200,50,.03);border:1px solid rgba(255,200,50,.2);border-radius:8px;padding:13px;}
-.weekly-title{font-size:15px;font-weight:700;color:#f0c040;margin-bottom:3px;}
-.weekly-sub{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.5);margin-bottom:11px;}
-.weekly-locked{text-align:center;padding:18px;color:rgba(255,200,50,.33);font-family:'Share Tech Mono',monospace;font-size:10px;}
-.weekly-offers{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:7px;margin-bottom:10px;}
-.offer-card{border-radius:7px;padding:9px;cursor:pointer;transition:all .15s;position:relative;border:1px solid;}
-.offer-card:hover:not(.claimed):not(.disabled-card){transform:translateY(-2px);}
-.offer-card.selected{outline:2px solid #f0c040;outline-offset:2px;}
-.offer-card.claimed,.offer-card.disabled-card{opacity:.5;cursor:default;}
-.offer-name{font-size:11px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:2px;}
-.offer-type{font-size:8px;font-family:'Share Tech Mono',monospace;margin-bottom:2px;}
-.weekly-btn{width:100%;padding:8px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;background:rgba(255,200,50,.1);border:.5px solid #f0c040;color:#f0c040;transition:background .15s;}
-.weekly-btn:hover:not(:disabled){background:rgba(255,200,50,.22);}
-.weekly-btn:disabled{opacity:.33;cursor:not-allowed;}
-.ach-filter{display:flex;gap:4px;margin-bottom:7px;flex-wrap:wrap;}
-.ach-fbtn{padding:3px 8px;background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.18);color:#f0c040;font-family:'Share Tech Mono',monospace;font-size:9px;cursor:pointer;border-radius:4px;}
-.ach-fbtn.active{background:rgba(255,200,50,.14);border-color:#f0c040;color:#fff;}
-.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:5px;}
-.ach-card{border-radius:7px;padding:8px 9px;display:flex;align-items:flex-start;gap:7px;position:relative;overflow:hidden;}
-.ach-card.locked{background:rgba(255,255,255,.02);border:.5px solid rgba(255,255,255,.06);opacity:.5;}
-.ach-card.claimable,.ach-card.claimed{border:.5px solid;}.ach-card.claimed{opacity:.5;}
-.ach-icon{font-size:19px;flex-shrink:0;margin-top:2px;}.ach-info{flex:1;}
-.ach-title{font-size:11px;font-weight:700;color:#fff;}
-.ach-desc{font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(255,255,255,.36);margin-top:1px;}
-.ach-reward-lbl{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:2px;}
-.ach-prog{margin-top:3px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;}
-.ach-prog-bar{height:100%;border-radius:2px;transition:width .4s;}
-.ach-claim{padding:3px 8px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;flex-shrink:0;white-space:nowrap;}
-.new-badge{position:absolute;top:3px;right:3px;background:#f0c040;color:#0a0e14;font-size:7px;font-family:'Share Tech Mono',monospace;padding:1px 3px;border-radius:3px;font-weight:700;}
-.ach-popup{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(10,14,20,.97);border:1px solid #f0c040;border-radius:9px;padding:10px 15px;z-index:10000;display:flex;align-items:center;gap:9px;min-width:240px;max-width:90vw;animation:popIn .4s ease;box-shadow:0 0 22px rgba(240,192,64,.22);}
-@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(-16px) scale(.9)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9000;display:flex;align-items:center;justify-content:center;padding:14px;}
-.modal-box{background:#0d1117;border:1px solid rgba(255,200,50,.32);border-radius:10px;padding:18px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto;}
-.modal-box.wide{max-width:680px;}
-.modal-title{font-size:16px;font-weight:700;color:#f0c040;margin-bottom:3px;}
-.modal-sub{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.48);margin-bottom:12px;}
-.code-input{width:100%;padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,200,50,.28);border-radius:5px;color:#e8e0c8;font-family:'Share Tech Mono',monospace;font-size:14px;outline:none;letter-spacing:3px;text-transform:uppercase;}
-.code-input:focus{border-color:#f0c040;}
-.code-msg{min-height:20px;font-family:'Share Tech Mono',monospace;font-size:11px;margin-top:5px;}
-.code-msg.ok{color:#66ff88;}.code-msg.err{color:#ff6666;}
-.mbtn{padding:7px 16px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;border:.5px solid #f0c040;background:rgba(255,200,50,.1);color:#f0c040;transition:background .15s;}
-.mbtn:hover{background:rgba(255,200,50,.22);}
-.mbtn.cancel{border-color:rgba(255,100,100,.38);color:#ff8888;background:rgba(255,100,100,.07);}
-.market-listings{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:7px;margin-bottom:10px;}
-.market-item{background:rgba(255,255,255,.03);border:.5px solid;border-radius:6px;padding:8px 7px;text-align:center;}
-.market-item-name{font-size:9px;font-weight:700;color:#fff;margin-bottom:2px;line-height:1.2;}
-.market-item-price{font-size:9px;font-family:'Share Tech Mono',monospace;margin-bottom:4px;}
-.market-buy-btn{width:100%;padding:3px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;transition:background .12s;}
-.market-pending{background:rgba(255,200,50,.03);border:.5px solid rgba(255,200,50,.13);border-radius:6px;padding:8px 9px;}
-.sell-inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:5px;max-height:280px;overflow-y:auto;margin-top:8px;}
-.sell-inv-card{background:rgba(255,255,255,.03);border:.5px solid;border-radius:6px;padding:7px 6px;text-align:center;}
-.sell-inv-btn{width:100%;padding:3px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;transition:background .12s;}
-.pending-row{display:flex;justify-content:space-between;padding:2px 0;font-size:9px;font-family:'Share Tech Mono',monospace;border-bottom:.5px solid rgba(255,255,255,.04);}
-.danger-btn{padding:3px 8px;background:rgba(255,100,100,.07);border:.5px solid rgba(255,100,100,.28);color:#ff8888;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;}
-@keyframes karambit-spin{0%{transform-origin:center;transform:rotate(0deg)}100%{transform-origin:center;transform:rotate(360deg)}}
-@keyframes butterfly-fold{0%{transform:scaleY(1)}50%{transform:scaleY(-1)}100%{transform:scaleY(1)}}
+.spcls{padding:4px 11px;background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.2);color:#e8e0c8;font-family:'Rajdhani',sans-serif;font-size:11px;cursor:pointer;border-radius:4px;margin-right:6px}
+.speq{padding:4px 11px;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;border-radius:4px;border:.5px solid}
+/* INV */
+.igrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(126px,1fr));gap:5px;margin-top:6px}
+.icard{border-radius:6px;padding:7px 6px;text-align:center;position:relative}
+.icard.eq{outline:2px solid #f0c040}
+.icard.geq{outline:2px solid #22d3ee}
+.irbar{height:3px;border-radius:2px;margin-bottom:4px}
+.iname{font-size:9px;font-weight:700;color:#fff;margin-bottom:2px;line-height:1.2}
+.ival{font-size:9px;font-family:'Share Tech Mono',monospace}
+.imult{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:1px}
+.ibtns{display:flex;gap:2px;margin-top:4px}
+.ieq{flex:1;padding:2px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid}
+.isell{flex:1;padding:2px;background:rgba(255,200,50,.07);border:.5px solid rgba(255,200,50,.2);color:#f0c040;font-size:9px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;border-radius:3px}
+.imkt{width:100%;margin-top:2px;padding:2px;background:rgba(102,255,136,.05);border:.5px solid rgba(102,255,136,.2);color:#66ff88;font-size:8px;font-family:'Rajdhani',sans-serif;font-weight:700;cursor:pointer;border-radius:3px}
+.eqbdg{position:absolute;top:3px;right:3px;font-size:7px;font-family:'Share Tech Mono',monospace;background:rgba(255,200,50,.2);color:#f0c040;padding:1px 3px;border-radius:2px}
+.geqbdg{position:absolute;top:3px;right:3px;font-size:7px;font-family:'Share Tech Mono',monospace;background:rgba(34,211,238,.2);color:#22d3ee;padding:1px 3px;border-radius:2px}
+.einv{color:rgba(255,200,50,.32);font-family:'Share Tech Mono',monospace;font-size:10px;padding:16px;text-align:center}
+/* WEEKLY */
+.wwrap{background:rgba(255,200,50,.02);border:1px solid rgba(255,200,50,.18);border-radius:8px;padding:13px}
+.wtitle{font-size:15px;font-weight:700;color:#f0c040;margin-bottom:3px}
+.wsub{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.48);margin-bottom:11px}
+.wlock{text-align:center;padding:18px;color:rgba(255,200,50,.32);font-family:'Share Tech Mono',monospace;font-size:10px}
+.woffers{display:grid;grid-template-columns:repeat(auto-fill,minmax(182px,1fr));gap:7px;margin-bottom:10px}
+.ocard{border-radius:7px;padding:9px;cursor:pointer;transition:all .15s;position:relative;border:1px solid}
+.ocard:hover:not(.dis){transform:translateY(-2px)}
+.ocard.sel{outline:2px solid #f0c040;outline-offset:2px}
+.ocard.dis{opacity:.45;cursor:default}
+.oname{font-size:11px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:2px}
+.otype{font-size:8px;font-family:'Share Tech Mono',monospace;margin-bottom:2px}
+.wbtn2{width:100%;padding:8px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;background:rgba(255,200,50,.1);border:.5px solid #f0c040;color:#f0c040;transition:background .15s}
+.wbtn2:hover:not(:disabled){background:rgba(255,200,50,.22)}
+.wbtn2:disabled{opacity:.3;cursor:not-allowed}
+/* ACHIEVEMENTS */
+.afrow{display:flex;gap:3px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
+.afbtn{padding:3px 7px;background:rgba(255,255,255,.04);border:.5px solid rgba(255,200,50,.18);color:#f0c040;font-family:'Share Tech Mono',monospace;font-size:8.5px;cursor:pointer;border-radius:4px;white-space:nowrap;transition:all .15s}
+.afbtn:hover{background:rgba(255,200,50,.1)}
+.afbtn.on{background:rgba(255,200,50,.14);border-color:#f0c040;color:#fff}
+.afbtn.kills{border-color:rgba(255,100,100,.4);color:#ff8888}
+.afbtn.kills.on{background:rgba(255,100,100,.14);border-color:#ff6666;color:#ffaaaa}
+.afbtn.clicks{border-color:rgba(192,132,252,.4);color:#c084fc}
+.afbtn.clicks.on{background:rgba(192,132,252,.14);border-color:#c084fc;color:#d8aaff}
+.afbtn.money{border-color:rgba(240,192,64,.4);color:#f0c040}
+.afbtn.money.on{background:rgba(240,192,64,.14);border-color:#f0c040;color:#ffe88a}
+.afbtn.cases{border-color:rgba(34,211,238,.4);color:#22d3ee}
+.afbtn.cases.on{background:rgba(34,211,238,.14);border-color:#22d3ee;color:#88eeff}
+.afbtn.spec{border-color:rgba(102,255,136,.4);color:#66ff88}
+.afbtn.spec.on{background:rgba(102,255,136,.14);border-color:#66ff88;color:#aaffcc}
+.afsep{width:1px;background:rgba(255,255,255,.1);align-self:stretch;margin:0 2px}
+.acath{font-size:9px;font-family:'Share Tech Mono',monospace;letter-spacing:2px;padding:5px 0 4px;margin-top:6px;margin-bottom:4px;border-bottom:.5px solid rgba(255,255,255,.07)}
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:5px}
+.acard{border-radius:7px;padding:8px 9px;display:flex;align-items:flex-start;gap:7px;position:relative;overflow:hidden}
+.acard.locked{background:rgba(255,255,255,.02);border:.5px solid rgba(255,255,255,.06);opacity:.5}
+.acard.claimable,.acard.claimed{border:.5px solid}
+.acard.claimed{opacity:.5}
+.aicon{font-size:19px;flex-shrink:0;margin-top:2px}
+.ainfo{flex:1}
+.atitle{font-size:11px;font-weight:700;color:#fff}
+.adesc{font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(255,255,255,.35);margin-top:1px}
+.arwd{font-size:8px;font-family:'Share Tech Mono',monospace;margin-top:2px}
+.aprog{margin-top:3px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.apbar{height:100%;border-radius:2px;transition:width .4s}
+.aclm{padding:3px 8px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;flex-shrink:0;white-space:nowrap}
+.anew{position:absolute;top:3px;right:3px;background:#f0c040;color:#0a0e14;font-size:7px;font-family:'Share Tech Mono',monospace;padding:1px 3px;border-radius:3px;font-weight:700}
+/* ACH POPUP */
+.achpop{position:fixed;top:14px;left:50%;transform:translateX(-50%);background:rgba(10,14,20,.97);border:1px solid #f0c040;border-radius:9px;padding:10px 15px;z-index:9999;display:flex;align-items:center;gap:9px;min-width:240px;max-width:90vw;animation:popIn .4s ease;box-shadow:0 0 20px rgba(240,192,64,.2)}
+@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(-15px) scale(.9)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+/* MODAL */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:9000;display:flex;align-items:center;justify-content:center;padding:14px}
+.mbox{background:#0d1117;border:1px solid rgba(255,200,50,.3);border-radius:10px;padding:18px;max-width:480px;width:100%;max-height:88vh;overflow-y:auto}
+.mbox.wide{max-width:670px}
+.mtitle{font-size:16px;font-weight:700;color:#f0c040;margin-bottom:3px}
+.msub{font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.46);margin-bottom:12px}
+.cinput{width:100%;padding:8px 11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,200,50,.26);border-radius:5px;color:#e8e0c8;font-family:'Share Tech Mono',monospace;font-size:14px;outline:none;letter-spacing:3px;text-transform:uppercase}
+.cinput:focus{border-color:#f0c040}
+.cmsg{min-height:20px;font-family:'Share Tech Mono',monospace;font-size:11px;margin-top:5px}
+.cmsg.ok{color:#66ff88}.cmsg.er{color:#ff6666}
+.mbtn{padding:7px 15px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;border-radius:5px;border:.5px solid #f0c040;background:rgba(255,200,50,.1);color:#f0c040;transition:background .15s}
+.mbtn:hover{background:rgba(255,200,50,.22)}
+.mbtn.cancel{border-color:rgba(255,100,100,.36);color:#ff8888;background:rgba(255,100,100,.07)}
+/* MARKET */
+.mktgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:7px;margin-bottom:10px}
+.mktitem{background:rgba(255,255,255,.03);border:.5px solid;border-radius:6px;padding:8px 7px;text-align:center}
+.miname{font-size:9px;font-weight:700;color:#fff;margin-bottom:2px;line-height:1.2}
+.miprice{font-size:9px;font-family:'Share Tech Mono',monospace;margin-bottom:4px}
+.mibuy{width:100%;padding:3px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid;transition:background .12s}
+.mktp{background:rgba(255,200,50,.03);border:.5px solid rgba(255,200,50,.12);border-radius:6px;padding:8px 9px}
+.sells{display:grid;grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:5px;max-height:270px;overflow-y:auto;margin-top:8px}
+.scard{background:rgba(255,255,255,.03);border:.5px solid;border-radius:6px;padding:7px 6px;text-align:center}
+.scbtn{width:100%;padding:3px;font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;cursor:pointer;border-radius:3px;border:.5px solid}
+.prow{display:flex;justify-content:space-between;padding:2px 0;font-size:9px;font-family:'Share Tech Mono',monospace;border-bottom:.5px solid rgba(255,255,255,.04)}
+.dbtn{padding:3px 8px;background:rgba(255,100,100,.07);border:.5px solid rgba(255,100,100,.27);color:#ff8888;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px}
+/* KNIFE ANIMS */
+@keyframes ksp{0%{transform:rotate(0deg);transform-origin:center}100%{transform:rotate(360deg);transform-origin:center}}
+@keyframes bfly{0%{transform:scaleY(1)}50%{transform:scaleY(-1)}100%{transform:scaleY(1)}}
 </style>
 </head>
 <body>
-<div class="cs" id="main">
 <div class="scan"></div>
-<div class="flash" id="flash"></div>
-<div id="ach-popup" class="ach-popup" style="display:none"></div>
+<div class="flash" id="fl"></div>
+<div id="achpop" class="achpop" style="display:none"></div>
 
-<div id="code-modal" class="modal-overlay" style="display:none">
-  <div class="modal-box">
-    <div class="modal-title">🎁 BONUS CODE</div>
-    <div class="modal-sub">Einmalig pro Code</div>
-    <input id="code-input" class="code-input" type="text" placeholder="CODE..." maxlength="20">
-    <div id="code-msg" class="code-msg"></div>
+<!-- CODE MODAL -->
+<div id="codemo" class="moverlay" style="display:none">
+  <div class="mbox">
+    <div class="mtitle">🎁 BONUS CODE</div>
+    <div class="msub">Einmalig pro Code</div>
+    <input id="cinp" class="cinput" placeholder="CODE..." maxlength="20">
+    <div id="cmsg" class="cmsg"></div>
     <div style="display:flex;gap:7px;margin-top:10px">
-      <button class="mbtn" onclick="submitCode()">EINLÖSEN</button>
-      <button class="mbtn cancel" onclick="closeModal('code-modal')">ABBRECHEN</button>
+      <button class="mbtn" onclick="doCode()">EINLÖSEN</button>
+      <button class="mbtn cancel" onclick="cls('codemo')">ABBRECHEN</button>
     </div>
   </div>
 </div>
 
-<div id="market-modal" class="modal-overlay" style="display:none">
-  <div class="modal-box wide">
-    <div class="modal-title">🏪 SKIN MARKT</div>
-    <div class="modal-sub">Verkaufe teurer – Zahlung zufällig · Neue Angebote alle 5 Min</div>
-    <div id="market-timer-txt" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,200,50,.48);margin-bottom:7px"></div>
-    <div class="sec-title" style="margin-bottom:6px">MARKT-ANGEBOTE</div>
-    <div id="market-buy-grid" class="market-listings"></div>
-    <div class="sec-title" style="margin-bottom:6px">DEINE ITEMS VERKAUFEN</div>
-    <div id="sell-inv-grid" class="sell-inv-grid"></div>
+<!-- MARKET MODAL -->
+<div id="mktmo" class="moverlay" style="display:none">
+  <div class="mbox wide">
+    <div class="mtitle">🏪 SKIN MARKT</div>
+    <div class="msub">Verkaufe teurer · Zahlung verzögert · Neue Angebote alle 5 Min</div>
+    <div id="mkttmr" style="font-family:'Share Tech Mono',monospace;font-size:9px;color:rgba(255,200,50,.46);margin-bottom:7px"></div>
+    <div class="stitle" style="margin-bottom:6px">ANGEBOTE KAUFEN</div>
+    <div id="mktbuy" class="mktgrid"></div>
+    <div class="stitle" style="margin-bottom:6px">DEINE ITEMS VERKAUFEN</div>
+    <div id="mktsel" class="sells"></div>
     <div style="margin-top:10px">
-      <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.45);margin-bottom:4px">⏳ AUSSTEHENDE ZAHLUNGEN</div>
-      <div id="market-pending-list" class="market-pending"></div>
+      <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.43);margin-bottom:4px">⏳ AUSSTEHENDE ZAHLUNGEN</div>
+      <div id="mktpnd" class="mktp"></div>
     </div>
-    <button class="mbtn cancel" style="margin-top:10px;width:100%" onclick="closeModal('market-modal')">SCHLIESSEN</button>
+    <button class="mbtn cancel" style="margin-top:10px;width:100%" onclick="cls('mktmo')">SCHLIESSEN</button>
   </div>
 </div>
 
-<div class="z1">
+<div class="wrap">
 <div class="topbar">
   <div class="topbar-title">CS2 <span style="color:#f0c040">CLICKER</span></div>
   <div class="top-btns">
-    <button class="tbtn gold" onclick="openModal('code-modal')">🎁 CODE</button>
-    <button class="tbtn green" onclick="openMarketModal()">🏪 MARKT</button>
+    <button class="tbtn gold" onclick="opn('codemo')">🎁 CODE</button>
+    <button class="tbtn grn" onclick="openMkt()">🏪 MARKT</button>
   </div>
 </div>
+
 <div class="hud">
-  <div class="sbox"><div class="slabel">Kills</div><div class="sval g" id="h-kills">0</div></div>
-  <div class="sbox"><div class="slabel">Klicks</div><div class="sval r" id="h-clicks">0</div></div>
-  <div class="sbox"><div class="slabel">Geld</div><div class="sval y" id="h-money">$0</div></div>
-  <div class="sbox"><div class="slabel">K/Klick</div><div class="sval p" id="h-kpc">1</div></div>
-  <div class="sbox"><div class="slabel">AFK/s</div><div class="sval teal" id="h-afk">0</div></div>
-  <div class="sbox"><div class="slabel">Items</div><div class="sval o" id="h-items">0</div></div>
-</div>
-<div class="nav">
-  <button class="navbtn active" onclick="showTab('game')">SPIELEN</button>
-  <button class="navbtn" onclick="showTab('shop')">SHOP</button>
-  <button class="navbtn" onclick="showTab('upg')">UPGRADES</button>
-  <button class="navbtn" onclick="showTab('cases')">KISTEN</button>
-  <button class="navbtn" onclick="showTab('inv')">INVENTAR</button>
-  <button class="navbtn" onclick="showTab('weekly')">🎁 WEEKLY<span class="nbadge" id="weekly-badge" style="display:none">!</span></button>
-  <button class="navbtn" onclick="showTab('ach')">🏆 ACH<span class="nbadge" id="ach-badge" style="display:none">!</span></button>
+  <div class="sbox"><div class="slbl">KILLS</div><div class="sval g" id="hk">0</div></div>
+  <div class="sbox"><div class="slbl">KLICKS</div><div class="sval r" id="hc">0</div></div>
+  <div class="sbox"><div class="slbl">GELD</div><div class="sval y" id="hm">$0</div></div>
+  <div class="sbox"><div class="slbl">K/KLICK</div><div class="sval p" id="hkpc">1</div></div>
+  <div class="sbox"><div class="slbl">AFK/S</div><div class="sval t" id="hafk">0</div></div>
+  <div class="sbox"><div class="slbl">ITEMS</div><div class="sval o" id="hitm">0</div></div>
 </div>
 
-<div id="tab-game" class="panel active">
+<div class="nav">
+  <button class="nb on" onclick="tab('game')">SPIELEN</button>
+  <button class="nb" onclick="tab('shop')">SHOP</button>
+  <button class="nb" onclick="tab('upg')">UPGRADES</button>
+  <button class="nb" onclick="tab('cases')">KISTEN</button>
+  <button class="nb" onclick="tab('inv')">INVENTAR</button>
+  <button class="nb" onclick="tab('weekly')">🎁 WEEKLY<span class="nbadge" id="wbdg" style="display:none">!</span></button>
+  <button class="nb" onclick="tab('ach')">🏆 ACH<span class="nbadge" id="abadge" style="display:none">!</span></button>
+</div>
+
+<!-- GAME -->
+<div id="pgame" class="panel on">
   <div class="weapon-area">
     <button class="wbtn" onclick="doClick(event)">
-      <svg class="game-svg" viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
-        <g id="svg-weapon"></g>
-        <g id="svg-extras"></g>
+      <svg class="gsvg" viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+        <g id="swep"></g><g id="sextra"></g>
       </svg>
     </button>
-    <div class="chint">[ klicken zum fragen ]</div>
+    <div class="chint">[ klicken zum schießen ]</div>
   </div>
-  <div id="eq-banner" style="display:none" class="eq-banner">
+  <div id="eqbn" style="display:none" class="eqbanner">
     <div style="flex:1"><div style="font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.5)">WAFFE</div>
-    <div style="font-size:12px;font-weight:700" id="eq-name">–</div></div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#f0c040" id="eq-mult"></div>
+    <div style="font-size:12px;font-weight:700" id="eqname">–</div></div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#f0c040" id="eqmult"></div>
   </div>
-  <div id="glove-banner" style="display:none" class="glove-banner">
-    <div style="flex:1"><div style="font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(34,211,238,.6)">🧤 HANDSCHUHE</div>
-    <div style="font-size:12px;font-weight:700" id="glove-name">–</div></div>
-    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#22d3ee" id="glove-afk"></div>
+  <div id="glbn" style="display:none" class="glbanner">
+    <div style="flex:1"><div style="font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(34,211,238,.55)">🧤 HANDSCHUHE</div>
+    <div style="font-size:12px;font-weight:700" id="glname">–</div></div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:#22d3ee" id="glafk"></div>
   </div>
   <div class="rankbar">
-    <div class="rbadge"><div>Rang</div><div class="rbname" id="g-rank">Silber I</div></div>
-    <div class="rbadge"><div>Nächster</div><div class="rbname" id="g-nrank" style="color:#f0c040">500 kills</div></div>
-    <div class="rbadge"><div>KPS</div><div class="rbname" id="g-kps">0.0</div></div>
-    <div class="rbadge"><div>Upg.+</div><div class="rbname" id="g-upg" style="color:#c084fc">0</div></div>
+    <div class="rbdg"><div>Rang</div><div class="rn" id="gr">Silber I</div></div>
+    <div class="rbdg"><div>Nächster</div><div class="rn" id="gnr" style="color:#f0c040">500 kills</div></div>
+    <div class="rbdg"><div>KPS</div><div class="rn" id="gkps">0.0</div></div>
+    <div class="rbdg"><div>Upg.+</div><div class="rn" id="gupg" style="color:#c084fc">0</div></div>
   </div>
-  <div class="rank-prog">
-    <div class="sec-title">🏆 RANG-BELOHNUNGEN (einmalig)</div>
-    <div id="rank-reward-list"></div>
+  <div class="rprg">
+    <div class="stitle">🏆 RANG-BELOHNUNGEN (einmalig)</div>
+    <div id="rkrwds"></div>
   </div>
-  <div class="kfeed"><div class="kftitle">KILL FEED</div><div id="kfeed"></div></div>
+  <div class="kfeed"><div class="kftitle">KILL FEED</div><div id="kfd"></div></div>
 </div>
 
-<div id="tab-shop" class="panel">
-  <div class="toastarea"><div id="shop-toast"></div></div>
-  <div class="sec-title">💱 KILLS UMWANDELN</div>
-  <div class="shoprow">
-    <div class="shopinfo"><div class="shoptitle">Kills → Geld</div>
-      <div class="shopdesc">Rate: <span id="conv-rate-disp">10</span> kills=$1 | Verfügbar: <span id="conv-avail">0</span></div></div>
-    <button class="shopbtn" onclick="convertKills()">UMWANDELN</button>
+<!-- SHOP -->
+<div id="pshop" class="panel">
+  <div class="ta"><div id="shtoast"></div></div>
+  <div class="stitle">💱 KILLS UMWANDELN</div>
+  <div class="srow">
+    <div class="sinfo"><div class="stit">Kills → Geld</div>
+    <div class="sdsc">Rate: <span id="crd">10</span> kills=$1 · Verfügbar: <span id="cav">0</span></div></div>
+    <button class="sbtn" onclick="convK()">UMWANDELN</button>
   </div>
-  <div class="shoprow">
-    <div class="shopinfo"><div class="shoptitle">Alle umwandeln</div><div class="shopdesc">Alle Kills sofort (Rang bleibt!)</div></div>
-    <button class="shopbtn" onclick="convertAll()">ALLE</button>
+  <div class="srow">
+    <div class="sinfo"><div class="stit">Alle umwandeln</div><div class="sdsc">Alle Kills sofort · Rang bleibt!</div></div>
+    <button class="sbtn" onclick="convAll()">ALLE</button>
   </div>
-  <div id="weapon-case-shop" style="display:none;margin-top:10px">
-    <div style="padding:10px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.32);border-radius:8px">
+  <div id="wcshop" style="display:none;margin-top:10px">
+    <div style="padding:10px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.3);border-radius:8px">
       <div style="font-size:13px;font-weight:700;color:#ef4444;margin-bottom:2px">🔥 WAFFEN-KISTE – EXKLUSIV</div>
-      <div style="font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(239,68,68,.65);margin-bottom:8px">Nur durch 10M Klicks freischaltbar</div>
-      <button class="shopbtn" style="width:100%;border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.09)" onclick="buyWeaponCase()">KAUFEN – $5.000.000</button>
+      <div style="font-size:8px;font-family:'Share Tech Mono',monospace;color:rgba(239,68,68,.6);margin-bottom:8px">Nur durch 10M Klicks freischaltbar</div>
+      <button class="sbtn" style="width:100%;border-color:#ef4444;color:#ef4444;background:rgba(239,68,68,.08)" onclick="buyWC()">KAUFEN – $5.000.000</button>
     </div>
   </div>
 </div>
 
-<div id="tab-upg" class="panel">
-  <div class="toastarea"><div id="upg-toast"></div></div>
-  <div class="sec-title">🔧 KILL/KLICK UPGRADES</div>
-  <div class="upg-grid" id="upg-kpc-grid"></div>
-  <div class="sec-title" style="margin-top:14px;color:rgba(34,211,238,.6)">⏰ AFK UPGRADES (Kills/Sekunde)</div>
-  <div class="upg-grid" id="upg-afk-grid"></div>
-  <div class="sec-title" style="margin-top:14px">💱 SONSTIGE</div>
-  <div class="upg-grid" id="upg-other-grid"></div>
+<!-- UPGRADES -->
+<div id="pupg" class="panel">
+  <div class="ta"><div id="ugtoast"></div></div>
+  <div class="stitle">🔧 KILL/KLICK UPGRADES</div>
+  <div class="ugrid" id="ukpc"></div>
+  <div class="stitle" style="margin-top:14px;color:rgba(34,211,238,.58)">⏰ AFK UPGRADES (Kills/Sekunde)</div>
+  <div class="ugrid" id="uafk"></div>
+  <div class="stitle" style="margin-top:14px">💱 SONSTIGE</div>
+  <div class="ugrid" id="uoth"></div>
 </div>
 
-<div id="tab-cases" class="panel">
-  <div class="toastarea"><div id="case-toast"></div></div>
-  <div class="cases-grid" id="cases-grid"></div>
+<!-- CASES -->
+<div id="pcases" class="panel">
+  <div class="ta"><div id="ctoast"></div></div>
+  <div class="cgrid" id="casegrid"></div>
 </div>
 
-<div id="tab-inv" class="panel">
-  <div class="toastarea"><div id="inv-toast"></div></div>
+<!-- INV -->
+<div id="pinv" class="panel">
+  <div class="ta"><div id="itoast"></div></div>
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-    <div class="sec-title" style="margin:0">INVENTAR · <span id="inv-total-val">$0</span></div>
-    <button class="danger-btn" onclick="sellAll()">ALLES VERKAUFEN</button>
+    <div class="stitle" style="margin:0">INVENTAR · <span id="itotv">$0</span></div>
+    <button class="dbtn" onclick="sellAll()">ALLES VERKAUFEN</button>
   </div>
-  <div class="inv-grid" id="inv-grid"></div>
+  <div class="igrid" id="invgrid"></div>
 </div>
 
-<div id="tab-weekly" class="panel">
-  <div class="toastarea"><div id="weekly-toast"></div></div>
-  <div class="weekly-wrap">
-    <div class="weekly-title">🎁 WEEKLY DROP</div>
-    <div class="weekly-sub">Nur Global Elite · 4 Angebote · Wähle 2 · Nur 1× einlösbar</div>
-    <div id="weekly-content"></div>
+<!-- WEEKLY -->
+<div id="pweekly" class="panel">
+  <div class="ta"><div id="wtoast"></div></div>
+  <div class="wwrap">
+    <div class="wtitle">🎁 WEEKLY DROP</div>
+    <div class="wsub">Nur Global Elite · 4 Angebote · Wähle 2 · Nur 1× einlösbar</div>
+    <div id="wcont"></div>
   </div>
 </div>
 
-<div id="tab-ach" class="panel">
-  <div class="toastarea"><div id="ach-toast"></div></div>
-  <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.38);margin-bottom:7px">ACHIEVEMENTS · <span id="ach-count-lbl">0/56</span></div>
-  <div class="ach-filter">
-    <button class="ach-fbtn active" onclick="setAchFilter('all',this)">ALLE</button>
-    <button class="ach-fbtn" onclick="setAchFilter('claimable',this)">CLAIMBAR 🔔</button>
-    <button class="ach-fbtn" onclick="setAchFilter('locked',this)">GESPERRT</button>
-    <button class="ach-fbtn" onclick="setAchFilter('claimed',this)">ABGEHOLT ✅</button>
+<!-- ACH -->
+<div id="pach" class="panel">
+  <div class="ta"><div id="atoast"></div></div>
+  <div style="font-size:9px;font-family:'Share Tech Mono',monospace;color:rgba(255,200,50,.36);margin-bottom:7px">
+    ACHIEVEMENTS · <span id="acnt">0/56</span>
   </div>
-  <div class="ach-grid" id="ach-grid"></div>
+  <div class="afrow">
+    <button class="afbtn on" onclick="setAF('all',this)">ALLE</button>
+    <button class="afbtn" onclick="setAF('claimable',this)">CLAIMBAR 🔔</button>
+    <button class="afbtn" onclick="setAF('locked',this)">GESPERRT</button>
+    <button class="afbtn" onclick="setAF('claimed',this)">ABGEHOLT ✅</button>
+    <div class="afsep"></div>
+    <button class="afbtn kills" onclick="setAF('kills',this)">💀 KILLS</button>
+    <button class="afbtn clicks" onclick="setAF('clicks',this)">🖱️ KLICKS</button>
+    <button class="afbtn money" onclick="setAF('money',this)">💰 DOLLAR</button>
+    <button class="afbtn cases" onclick="setAF('cases',this)">📦 KISTEN</button>
+    <button class="afbtn spec" onclick="setAF('spec',this)">⭐ SPEZIAL</button>
+  </div>
+  <div id="achgrid"></div>
 </div>
-</div></div>
 
-<script>
-// ════════ GLOBAL ID COUNTER ════════
-let _gid=0;
-function NS(){return 'q'+(++_gid);}
-
-// ════════ DATA ════════
-const PNAMES=["b1t","NiKo","s1mple","ZywOo","sh1ro","Monesy","donk","ropz","XANTARES","electroNic","device","tabseN"];
-const RANKS=[
-  {n:"Silber I",m:0,c:"#aaa"},{n:"Silber II",m:500,c:"#bbb"},{n:"Silber III",m:1500,c:"#ccc"},{n:"Silber IV",m:3000,c:"#ddd"},
-  {n:"Gold Nova I",m:6000,c:"#f0c040"},{n:"Gold Nova II",m:10000,c:"#f0c040"},{n:"Gold Nova III",m:18000,c:"#f0c040"},{n:"Gold Nova Master",m:30000,c:"#f0d060"},
-  {n:"AK",m:50000,c:"#66ccff"},{n:"DMG",m:80000,c:"#44aaff"},{n:"LE",m:120000,c:"#8847ff"},{n:"LEM",m:180000,c:"#aa55ff"},
-  {n:"SMFC",m:280000,c:"#eb4b4b"},{n:"Global Elite",m:500000,c:"#e4ae39"}
-];
-const RANK_REWARDS=[
-  {rank:"Silber II",r:{type:"money",n:150},label:"$150"},
-  {rank:"Silber III",r:{type:"case",id:"default",n:1},label:"1× Default Case"},
-  {rank:"Silber IV",r:{type:"money",n:400},label:"$400"},
-  {rank:"Gold Nova I",r:{type:"case",id:"default",n:2},label:"2× Default Case"},
-  {rank:"Gold Nova II",r:{type:"money",n:1000},label:"$1.000"},
-  {rank:"Gold Nova III",r:{type:"case",id:"rare",n:1},label:"1× Rare Case"},
-  {rank:"Gold Nova Master",r:{type:"case",id:"rare",n:2},label:"2× Rare Case"},
-  {rank:"AK",r:{type:"money",n:6000},label:"$6.000"},
-  {rank:"DMG",r:{type:"case",id:"epic",n:1},label:"1× Epic Case"},
-  {rank:"LE",r:{type:"case",id:"epic",n:2},label:"2× Epic Case"},
-  {rank:"LEM",r:{type:"money",n:30000},label:"$30.000"},
-  {rank:"SMFC",r:{type:"case",id:"epic",n:3},label:"3× Epic Case"},
-  {rank:"Global Elite",r:{type:"money",n:100000},label:"$100.000"},
-];
-const RARITY=[
-  {name:"Mil-Spec",  color:"#4b69ff",mult:2,   baseVal:3},
-  {name:"Restricted",color:"#8847ff",mult:6,   baseVal:12},
-  {name:"Classified",color:"#d32ce6",mult:15,  baseVal:50},
-  {name:"Covert",    color:"#eb4b4b",mult:60,  baseVal:500},
-  {name:"★ Rare",   color:"#e4ae39",mult:200, baseVal:2000},
-];
-const KNIFE_RAR={name:"★ Knife",color:"#e4ae39",mult:800,baseVal:8000};
-const GUN={
-  0:["P250 | Sand Dune","MP9 | Setting Sun","Galil AR | Stone Cold","Nova | Sand Dune","MP7 | Urban Hazard"],
-  1:["Five-SeveN | Case Hardened","AUG | Wings","M4A1-S | Dark Water","SG 553 | Waves"],
-  2:["USP-S | Stainless","AK-47 | Safari Mesh","M4A4 | Tornado","P90 | Module"],
-  3:["M4A4 | Howl","AWP | Lightning Strike","AK-47 | Case Hardened","Desert Eagle | Conspiracy"],
-  4:["AWP | Asiimov","AK-47 | Redline","USP-S | Orion","M4A4 | Neo-Noir"]
-};
-const GUN_B={
-  0:["Galil AR | Chatterbox","MP9 | Ruby Poison","PP-Bizon | Candy Apple","MAC-10 | Graven"],
-  1:["AUG | Carved Jade","Five-SeveN | Kami","M4A1-S | Bright Water"],
-  2:["AK-47 | Ice Coaled","AWP | Mortis","USP-S | Cortex","SG 553 | Cyrex"],
-  3:["AWP | Fever Dream","AK-47 | Head Shot","Desert Eagle | Blaze","M4A4 | Spider Lily"],
-  4:["AWP | Dragon Lore","AK-47 | Fire Serpent","M4A4 | Poseidon","Desert Eagle | Golden Koi"]
-};
-const KNIVES=["★ Karambit | Fade","★ Butterfly Knife | Tiger Tooth","★ Karambit | Doppler","★ Butterfly Knife | Fade","★ Karambit | Crimson Web","★ Butterfly Knife | Crimson Web","★ M9 Bayonet | Fade","★ Gut Knife | Doppler","★ Stiletto | Fade","★ Navaja | Marble Fade","★ Karambit | Tiger Tooth","★ Butterfly Knife | Doppler","★ Shadow Daggers | Fade","★ Falchion | Tiger Tooth","★ Gut Knife | Fade","★ M9 Bayonet | Tiger Tooth"];
-const GLOVE_SKINS=[
-  {name:"Sport Gloves | Pandora's Box",color:"#e4ae39",afkBonus:50,value:85000},
-  {name:"Sport Gloves | Vice",color:"#eb4b4b",afkBonus:80,value:95000},
-  {name:"Sport Gloves | Slingshot",color:"#8847ff",afkBonus:60,value:88000},
-  {name:"Sport Gloves | Superconductor",color:"#d32ce6",afkBonus:70,value:92000},
-  {name:"Specialist Gloves | Fade",color:"#e4ae39",afkBonus:120,value:105000},
-  {name:"Specialist Gloves | Crimson Web",color:"#eb4b4b",afkBonus:100,value:100000},
-  {name:"Specialist Gloves | Field Agent",color:"#8847ff",afkBonus:90,value:97000},
-  {name:"Moto Gloves | Spearmint",color:"#4b69ff",afkBonus:30,value:82000},
-  {name:"Moto Gloves | Finish Line",color:"#d32ce6",afkBonus:75,value:93000},
-  {name:"Hand Wraps | Cobalt Skulls",color:"#4b69ff",afkBonus:40,value:84000},
-  {name:"Hand Wraps | Duct Tape",color:"#8847ff",afkBonus:55,value:87000},
-  {name:"Hydra Gloves | Case Hardened",color:"#d32ce6",afkBonus:200,value:108000},
-  {name:"Bloodhound Gloves | Guerrilla",color:"#eb4b4b",afkBonus:160,value:103000},
-  {name:"Driver Gloves | Lunar Weave",color:"#e4ae39",afkBonus:500,value:110000},
-];
-const KNIFE_TIERS=[
-  {name:"Gut Knife",color:"#4b69ff",mult:500,baseVal:5000},
-  {name:"Shadow Daggers",color:"#8847ff",mult:700,baseVal:7000},
-  {name:"Falchion",color:"#d32ce6",mult:1000,baseVal:12000},
-  {name:"M9 Bayonet",color:"#eb4b4b",mult:1500,baseVal:25000},
-  {name:"★ Karambit",color:"#e4ae39",mult:2500,baseVal:60000},
-  {name:"★ Butterfly",color:"#e4ae39",mult:3000,baseVal:75000},
-];
-const KNIFE_TIER_POOL=[
-  ["★ Gut Knife | Night","★ Gut Knife | Scorched","★ Gut Knife | Fade","★ Gut Knife | Tiger Tooth"],
-  ["★ Shadow Daggers | Forest","★ Shadow Daggers | Fade","★ Shadow Daggers | Tiger Tooth"],
-  ["★ Falchion | Case Hardened","★ Falchion | Tiger Tooth","★ Falchion | Fade"],
-  ["★ M9 Bayonet | Night","★ M9 Bayonet | Tiger Tooth","★ M9 Bayonet | Fade","★ M9 Bayonet | Doppler"],
-  ["★ Karambit | Fade","★ Karambit | Doppler","★ Karambit | Crimson Web","★ Karambit | Tiger Tooth"],
-  ["★ Butterfly Knife | Fade","★ Butterfly Knife | Doppler","★ Butterfly Knife | Crimson Web","★ Butterfly Knife | Tiger Tooth"]
-];
-const WC_RAR=[
-  {name:"Mil-Spec ★★",color:"#4b69ff",mult:1200,baseVal:2000},
-  {name:"Restricted ★★",color:"#8847ff",mult:2000,baseVal:8000},
-  {name:"Classified ★★",color:"#d32ce6",mult:3500,baseVal:20000},
-  {name:"Covert ★★",color:"#eb4b4b",mult:6000,baseVal:80000},
-  {name:"★ Legendary",color:"#e4ae39",mult:10000,baseVal:300000}
-];
-const WC_POOL={
-  0:["P90 | Asiimov","Nova | Hyper Beast"],1:["AUG | Akihabara Accept","SG 553 | Cyrex"],
-  2:["AK-47 | Vulcan","M4A4 | X-Ray"],3:["AWP | Dragon Lore","AK-47 | Fire Serpent"],
-  4:["AWP | Gungnir","AK-47 | Wild Lotus","M4A4 | Howl (Contraband)"]
-};
-const CASES=[
-  {id:"default",   label:"Default Case",    tier:"DEFAULT",  price:30,    cls:"default",    nc:"#4b69ff",bb:"rgba(74,105,255,.1)", chances:[0.7597,0.150,0.060,0.020,0.010,0.0003],desc:"Standard | 0.03% ★ Knife"},
-  {id:"default2",  label:"Default Vol.2",   tier:"DEFAULT B",price:30,    cls:"default2",   nc:"#4b69ff",bb:"rgba(74,105,255,.07)",chances:[0.7597,0.150,0.060,0.020,0.010,0.0003],desc:"Andere Skins | 0.03% ★ Knife",altPool:true},
-  {id:"rare",      label:"Rare Case",       tier:"RARE",     price:100,   cls:"rare",       nc:"#8847ff",bb:"rgba(136,71,255,.1)", chances:[0.660,0.190,0.090,0.040,0.018,0.002],desc:"Erhöhte Chancen | 0.2% ★ Knife"},
-  {id:"rare2",     label:"Rare Vol.2",      tier:"RARE B",   price:100,   cls:"rare2",      nc:"#8847ff",bb:"rgba(136,71,255,.07)",chances:[0.660,0.190,0.090,0.040,0.018,0.002],desc:"Andere Skins | 0.2% ★ Knife",altPool:true},
-  {id:"epic",      label:"Epic Case",       tier:"EPIC",     price:250,   cls:"epic",       nc:"#d32ce6",bb:"rgba(211,44,230,.1)", chances:[0.560,0.230,0.120,0.060,0.025,0.005],desc:"Stark erhöht | 0.5% ★ Knife"},
-  {id:"epic2",     label:"Epic Vol.2",      tier:"EPIC B",   price:250,   cls:"epic2",      nc:"#d32ce6",bb:"rgba(211,44,230,.07)",chances:[0.560,0.230,0.120,0.060,0.025,0.005],desc:"Andere Skins | 0.5% ★ Knife",altPool:true},
-  {id:"legendary", label:"Legendary Case",  tier:"LEGENDARY",price:3000,  cls:"legendary",  nc:"#e4ae39",bb:"rgba(228,174,57,.1)", chances:[0.400,0.280,0.180,0.100,0.030,0.010],desc:"Deutlich erhöht | 1% ★ Knife | $3.000"},
-  {id:"legendary2",label:"Legendary Vol.2", tier:"LEGEND B", price:3000,  cls:"legendary2", nc:"#e4ae39",bb:"rgba(228,174,57,.06)",chances:[0.400,0.280,0.180,0.100,0.030,0.010],desc:"Andere Skins | 1% ★ Knife | $3.000",altPool:true},
-  {id:"knife_case",label:"★ Knife Case",    tier:"KNIFE",    price:0,     cls:"knife-only", nc:"#e4ae39",bb:"rgba(228,174,57,.08)",isKnifeCase:true,chances:[0.30,0.25,0.20,0.14,0.07,0.04],desc:"Nur Achievement | 6 Seltenheiten"},
-  {id:"weapon_case",label:"🔥 Waffen-Kiste",tier:"WEAPON",   price:5000000,cls:"weapon-case",nc:"#ef4444",bb:"rgba(239,68,68,.08)",isWeaponCase:true,chances:[0.50,0.25,0.13,0.08,0.04],desc:"Shop | 10M Klicks | 1200-10000×"}
-];
-const UPGRADES_KPC=[
-  {id:"scope",   icon:"🔭",title:"Zielfernrohr",    desc:"Präzision → K/Klick",    maxLvl:20,basePrice:50,   priceMult:1.45,type:"kpc",baseBonus:1, bonusPerLvl:1},
-  {id:"barrel",  icon:"🔧",title:"Lauf-Extension",  desc:"Längerer Lauf → Damage",  maxLvl:20,basePrice:80,   priceMult:1.5, type:"kpc",baseBonus:1, bonusPerLvl:2},
-  {id:"stock",   icon:"🪵",title:"Schaftverstärk.", desc:"Stabilität → mehr Kills",  maxLvl:15,basePrice:120,  priceMult:1.55,type:"kpc",baseBonus:1, bonusPerLvl:2},
-  {id:"grip",    icon:"🤜",title:"Pistolengriff",   desc:"Grip → Schnellere Schüsse",maxLvl:15,basePrice:200,  priceMult:1.6, type:"kpc",baseBonus:2, bonusPerLvl:3},
-  {id:"magazine",icon:"📦",title:"Großes Magazin",  desc:"Mehr Munition",            maxLvl:20,basePrice:300,  priceMult:1.5, type:"kpc",baseBonus:2, bonusPerLvl:3},
-  {id:"trigger", icon:"⚡",title:"Trigger-Upgrade", desc:"Schnellerer Abzug",        maxLvl:10,basePrice:500,  priceMult:1.7, type:"kpc",baseBonus:3, bonusPerLvl:5},
-  {id:"laser",   icon:"🔴",title:"Laser-Sight",     desc:"Präziser Laser",           maxLvl:10,basePrice:800,  priceMult:1.75,type:"kpc",baseBonus:4, bonusPerLvl:6},
-  {id:"silencer",icon:"🔇",title:"Schalldämpfer",   desc:"Lautlose Kills",           maxLvl:10,basePrice:1200, priceMult:1.8, type:"kpc",baseBonus:5, bonusPerLvl:8},
-  {id:"thermal", icon:"🌡️",title:"Wärmebildkamera", desc:"Siehst durch Wände",       maxLvl:8, basePrice:2500, priceMult:1.9, type:"kpc",baseBonus:8, bonusPerLvl:12},
-  {id:"nuclear", icon:"☢️",title:"Nuklear-Rückstoß",desc:"Explosiver Schaden",       maxLvl:5, basePrice:8000, priceMult:2.2, type:"kpc",baseBonus:20,bonusPerLvl:25},
-];
-const UPGRADES_AFK=[
-  {id:"afk_bot",   icon:"🤖",title:"Aim Bot",           desc:"Automatische Kills/sek",  maxLvl:20,basePrice:500,  priceMult:1.6, type:"afk",baseBonus:1, bonusPerLvl:2},
-  {id:"afk_turret",icon:"🏗️",title:"Auto-Turret",       desc:"Stationäre Kills/sek",    maxLvl:15,basePrice:1200, priceMult:1.65,type:"afk",baseBonus:3, bonusPerLvl:5},
-  {id:"afk_drone", icon:"🚁",title:"Drohnen-Schwarm",   desc:"Drohnen sammeln Kills",   maxLvl:10,basePrice:3000, priceMult:1.75,type:"afk",baseBonus:10,bonusPerLvl:15},
-  {id:"afk_nuke",  icon:"💣",title:"Nuklear-Autopilot", desc:"Massenzerstörung passiv", maxLvl:8, basePrice:8000, priceMult:1.9, type:"afk",baseBonus:30,bonusPerLvl:50},
-  {id:"afk_ai",    icon:"🧠",title:"KI-Assist",         desc:"KI spielt für dich",      maxLvl:5, basePrice:25000,priceMult:2.2, type:"afk",baseBonus:100,bonusPerLvl:200},
-];
-const UPGRADES_OTHER=[
-  {id:"convrate",icon:"💱",title:"Konversionsrate",desc:"Weniger Kills/Dollar (10→1)",maxLvl:9,basePrice:2000,priceMult:2.0,type:"conv",baseBonus:1,bonusPerLvl:1},
-];
-const ALL_UPGRADES=[...UPGRADES_KPC,...UPGRADES_AFK,...UPGRADES_OTHER];
-const ACHIEVEMENTS=[
-  {id:"k500",    icon:"🔫",title:"Erster Einsatz",    desc:"500 Kills gesamt",           goal:500,    type:"allkills", reward:{type:"case",id:"default",n:1},  rewardLabel:"1× Default",   color:"#4b69ff"},
-  {id:"k2500",   icon:"💀",title:"Scharfschütze",     desc:"2.500 Kills gesamt",         goal:2500,   type:"allkills", reward:{type:"case",id:"default",n:3},  rewardLabel:"3× Default",   color:"#4b69ff"},
-  {id:"k5000",   icon:"💀",title:"Kill-Fabrik",       desc:"5.000 Kills gesamt",         goal:5000,   type:"allkills", reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"k10000",  icon:"💀",title:"Massengrab",        desc:"10.000 Kills gesamt",        goal:10000,  type:"allkills", reward:{type:"case",id:"rare",n:2},     rewardLabel:"2× Rare",      color:"#8847ff"},
-  {id:"k25000",  icon:"☠️",title:"Kriegsmaschine",    desc:"25.000 Kills gesamt",        goal:25000,  type:"allkills", reward:{type:"case",id:"rare",n:3},     rewardLabel:"3× Rare",      color:"#8847ff"},
-  {id:"k50000",  icon:"☠️",title:"Todesengel",        desc:"50.000 Kills gesamt",        goal:50000,  type:"allkills", reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"k100000", icon:"☠️",title:"Massenvernichter",  desc:"100.000 Kills gesamt",       goal:100000, type:"allkills", reward:{type:"case",id:"epic",n:2},     rewardLabel:"2× Epic",      color:"#d32ce6"},
-  {id:"k200000", icon:"☠️",title:"Unstoppable",       desc:"200.000 Kills gesamt",       goal:200000, type:"allkills", reward:{type:"case",id:"epic",n:3},     rewardLabel:"3× Epic",      color:"#d32ce6"},
-  {id:"k500000", icon:"👑",title:"Legende",           desc:"500.000 Kills gesamt",       goal:500000, type:"allkills", reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"k1M",     icon:"👑",title:"Mythos",            desc:"1.000.000 Kills gesamt",     goal:1000000,type:"allkills", reward:{type:"case",id:"legendary",n:2},rewardLabel:"2× Legendary", color:"#e4ae39"},
-  {id:"k2M",     icon:"👑",title:"Über-Gott",         desc:"2.000.000 Kills gesamt",     goal:2000000,type:"allkills", reward:{type:"case",id:"legendary",n:3},rewardLabel:"3× Legendary", color:"#e4ae39"},
-  {id:"k5M",     icon:"🌟",title:"Global Elite God",  desc:"5.000.000 Kills gesamt",     goal:5000000,type:"allkills", reward:{type:"case",id:"legendary",n:5},rewardLabel:"5× Legendary", color:"#e4ae39"},
-  {id:"c1000",   icon:"🖱️",title:"Erster Klick",     desc:"1.000 Klicks",               goal:1000,   type:"clicks",   reward:{type:"money",n:50},             rewardLabel:"$50",          color:"#66ff88"},
-  {id:"c5000",   icon:"🖱️",title:"Klick-Training",   desc:"5.000 Klicks",               goal:5000,   type:"clicks",   reward:{type:"case",id:"default",n:2},  rewardLabel:"2× Default",   color:"#4b69ff"},
-  {id:"c15000",  icon:"🖱️",title:"Daumen-Maschine",  desc:"15.000 Klicks",              goal:15000,  type:"clicks",   reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"c30000",  icon:"🖱️",title:"Klick-Wahnsinn",   desc:"30.000 Klicks",              goal:30000,  type:"clicks",   reward:{type:"case",id:"rare",n:2},     rewardLabel:"2× Rare",      color:"#8847ff"},
-  {id:"c75000",  icon:"🖱️",title:"Klick-Gott",       desc:"75.000 Klicks",              goal:75000,  type:"clicks",   reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"c150000", icon:"🖱️",title:"Repetier-Maschine",desc:"150.000 Klicks",             goal:150000, type:"clicks",   reward:{type:"case",id:"epic",n:2},     rewardLabel:"2× Epic",      color:"#d32ce6"},
-  {id:"c300000", icon:"🖱️",title:"Endlos-Klicker",   desc:"300.000 Klicks",             goal:300000, type:"clicks",   reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"c500000", icon:"🔪",title:"★ Knife Collector", desc:"500.000 Klicks",             goal:500000, type:"clicks",   reward:{type:"case",id:"knife_case",n:1,unlock:true},rewardLabel:"★ Knife Case",color:"#e4ae39"},
-  {id:"c10M",    icon:"🔥",title:"10M Klicker",       desc:"10.000.000 Klicks",          goal:10000000,type:"clicks",  reward:{type:"unlockWeaponCase"},        rewardLabel:"Waffen-Kiste", color:"#ef4444"},
-  {id:"m500",    icon:"💰",title:"Kleiner Dealer",    desc:"$500 verdient",              goal:500,    type:"money",    reward:{type:"case",id:"default",n:2},  rewardLabel:"2× Default",   color:"#4b69ff"},
-  {id:"m2000",   icon:"💰",title:"Händler",           desc:"$2.000 verdient",            goal:2000,   type:"money",    reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"m10000",  icon:"💎",title:"Millionär",         desc:"$10.000 verdient",           goal:10000,  type:"money",    reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"m50000",  icon:"💎",title:"Mogul",             desc:"$50.000 verdient",           goal:50000,  type:"money",    reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"m200000", icon:"💎",title:"Oligarch",          desc:"$200.000 verdient",          goal:200000, type:"money",    reward:{type:"case",id:"legendary",n:3},rewardLabel:"3× Legendary", color:"#e4ae39"},
-  {id:"u5",      icon:"🔧",title:"Techniker",         desc:"5 Upgrades",                 goal:5,      type:"upgrades", reward:{type:"money",n:200},            rewardLabel:"$200",         color:"#66ccff"},
-  {id:"u15",     icon:"🔧",title:"Waffenmeister",     desc:"15 Upgrades",                goal:15,     type:"upgrades", reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"u30",     icon:"⚙️",title:"Engineer",          desc:"30 Upgrades",                goal:30,     type:"upgrades", reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"u60",     icon:"⚙️",title:"Vollausstattung",   desc:"60 Upgrades",                goal:60,     type:"upgrades", reward:{type:"case",id:"epic",n:2},     rewardLabel:"2× Epic",      color:"#d32ce6"},
-  {id:"u100",    icon:"🏭",title:"Rüstungswerk",      desc:"100 Upgrades",               goal:100,    type:"upgrades", reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"o10",     icon:"📦",title:"Hohe Erwartungen",  desc:"10 Kisten",                  goal:10,     type:"opened",   reward:{type:"money",n:100},            rewardLabel:"$100",         color:"#66ff88"},
-  {id:"o50",     icon:"📦",title:"Glückssucher",      desc:"50 Kisten",                  goal:50,     type:"opened",   reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"o150",    icon:"📦",title:"Süchtig",           desc:"150 Kisten",                 goal:150,    type:"opened",   reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"o500",    icon:"📦",title:"Case-Wahnsinniger", desc:"500 Kisten",                 goal:500,    type:"opened",   reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"inv10",   icon:"🗃️",title:"Sammler",           desc:"10 Items",                   goal:10,     type:"inv",      reward:{type:"money",n:150},            rewardLabel:"$150",         color:"#66ff88"},
-  {id:"inv30",   icon:"🗃️",title:"Waffenarsenal",     desc:"30 Items",                   goal:30,     type:"inv",      reward:{type:"case",id:"rare",n:1},     rewardLabel:"1× Rare",      color:"#8847ff"},
-  {id:"inv75",   icon:"🏺",title:"Kriegsmuseum",      desc:"75 Items",                   goal:75,     type:"inv",      reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"knife1",  icon:"🔪",title:"Erstes Messer",     desc:"1 Knife",                    goal:1,      type:"knives",   reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"knife5",  icon:"🔪",title:"Knife-Dealer",      desc:"5 Knives",                   goal:5,      type:"knives",   reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"knife15", icon:"🔪",title:"Knife-Gott",        desc:"15 Knives",                  goal:15,     type:"knives",   reward:{type:"case",id:"legendary",n:3},rewardLabel:"3× Legendary", color:"#e4ae39"},
-  {id:"kpc100",  icon:"⚡",title:"Schneller Mörder",  desc:"100 K/Klick",                goal:100,    type:"kpc",      reward:{type:"case",id:"epic",n:2},     rewardLabel:"2× Epic",      color:"#d32ce6"},
-  {id:"kpc500",  icon:"💥",title:"Massenvernichter",  desc:"500 K/Klick",                goal:500,    type:"kpc",      reward:{type:"case",id:"legendary",n:1},rewardLabel:"1× Legendary", color:"#e4ae39"},
-  {id:"kpc1000", icon:"🌪️",title:"Killstorm",         desc:"1.000 K/Klick",              goal:1000,   type:"kpc",      reward:{type:"case",id:"legendary",n:3},rewardLabel:"3× Legendary", color:"#e4ae39"},
-  {id:"rank_ge", icon:"🏅",title:"Global Elite",      desc:"Global Elite erreichen",     goal:1,      type:"rank",     reward:{type:"case",id:"legendary",n:2},rewardLabel:"2× Legendary", color:"#e4ae39"},
-  {id:"sell10k", icon:"💵",title:"Händler-König",     desc:"$10K Verkäufe",              goal:10000,  type:"sold",     reward:{type:"case",id:"epic",n:1},     rewardLabel:"1× Epic",      color:"#d32ce6"},
-  {id:"sell100k",icon:"🏦",title:"Wolf of CS Street", desc:"$100K Verkä... (57 KB left)
+</div><!-- .wrap -->
+EOF
+echo "Part 1 written: $(wc -c < /tmp/cs2_part1.txt) bytes"
+Ausgabe
+Part 1 written: 28815 bytes
