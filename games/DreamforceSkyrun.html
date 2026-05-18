@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dreamforce SkyRun</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+body{overflow:hidden;background:linear-gradient(180deg,#0b5cab 0%,#1787e0 40%,#8bd0ff 100%)}
+canvas{display:block}
+.hud{position:fixed;top:18px;left:50%;transform:translateX(-50%);width:min(960px,94vw);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 24px;background:rgba(255,255,255,.18);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.25);border-radius:24px;color:#fff;z-index:5;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.brand{font-size:1.2rem;font-weight:800;letter-spacing:1px}
+.stats{display:flex;gap:24px;font-weight:700}
+.overlay{position:fixed;inset:0;background:linear-gradient(180deg,rgba(120,220,255,.25),rgba(0,80,160,.45));backdrop-filter:blur(14px);display:flex;justify-content:center;align-items:center;z-index:10;overflow:hidden}
+.overlay::before{content:'';position:absolute;width:1400px;height:1400px;background:radial-gradient(circle,rgba(255,255,255,.35) 0%,rgba(255,255,255,0) 70%);top:-700px;left:50%;transform:translateX(-50%)}
+.overlay::after{content:'';position:absolute;bottom:-120px;left:-10%;width:120%;height:240px;background:linear-gradient(180deg,rgba(90,255,170,.45),rgba(60,180,120,.65));border-radius:50% 50% 0 0;filter:blur(4px)}
+.overlay .liminal-light{position:absolute;width:700px;height:120px;background:rgba(255,255,255,.06);filter:blur(28px);top:18%;left:50%;transform:translateX(-50%) rotate(-2deg);border-radius:100px}
+.card{position:relative;width:min(560px,92vw);padding:48px;border-radius:38px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.18));border:1px solid rgba(255,255,255,.6);color:#fff;text-align:center;box-shadow:0 25px 80px rgba(0,70,160,.35),inset 0 1px 0 rgba(255,255,255,.75);overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.45),rgba(255,255,255,0) 40%);pointer-events:none}
+.card::after{content:'';position:absolute;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.45),rgba(255,255,255,0));top:-80px;right:-60px;pointer-events:none}
+.card h1{font-size:4rem;margin-bottom:14px;font-weight:900;letter-spacing:-2px;background:linear-gradient(180deg,#ffffff,#dff6ff 55%,#7ed7ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 18px rgba(255,255,255,.55)}
+.card p{line-height:1.7;margin-bottom:24px;font-size:1.05rem}
+button{position:relative;border:none;padding:18px 34px;border-radius:999px;background:linear-gradient(180deg,#ffffff,#d6f4ff);color:#0070c9;font-size:1rem;font-weight:900;cursor:pointer;transition:.25s transform,.25s box-shadow;box-shadow:0 10px 30px rgba(255,255,255,.5),inset 0 2px 8px rgba(255,255,255,.8);overflow:hidden}
+button::before{content:'';position:absolute;left:-40%;top:0;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);transform:skewX(-20deg)}
+button:hover::before{animation:shine 1s ease}
+@keyframes shine{from{left:-40%}to{left:140%}}
+button:hover{transform:translateY(-2px) scale(1.03)}
+.controls{margin-top:18px;opacity:.92;font-size:.95rem;color:#e9fbff;text-shadow:0 2px 10px rgba(255,255,255,.35)}
+
+@media (max-width:700px){
+.hud{padding:14px 18px;border-radius:18px;top:10px}
+.brand{font-size:1rem}
+.stats{width:100%;justify-content:space-between;font-size:.92rem;gap:10px}
+.card{padding:28px}
+.card h1{font-size:2.2rem}
+.card p{font-size:.96rem}
+button{width:100%;padding:15px 18px}
+}
+</style>
+</head>
+<body>
+<div class="hud">
+<div class="brand">☁ Dreamforce SkyRun</div>
+<div class="stats">
+<div>Score: <span id="score">0</span></div>
+<div>Best: <span id="best">0</span></div>
+<div>Speed: <span id="speed">1</span>x</div>
+</div>
+</div>
+
+<div class="overlay" id="menu">
+<div class="liminal-light"></div>
+<div class="card">
+<h1>Dreamforce SkyRun</h1>
+<p>Drift through glossy cloud highways, luminous eco-futuristic skylines, floating bubbles, glass UI reflections, and soft green horizons inspired by classic Frutiger Aero aesthetics. Collect innovation orbs and survive the dreamscape.</p>
+<button onclick="startGame()">Launch Experience</button>
+<div class="controls">Every run changes biome, atmosphere, and difficulty • Desktop: ← → or A / D • Mobile/Tablet: Swipe or drag</div>
+</div>
+</div>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
+resize();
+addEventListener('resize', resize);
+
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const speedEl = document.getElementById('speed');
+const menu = document.getElementById('menu');
+
+let keys = {};
+let touchX = null;
+let isTouching = false;
+let score = 0;
+let speed = 1;
+let gameOver = false;
+let animation;
+let currentBiome = 'sky';
+let gameplayMode = 'normal';
+let weatherIntensity = 1;
+
+const player = {
+  x: innerWidth / 2,
+  y: innerHeight - 140,
+  w: 80,
+  h: 80,
+  vel: 9
+};
+
+let obstacles = [];
+let orbs = [];
+let particles = [];
+let clouds = [];
+let dreamBubbles = [];
+const floatingWords = ['Innovate','Imagine','Future','Cloud','AI','Vision','Connect','Somewhere','Tomorrow','Memory'];
+
+for(let i=0;i<16;i++){
+  clouds.push({
+    x: Math.random()*innerWidth,
+    y: Math.random()*innerHeight,
+    r: 60 + Math.random()*120,
+    s: 0.2 + Math.random()*0.5
+  });
+}
+
+for(let i=0;i<20;i++){
+  dreamBubbles.push({
+    x: Math.random()*innerWidth,
+    y: Math.random()*innerHeight,
+    size: 20 + Math.random()*50,
+    speed: 0.3 + Math.random(),
+    text: floatingWords[Math.floor(Math.random()*floatingWords.length)]
+  });
+}
+
+addEventListener('keydown',e=>keys[e.key.toLowerCase()] = true);
+addEventListener('keyup',e=>keys[e.key.toLowerCase()] = false);
+
+canvas.addEventListener('touchstart', e => {
+  isTouching = true;
+  touchX = e.touches[0].clientX;
+}, { passive: true });
+
+canvas.addEventListener('touchmove', e => {
+  touchX = e.touches[0].clientX;
+}, { passive: true });
+
+canvas.addEventListener('touchend', () => {
+  isTouching = false;
+});
+
+canvas.addEventListener('mousedown', e => {
+  isTouching = true;
+  touchX = e.clientX;
+});
+
+canvas.addEventListener('mousemove', e => {
+  if(isTouching) touchX = e.clientX;
+});
+
+canvas.addEventListener('mouseup', () => {
+  isTouching = false;
+});
+
+function randomizeRun(){
+  const biomes = ['sky','sunset','night','void'];
+  const modes = ['normal','dense','chaos','calm'];
+
+  currentBiome = biomes[Math.floor(Math.random()*biomes.length)];
+  gameplayMode = modes[Math.floor(Math.random()*modes.length)];
+  weatherIntensity = 0.8 + Math.random()*1.4;
+}
+
+function startGame(){
+  menu.style.display='none';
+  randomizeRun();
+  score = 0;
+  speed = 1;
+  gameOver = false;
+  obstacles=[];
+  orbs=[];
+  particles=[];
+  player.x = innerWidth/2;
+  loop();
+}
+
+function drawClouds(){
+  clouds.forEach(c=>{
+    c.y += c.s;
+    if(c.y-c.r > innerHeight){
+      c.y = -200;
+      c.x = Math.random()*innerWidth;
+    }
+
+    ctx.beginPath();
+    ctx.fillStyle='rgba(255,255,255,.10)';
+    ctx.arc(c.x,c.y,c.r,0,Math.PI*2);
+    ctx.fill();
+  });
+}
+
+function drawDreamcore(){
+  dreamBubbles.forEach(b=>{
+    b.y += b.speed;
+
+    if(b.y - b.size > innerHeight){
+      b.y = -100;
+      b.x = Math.random()*innerWidth;
+    }
+
+    ctx.beginPath();
+    ctx.fillStyle='rgba(255,255,255,.08)';
+    ctx.arc(b.x,b.y,b.size,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.strokeStyle='rgba(255,255,255,.15)';
+    ctx.stroke();
+
+    ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.font='600 14px Inter';
+    ctx.textAlign='center';
+    ctx.fillText(b.text,b.x,b.y+4);
+  });
+
+  for(let i=0;i<10;i++){
+    ctx.fillStyle='rgba(255,255,255,.03)';
+    ctx.fillRect(Math.sin(Date.now()*0.0003+i)*innerWidth, i*120, innerWidth, 2);
+  }
+
+  ctx.fillStyle='rgba(255,255,255,.05)';
+  ctx.font='300 18px Inter';
+  const liminalMessages = [
+    'the skyline remembers you',
+    'someone was here before',
+    'another corridor waits ahead',
+    'the clouds feel familiar',
+    'you have seen this place before'
+  ];
+
+  ctx.fillText(
+    liminalMessages[Math.floor((Date.now()/4000)%liminalMessages.length)],
+    canvas.width/2 - 150,
+    canvas.height - 60
+  );
+}
+
+function drawPlayer(){
+  ctx.save();
+  ctx.translate(player.x, player.y);
+
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();
+  ctx.arc(0,0,34,0,Math.PI*2);
+  ctx.fill();
+
+  ctx.fillStyle='#0b5cab';
+  ctx.font='bold 28px Arial';
+  ctx.textAlign='center';
+  ctx.fillText('☁',0,10);
+
+  ctx.beginPath();
+  ctx.strokeStyle='rgba(255,255,255,.5)';
+  ctx.lineWidth = 2;
+  ctx.arc(0,0,46 + Math.sin(Date.now()*0.004)*6,0,Math.PI*2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function spawnObstacle(){
+  obstacles.push({
+    x: Math.random()*(canvas.width-70),
+    y: -100,
+    w: 70,
+    h: 70,
+    rot: Math.random()*6
+  });
+}
+
+function spawnOrb(){
+  orbs.push({
+    x: Math.random()*(canvas.width-30),
+    y: -60,
+    r: 15
+  });
+}
+
+function drawObstacles(){
+  obstacles.forEach((o,i)=>{
+    o.y += 6 * speed;
+    o.rot += 0.03;
+
+    ctx.save();
+    ctx.translate(o.x+35,o.y+35);
+    ctx.rotate(o.rot);
+    ctx.fillStyle='#072f5f';
+    ctx.fillRect(-35,-35,70,70);
+    ctx.fillStyle='#9fd8ff';
+    ctx.fillRect(-12,-12,24,24);
+    ctx.restore();
+
+    if(collide(player,o)) endGame();
+    if(o.y > innerHeight + 100) obstacles.splice(i,1);
+  });
+}
+
+function drawOrbs(){
+  orbs.forEach((o,i)=>{
+    o.y += 5 * speed;
+
+    ctx.beginPath();
+    ctx.fillStyle='#fff7a8';
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = '#fff7a8';
+    ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+    ctx.fill();
+
+    const dx = player.x - o.x;
+    const dy = player.y - o.y;
+
+    if(Math.sqrt(dx*dx + dy*dy) < 50){
+      score += 10;
+      createBurst(o.x,o.y,'#fff7a8');
+      orbs.splice(i,1);
+    }
+
+    if(o.y > innerHeight + 40) orbs.splice(i,1);
+  });
+
+  ctx.shadowBlur = 0;
+}
+
+function createBurst(x,y,color){
+  for(let i=0;i<18;i++){
+    particles.push({
+      x,y,
+      vx:(Math.random()-.5)*6,
+      vy:(Math.random()-.5)*6,
+      life:40,
+      color
+    });
+  }
+}
+
+function drawParticles(){
+  particles.forEach((p,i)=>{
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x,p.y,4,4);
+
+    if(p.life <= 0) particles.splice(i,1);
+  });
+}
+
+function collide(a,b){
+  return a.x-a.w/2 < b.x+b.w &&
+         a.x+a.w/2 > b.x &&
+         a.y-a.h/2 < b.y+b.h &&
+         a.y+a.h/2 > b.y;
+}
+
+function update(){
+  let obstacleChance = 0.03;
+  let orbChance = 0.02;
+
+  if(gameplayMode === 'dense') obstacleChance = 0.055;
+  if(gameplayMode === 'chaos'){
+    obstacleChance = 0.045;
+    orbChance = 0.04;
+  }
+  if(gameplayMode === 'calm'){
+    obstacleChance = 0.02;
+    orbChance = 0.03;
+  }
+  if(isTouching && touchX !== null){
+    player.x += (touchX - player.x) * 0.18;
+  }
+
+  if(keys['arrowleft'] || keys['a']) player.x -= player.vel;
+  if(keys['arrowright'] || keys['d']) player.x += player.vel;
+
+  player.x = Math.max(50, Math.min(canvas.width-50, player.x));
+
+  if(innerWidth < 700){
+    player.w = 68;
+    player.h = 68;
+    player.vel = 7;
+  } else {
+    player.w = 80;
+    player.h = 80;
+    player.vel = 9;
+  }
+
+  score += 0.08;
+  speed = 1 + score / 180;
+
+  scoreEl.textContent = Math.floor(score);
+  speedEl.textContent = speed.toFixed(1);
+
+  if(Math.random() < obstacleChance * weatherIntensity) spawnObstacle();
+  if(Math.random() < orbChance) spawnOrb();
+}
+
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+  const pulse = Math.sin(Date.now()*0.001)*0.08;
+
+  if(currentBiome === 'sky'){
+    grad.addColorStop(0,'#0b5cab');
+    grad.addColorStop(.45,`rgba(${20 + pulse*100},135,224,1)`);
+    grad.addColorStop(1,'#8bd0ff');
+  }
+
+  if(currentBiome === 'sunset'){
+    grad.addColorStop(0,'#ff9966');
+    grad.addColorStop(.5,'#ff5e62');
+    grad.addColorStop(1,'#ffc371');
+  }
+
+  if(currentBiome === 'night'){
+    grad.addColorStop(0,'#050816');
+    grad.addColorStop(.5,'#16213e');
+    grad.addColorStop(1,'#3a6073');
+  }
+
+  if(currentBiome === 'void'){
+    grad.addColorStop(0,'#dfe9f3');
+    grad.addColorStop(.5,'#8e9eab');
+    grad.addColorStop(1,'#eef2f3');
+  }
+
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  drawClouds();
+  drawDreamcore();
+
+  ctx.fillStyle = currentBiome === 'void' ? 'rgba(255,255,255,.08)' : 'rgba(255,255,255,.18)';
+  for(let i=0;i<7;i++){
+    ctx.fillRect((canvas.width/7)*i + 20,0,10,canvas.height);
+  }
+
+  drawPlayer();
+  drawObstacles();
+  drawOrbs();
+  drawParticles();
+}
+
+function loop(){
+  if(gameOver) return;
+  update();
+  render();
+  animation = requestAnimationFrame(loop);
+}
+
+function showMainMenu(){
+  menu.innerHTML = `
+    <div class="liminal-light"></div>
+    <div class="card">
+      
+      <h1>Dreamforce SkyRun</h1>
+      <p>Drift through glossy cloud highways, luminous eco-futuristic skylines, floating bubbles, glass UI reflections, and soft green horizons inspired by classic Frutiger Aero aesthetics. Collect innovation orbs and survive the dreamscape.</p>
+      <button onclick="startGame()">Launch Experience</button>
+      <div class="controls">Every run changes biome, atmosphere, and difficulty • Desktop: ← → or A / D • Mobile/Tablet: Swipe or drag</div>
+  `;
+
+  menu.style.display='flex';
+}
+
+function endGame(){
+  gameOver = true;
+  cancelAnimationFrame(animation);
+
+  const best = Math.max(Math.floor(score), Number(localStorage.getItem('dreamforce-best') || 0));
+  localStorage.setItem('dreamforce-best', best);
+  bestEl.textContent = best;
+
+  menu.innerHTML = `
+    <div class="liminal-light"></div>
+    <div class="card">
+      <h1>Session Ended</h1>
+      <p>Your innovation score reached <strong>${Math.floor(score)}</strong>. The silent skyline waits for another pass through its endless dream corridors.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:18px">
+        <button onclick="startGame()">Try Again</button>
+        <button onclick="showMainMenu()">Main Menu</button>
+      </div>
+      <div class="controls">Best Score: ${best}</div>
+    </div>
+  `;
+
+  menu.style.display='flex';
+}
+
+bestEl.textContent = localStorage.getItem('dreamforce-best') || 0;
+</script>
+</body>
+</html>
