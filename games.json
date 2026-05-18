@@ -46,6 +46,12 @@
     "type": "html",
     "path": "games/TubeYou.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Dreamforce Skyrun",
+    "type": "html",
+    "path": "games/DreamforceSkyrun.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
