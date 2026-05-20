@@ -2,7 +2,7 @@
   {
     "name": "2048",
     "type": "html",
-    "path": "games/Cs2ClickerWartung.html",
+    "path": "games/2048/index.html",
     "thumbnail": "games/2048/2048.png"
   },
   {
