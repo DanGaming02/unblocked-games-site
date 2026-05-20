@@ -52,6 +52,13 @@
     "type": "html",
     "path": "games/DreamforceSkyrun.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  
+  {
+    "name": "Game",
+    "type": "html",
+    "path": "games/MarlonGame.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
