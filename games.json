@@ -53,11 +53,16 @@
     "path": "games/DreamforceSkyrun.html",
     "thumbnail": "default-thumbnail.jpg"
   },
-  
   {
     "name": "Game",
     "type": "html",
     "path": "games/MarlonGame.html",
+    "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Backrooms",
+    "type": "html",
+    "path": "games/BackroomsGame.html",
     "thumbnail": "default-thumbnail.jpg"
   }
 ]
