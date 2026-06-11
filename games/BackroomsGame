@@ -1,781 +1,221 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Backrooms Escape Multiplayer</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backrooms Escape V2</title>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
+body{margin:0;overflow:hidden;background:#000;font-family:Arial}
+canvas{display:block}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000d;color:#fff;z-index:10}
+input,button{padding:10px;margin:8px}
+#hud{position:fixed;top:10px;left:10px;color:white;background:#0008;padding:8px;display:none}
 
-body {
-  overflow: hidden;
-  background: #000;
-  touch-action: none;
-}
+#joystick{position:fixed;left:20px;bottom:20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);display:none;z-index:20;touch-action:none}
+#stick{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.3)}
+#runBtn{position:fixed;right:25px;bottom:35px;width:90px;height:90px;border-radius:50%;display:none;z-index:20}
 
-canvas {
-  display: block;
-}
-
-#menu,
-#gameOver,
-#winScreen {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,0.92);
-  z-index: 10;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
-
-h1 {
-  font-size: 56px;
-  color: #d8cd85;
-  margin-bottom: 20px;
-  text-shadow: 0 0 20px rgba(255,255,150,0.25);
-}
-
-p {
-  max-width: 700px;
-  line-height: 1.6;
-  margin-bottom: 16px;
-  color: #d9d5c3;
-}
-
-button {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 10px;
-  font-size: 18px;
-  background: #d8cd85;
-  color: #222;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-#hud {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  color: white;
-  z-index: 3;
-  background: rgba(0,0,0,0.45);
-  padding: 12px;
-  border-radius: 10px;
-  display: none;
-  min-width: 200px;
-}
-
-#mobileControls {
-  position: absolute;
-  inset: 0;
-  z-index: 5;
-  pointer-events: none;
-}
-
-#joystick {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.08);
-  border: 2px solid rgba(255,255,255,0.15);
-  bottom: 30px;
-  left: 30px;
-  pointer-events: auto;
-}
-
-#stick {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.25);
-  left: 40px;
-  top: 40px;
-}
-
-#runBtn {
-  position: absolute;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  right: 30px;
-  bottom: 40px;
-  border: none;
-  background: rgba(255,255,255,0.16);
-  color: white;
-  font-size: 20px;
-  font-weight: bold;
-  pointer-events: auto;
-}
-
-@media (max-width: 900px) {
-  h1 {
-    font-size: 40px;
-  }
-}
 </style>
 </head>
 <body>
-
-<div id="menu">
-  <h1>THE BACKROOMS</h1>
-  <p>
-    Escape endless yellow hallways inspired by analog horror backrooms.
-    Avoid entities and survive.
-  </p>
-  <p>Player Name</p>
-  <input type="text" id="playerNameInput" maxlength="16" placeholder="Enter name" style="width:220px;height:44px;padding:10px;border:none;border-radius:8px;margin-bottom:18px;font-size:16px;">
-
-  <p>Player Color</p>
-  <input type="color" id="playerColorPicker" value="#f2f2f2" style="width:120px;height:50px;border:none;border-radius:8px;margin-bottom:20px;">
-  <button id="startBtn">ENTER</button>
-  <p style="margin-top:20px;font-size:14px;opacity:0.7;max-width:420px;">
-    Multiplayer support can be added with Supabase realtime using your free account.
-    Add your Supabase URL + anon key later to sync players online.
-  </p>
+<div id="menu" class="screen">
+<h1>BACKROOMS ESCAPE</h1>
+<input id="name" placeholder="Name" value="Explorer">
+<label>Player Color <input type="color" id="color" value="#ffffff"></label>
+<button id="start">ENTER</button>
 </div>
 
-<div id="gameOver" style="display:none;">
-  <h1>YOU WERE FOUND</h1>
-  <button onclick="restartGame()">TRY AGAIN</button>
+<div id="win" class="screen" style="display:none">
+<h1>ESCAPED</h1>
+<button onclick="location.reload()">Main Menu</button>
 </div>
 
-<div id="winScreen" style="display:none;">
-  <h1>ESCAPED</h1>
-  <button onclick="restartGame()" style="margin-bottom:14px;">PLAY AGAIN</button>
-  <button onclick="goToMenu()">MAIN MENU</button>
+<div id="lose" class="screen" style="display:none">
+<h1>THE BACTERIA GOT YOU</h1>
+<button onclick="location.reload()">Main Menu</button>
 </div>
 
 <div id="hud"></div>
-
-<div id="mobileControls">
-  <div id="joystick">
-    <div id="stick"></div>
-  </div>
-
-  <button id="runBtn">RUN</button>
-</div>
-
-<canvas id="game"></canvas>
+<div id="joystick"><div id="stick"></div></div><button id="runBtn">RUN</button><canvas id="c"></canvas>
 
 <script>
-const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+const canvas=c,ctx=canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+addEventListener('resize',resize);resize();
 
-const hud = document.getElementById('hud');
-const menu = document.getElementById('menu');
-const gameOverScreen = document.getElementById('gameOver');
-const winScreen = document.getElementById('winScreen');
+let game=false,name="Explorer",color="#fff";
+const player={x:96,y:96,s:24,vx:0,vy:0,st:100};
+const cam={x:0,y:0};
+const keys={};
+let walls=[],exit=null;
+const monster={x:0,y:0,s:24,speed:1};
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+addEventListener('keydown',e=>keys[e.key]=true);
+addEventListener('keyup',e=>keys[e.key]=false);
 
-const TILE = 96;
+function rect(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
 
-let gameRunning = false;
-let currentLevel = 0;
-
-const levels = [
-{
-  name: 'Procedural Backrooms',
-  wallColor: '#9d8f51'
+function genMap(){
+ walls=[];
+ const W=40,H=40,T=64;
+ let grid=Array.from({length:H},()=>Array(W).fill("#"));
+ let x=1,y=1;
+ grid[y][x]=".";
+ while(x<W-2||y<H-2){
+   if(Math.random()<0.5&&x<W-2)x++; else if(y<H-2)y++;
+   grid[y][x]=".";
+ }
+ for(let i=0;i<600;i++){
+   let rx=1+Math.floor(Math.random()*(W-2));
+   let ry=1+Math.floor(Math.random()*(H-2));
+   grid[ry][rx]=".";
+ }
+ for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++)
+   if(grid[yy][xx]=="#") walls.push({x:xx*T,y:yy*T,w:T,h:T});
+ player.x=96;player.y=96;
+ exit={x:(W-2)*T,y:(H-2)*T,w:T,h:T};
+ monster.x=(W/2)*T; monster.y=(H/2)*T;
 }
-];
 
-let playerColor = '#f2f2f2';
-let playerName = 'Player';
+function movePlayer(){
+ let sp=2.2;
+ if((keys.Shift||touch.sprint)&&player.st>0){sp=4;player.st-=1}
+ else player.st=Math.min(100,player.st+0.5);
 
-// OPTIONAL MULTIPLAYER
-// Replace these with your own Supabase project values
-const SUPABASE_URL = 'https://wrukkcykzvxcnxchlmrm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndydWtrY3lrenZ4Y254Y2hsbXJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNjgzMDgsImV4cCI6MjA5NTY0NDMwOH0.WmT6TwL9mPrfd6jxJwdUeknigwbStPccXIJOwia2TBw';
+ let ax=0,ay=0;
+ if(keys.w||keys.ArrowUp||touch.up)ay=-1;
+ if(keys.s||keys.ArrowDown||touch.down)ay=1;
+ if(keys.a||keys.ArrowLeft||touch.left)ax=-1;
+ if(keys.d||keys.ArrowRight||touch.right)ax=1;
 
-let supabase = null;
-let playerId = crypto.randomUUID();
-let remotePlayers = {};
+ player.vx=(player.vx+ax*0.7)*0.82;
+ player.vy=(player.vy+ay*0.7)*0.82;
 
-if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+ let nx=player.x+player.vx*sp;
+ let ny=player.y+player.vy*sp;
+
+ let px={x:nx,y:player.y,w:player.s,h:player.s};
+ let py={x:player.x,y:ny,w:player.s,h:player.s};
+
+ let hitx=false,hity=false;
+ for(const w of walls){
+   if(rect(px,w))hitx=true;
+   if(rect(py,w))hity=true;
+ }
+ if(!hitx)player.x=nx;
+ if(!hity)player.y=ny;
+
+ cam.x=player.x+player.s/2-canvas.width/2;
+ cam.y=player.y+player.s/2-canvas.height/2;
 }
 
-const player = {
-  x: 0,
-  y: 0,
-  size: 32,
-  velX: 0,
-  velY: 0,
-  accel: 0.7,
-  friction: 0.82,
-  speed: 0.7,
-  sprint: 1.2,
-  stamina: 100
+function moveMonster(){
+ let dx=player.x-monster.x,dy=player.y-monster.y;
+ let d=Math.hypot(dx,dy)||1;
+ let mx=monster.x+dx/d*monster.speed;
+ let my=monster.y+dy/d*monster.speed;
+
+ let bx=false,by=false;
+ for(const w of walls){
+   if(rect({x:mx,y:monster.y,w:monster.s,h:monster.s},w))bx=true;
+   if(rect({x:monster.x,y:my,w:monster.s,h:monster.s},w))by=true;
+ }
+ if(!bx)monster.x=mx;
+ if(!by)monster.y=my;
+
+ if(rect({x:monster.x,y:monster.y,w:monster.s,h:monster.s},
+         {x:player.x,y:player.y,w:player.s,h:player.s})){
+   game=false;lose.style.display='flex';
+ }
+}
+
+function draw(){
+ ctx.fillStyle="#b8aa62";ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ for(const w of walls){
+   ctx.fillStyle="#a08f52";
+   ctx.fillRect(w.x-cam.x,w.y-cam.y,w.w,w.h);
+ }
+
+ ctx.fillStyle="#4a6";
+ ctx.fillRect(exit.x-cam.x,exit.y-cam.y,exit.w,exit.h);
+
+ ctx.fillStyle="#111";
+ ctx.beginPath();
+ ctx.arc(monster.x-cam.x+12,monster.y-cam.y+12,12,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle=color;
+ ctx.fillRect(player.x-cam.x,player.y-cam.y,player.s,player.s);
+
+ let px=player.x-cam.x+12, py=player.y-cam.y+12;
+ let g=ctx.createRadialGradient(px,py,10,px,py,120);
+ g.addColorStop(0,"rgba(0,0,0,0)");
+ g.addColorStop(.3,"rgba(0,0,0,.6)");
+ g.addColorStop(1,"rgba(0,0,0,1)");
+ ctx.fillStyle=g;
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ hud.innerHTML=name+"<br>Stamina: "+Math.floor(player.st);
+
+ if(rect({x:player.x,y:player.y,w:player.s,h:player.s},exit)){
+   game=false;win.style.display='flex';
+ }
+}
+
+function loop(){
+ if(!game)return;
+ movePlayer();
+ moveMonster();
+ draw();
+ requestAnimationFrame(loop);
+}
+
+
+const touch={up:false,down:false,left:false,right:false,sprint:false};
+const joystick=document.getElementById('joystick');
+const stick=document.getElementById('stick');
+const runBtn=document.getElementById('runBtn');
+
+if(('ontouchstart' in window) || navigator.maxTouchPoints>0){
+ joystick.style.display='block';
+ runBtn.style.display='block';
+}
+
+let dragging=false;
+joystick.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();});
+joystick.addEventListener('touchmove',e=>{
+ if(!dragging)return;
+ const r=joystick.getBoundingClientRect();
+ const t=e.touches[0];
+ let x=t.clientX-r.left-60;
+ let y=t.clientY-r.top-60;
+ const d=Math.min(40,Math.hypot(x,y));
+ const a=Math.atan2(y,x);
+ const sx=Math.cos(a)*d;
+ const sy=Math.sin(a)*d;
+ stick.style.transform=`translate(${sx}px,${sy}px)`;
+ touch.left=sx<-10; touch.right=sx>10;
+ touch.up=sy<-10; touch.down=sy>10;
+ e.preventDefault();
+});
+joystick.addEventListener('touchend',()=>{
+ dragging=false;
+ stick.style.transform='translate(0,0)';
+ touch.left=touch.right=touch.up=touch.down=false;
+});
+runBtn.addEventListener('touchstart',()=>touch.sprint=true);
+runBtn.addEventListener('touchend',()=>touch.sprint=false);
+
+start.onclick=()=>{
+ name=document.getElementById('name').value||"Explorer";
+ color=document.getElementById('color').value;
+ menu.style.display='none';
+ hud.style.display='block';
+ genMap();
+ game=true;
+ loop();
 };
-
-const camera = {
-  x: 0,
-  y: 0
-};
-
-let walls = [];
-let monsters = [];
-let exitDoor = null;
-let currentMap = [];
-
-const keys = {};
-
-const touch = {
-  up: false,
-  down: false,
-  left: false,
-  right: false,
-  sprint: false
-};
-
-class Wall {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.w = TILE;
-    this.h = TILE;
-  }
-
-  draw(color) {
-    const dx = this.x - camera.x;
-    const dy = this.y - camera.y;
-
-    ctx.fillStyle = color;
-    ctx.fillRect(dx, dy, this.w, this.h);
-
-    for (let i = 0; i < 10; i++) {
-      ctx.fillStyle = 'rgba(0,0,0,0.08)';
-      ctx.fillRect(dx + i * 10, dy, 3, this.h);
-    }
-  }
-}
-
-class Monster {
-  constructor(x, y) {
-    this.x = x;
-    this.y = y;
-    this.size = 30;
-    this.speed = 1.4;
-  }
-
-  update() {
-    const dx = player.x - this.x;
-    const dy = player.y - this.y;
-
-    const dist = Math.hypot(dx, dy);
-
-    let moveX = 0;
-    let moveY = 0;
-
-    if (dist < 700 && dist > 0) {
-      moveX = (dx / dist) * this.speed;
-      moveY = (dy / dist) * this.speed;
-    }
-
-    let nextX = this.x + moveX;
-    let nextY = this.y + moveY;
-
-    let blockedX = false;
-    let blockedY = false;
-
-    walls.forEach(wall => {
-      if (collide(nextX, this.y, this.size, this.size, wall.x, wall.y, wall.w, wall.h)) {
-        blockedX = true;
-      }
-
-      if (collide(this.x, nextY, this.size, this.size, wall.x, wall.y, wall.w, wall.h)) {
-        blockedY = true;
-      }
-    });
-
-    if (!blockedX) this.x = nextX;
-    if (!blockedY) this.y = nextY;
-
-    if (collide(this.x, this.y, this.size, this.size, player.x, player.y, player.size, player.size)) {
-      gameOver();
-    }
-  }
-
-  draw() {
-    const dx = this.x - camera.x;
-    const dy = this.y - camera.y;
-
-    ctx.fillStyle = '#111';
-    ctx.beginPath();
-    ctx.arc(dx + this.size / 2, dy + this.size / 2, this.size / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = 'white';
-    ctx.fillRect(dx + 7, dy + 10, 5, 5);
-    ctx.fillRect(dx + 18, dy + 10, 5, 5);
-  }
-}
-
-function generateMaze(width, height) {
-  const map = [];
-
-  for (let y = 0; y < height; y++) {
-    let row = '';
-
-    for (let x = 0; x < width; x++) {
-      if (
-        x === 0 ||
-        y === 0 ||
-        x === width - 1 ||
-        y === height - 1 ||
-        Math.random() < 0.22
-      ) {
-        row += '#';
-      } else {
-        row += '.';
-      }
-    }
-
-    map.push(row.split(''));
-  }
-
-  map[1][1] = 'P';
-
-  let ex = width - 2;
-  let ey = height - 2;
-
-  while (map[ey][ex] === '#') {
-    ex = Math.floor(Math.random() * (width - 2)) + 1;
-    ey = Math.floor(Math.random() * (height - 2)) + 1;
-  }
-
-  map[ey][ex] = 'E';
-
-  let mx = Math.floor(width / 2);
-  let my = Math.floor(height / 2);
-
-  while (map[my][mx] === '#') {
-    mx = Math.floor(Math.random() * (width - 2)) + 1;
-    my = Math.floor(Math.random() * (height - 2)) + 1;
-  }
-
-  map[my][mx] = 'M';
-
-  return map.map(r => r.join(''));
-}
-
-function loadLevel(index) {
-  walls = [];
-  monsters = [];
-  exitDoor = null;
-
-  if (index < 0 || index >= levels.length) return;
-
-  currentMap = generateMaze(40, 40);
-
-  currentMap.forEach((row, y) => {
-    row.split('').forEach((tile, x) => {
-      const wx = x * TILE;
-      const wy = y * TILE;
-
-      if (tile === '#') {
-        walls.push(new Wall(wx, wy));
-      }
-
-      if (tile === 'P') {
-        player.x = wx + 20;
-        player.y = wy + 20;
-      }
-
-      if (tile === 'M') {
-        monsters.push(new Monster(wx + 20, wy + 20));
-      }
-
-      if (tile === 'E') {
-        exitDoor = {
-          x: wx,
-          y: wy,
-          w: TILE,
-          h: TILE
-        };
-      }
-    });
-  });
-}
-
-function collide(ax, ay, aw, ah, bx, by, bw, bh) {
-  return (
-    ax < bx + bw &&
-    ax + aw > bx &&
-    ay < by + bh &&
-    ay + ah > by
-  );
-}
-
-function updatePlayer() {
-  let move = player.speed;
-
-  const sprinting = (keys.Shift || touch.sprint) && player.stamina > 0;
-
-  if (sprinting) {
-    move = player.sprint;
-    player.stamina -= 0.8;
-
-    if (player.stamina <= 0) {
-      player.stamina = 0;
-      move = player.speed;
-    }
-  } else {
-    player.stamina += 0.25;
-  }
-
-  player.stamina = Math.max(0, Math.min(100, player.stamina));
-
-  let ix = 0;
-  let iy = 0;
-
-  if (keys.w || keys.ArrowUp || touch.up) iy -= 1;
-  if (keys.s || keys.ArrowDown || touch.down) iy += 1;
-  if (keys.a || keys.ArrowLeft || touch.left) ix -= 1;
-  if (keys.d || keys.ArrowRight || touch.right) ix += 1;
-
-  player.velX += ix * move;
-  player.velY += iy * move;
-
-  player.velX *= player.friction;
-  player.velY *= player.friction;
-
-  let nextX = player.x + player.velX;
-  let nextY = player.y + player.velY;
-
-  let hitX = false;
-  let hitY = false;
-
-  walls.forEach(wall => {
-    if (collide(nextX, player.y, player.size, player.size, wall.x, wall.y, wall.w, wall.h)) {
-      hitX = true;
-    }
-
-    if (collide(player.x, nextY, player.size, player.size, wall.x, wall.y, wall.w, wall.h)) {
-      hitY = true;
-    }
-  });
-
-  if (!hitX) player.x = nextX;
-  else player.velX = 0;
-
-  if (!hitY) player.y = nextY;
-  else player.velY = 0;
-
-  camera.x = player.x - canvas.width / 2 + player.size / 2;
-  camera.y = player.y - canvas.height / 2 + player.size / 2;
-}
-
-function drawFloor() {
-  ctx.fillStyle = '#b8aa62';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  const size = 48;
-
-  for (let x = -size; x < canvas.width + size; x += size) {
-    for (let y = -size; y < canvas.height + size; y += size) {
-      const noise = ((x + camera.x) * 7 + (y + camera.y) * 13) % 30;
-
-      ctx.fillStyle = `rgba(90,70,20,${0.05 + noise / 500})`;
-      ctx.fillRect(x, y, size - 2, size - 2);
-    }
-  }
-}
-
-function drawExit() {
-  if (!exitDoor) return;
-
-  const dx = exitDoor.x - camera.x;
-  const dy = exitDoor.y - camera.y;
-
-  ctx.fillStyle = '#5c6945';
-  ctx.fillRect(dx + 18, dy + 5, TILE - 36, TILE - 10);
-}
-
-function checkExit() {
-  if (!exitDoor) return;
-
-  if (collide(player.x, player.y, player.size, player.size, exitDoor.x, exitDoor.y, exitDoor.w, exitDoor.h)) {
-    currentLevel++;
-
-    if (currentLevel >= levels.length) {
-      gameRunning = false;
-      hud.style.display = 'none';
-      winScreen.style.display = 'flex';
-      return;
-    }
-
-    loadLevel(currentLevel);
-  }
-}
-
-function drawPlayer() {
-  const dx = player.x - camera.x;
-  const dy = player.y - camera.y;
-
-  ctx.fillStyle = playerColor;
-  ctx.fillRect(dx, dy, player.size, player.size);
-
-  ctx.fillStyle = 'white';
-  ctx.font = '16px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(playerName, dx + player.size / 2, dy - 10);
-}
-
-function drawRemotePlayers() {
-  Object.values(remotePlayers).forEach(p => {
-    const dx = p.x - camera.x;
-    const dy = p.y - camera.y;
-
-    ctx.fillStyle = p.color || '#66ccff';
-    ctx.fillRect(dx, dy, player.size, player.size);
-
-    ctx.fillStyle = 'white';
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(p.name || 'Player', dx + player.size / 2, dy - 10);
-  });
-}
-
-function updateHUD() {
-  if (!levels[currentLevel]) return;
-
-  hud.innerHTML = `
-    <strong>${levels[currentLevel].name}</strong><br>
-    Stamina: ${Math.floor(player.stamina)}<br>
-    Objective: Escape
-  `;
-}
-
-function lighting() {
-  const px = player.x - camera.x + player.size / 2;
-  const py = player.y - camera.y + player.size / 2;
-
-  const g = ctx.createRadialGradient(
-    px,
-    py,
-    10,
-    px,
-    py,
-    220
-  );
-
-  g.addColorStop(0, 'rgba(0,0,0,0)');
-  g.addColorStop(0.25, 'rgba(0,0,0,0.45)');
-  g.addColorStop(0.5, 'rgba(0,0,0,0.75)');
-  g.addColorStop(0.75, 'rgba(0,0,0,0.92)');
-  g.addColorStop(1, 'rgba(0,0,0,1)');
-
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-}
-
-function render() {
-  if (!gameRunning) return;
-
-  const level = levels[currentLevel];
-
-  if (!level) {
-    gameRunning = false;
-    return;
-  }
-
-  drawFloor();
-
-  walls.forEach(w => w.draw(level.wallColor));
-
-  drawExit();
-
-  updatePlayer();
-
-  monsters.forEach(m => {
-    m.update();
-    m.draw();
-  });
-
-  drawPlayer();
-  drawRemotePlayers();
-
-  checkExit();
-  updateHUD();
-  lighting();
-
-  requestAnimationFrame(render);
-}
-
-async function setupMultiplayer() {
-  if (!supabase) return;
-
-  await supabase.from('players').upsert({
-    id: playerId,
-    name: playerName,
-    color: playerColor,
-    x: player.x,
-    y: player.y
-  });
-
-  supabase.channel('backrooms-room')
-    .on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'players'
-      },
-      payload => {
-        const data = payload.new;
-
-        if (!data || data.id === playerId) return;
-
-        remotePlayers[data.id] = data;
-      }
-    )
-    .subscribe();
-
-  setInterval(async () => {
-    if (!gameRunning) return;
-
-    await supabase.from('players').upsert({
-      id: playerId,
-      name: playerName,
-      color: playerColor,
-      x: player.x,
-      y: player.y
-    });
-  }, 120);
-}
-
-function startGame() {
-  playerColor = document.getElementById('playerColorPicker').value;
-
-  const enteredName = document.getElementById('playerNameInput').value.trim();
-
-  if (enteredName.length > 0) {
-    playerName = enteredName;
-  } else {
-    playerName = 'Player';
-  }
-  currentLevel = 0;
-
-  loadLevel(currentLevel);
-
-  menu.style.display = 'none';
-  gameOverScreen.style.display = 'none';
-  winScreen.style.display = 'none';
-
-  hud.style.display = 'block';
-
-  gameRunning = true;
-
-  render();
-
-  setupMultiplayer();
-}
-
-function gameOver() {
-  gameRunning = false;
-  gameOverScreen.style.display = 'flex';
-  hud.style.display = 'none';
-}
-
-function restartGame() {
-  startGame();
-}
-
-function goToMenu() {
-  gameRunning = false;
-
-  hud.style.display = 'none';
-  gameOverScreen.style.display = 'none';
-  winScreen.style.display = 'none';
-
-  menu.style.display = 'flex';
-}
-
-document.getElementById('startBtn').addEventListener('click', startGame);
-
-window.addEventListener('keydown', e => {
-  keys[e.key] = true;
-});
-
-window.addEventListener('keyup', e => {
-  keys[e.key] = false;
-});
-
-window.addEventListener('resize', () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-
-const joystick = document.getElementById('joystick');
-const stick = document.getElementById('stick');
-const runBtn = document.getElementById('runBtn');
-
-let dragging = false;
-
-joystick.addEventListener('touchstart', () => {
-  dragging = true;
-});
-
-joystick.addEventListener('touchmove', e => {
-  if (!dragging) return;
-
-  const rect = joystick.getBoundingClientRect();
-  const t = e.touches[0];
-
-  const x = t.clientX - rect.left - 70;
-  const y = t.clientY - rect.top - 70;
-
-  const dist = Math.min(40, Math.hypot(x, y));
-  const angle = Math.atan2(y, x);
-
-  const mx = Math.cos(angle) * dist;
-  const my = Math.sin(angle) * dist;
-
-  stick.style.transform = `translate(${mx}px, ${my}px)`;
-
-  touch.up = my < -10;
-  touch.down = my > 10;
-  touch.left = mx < -10;
-  touch.right = mx > 10;
-});
-
-joystick.addEventListener('touchend', () => {
-  dragging = false;
-
-  stick.style.transform = 'translate(0px,0px)';
-
-  touch.up = false;
-  touch.down = false;
-  touch.left = false;
-  touch.right = false;
-});
-
-runBtn.addEventListener('touchstart', () => {
-  touch.sprint = true;
-});
-
-runBtn.addEventListener('touchend', () => {
-  touch.sprint = false;
-});
 </script>
-
 </body>
 </html>
