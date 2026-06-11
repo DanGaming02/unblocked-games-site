@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Backrooms Escape V2</title>
+<style>
+body{margin:0;overflow:hidden;background:#000;font-family:Arial}
+canvas{display:block}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;background:#000d;color:#fff;z-index:10}
+input,button{padding:10px;margin:8px}
+#hud{position:fixed;top:10px;left:10px;color:white;background:#0008;padding:8px;display:none}
+
+#joystick{position:fixed;left:20px;bottom:20px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);display:none;z-index:20;touch-action:none}
+#stick{position:absolute;left:40px;top:40px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.3)}
+#runBtn{position:fixed;right:25px;bottom:35px;width:90px;height:90px;border-radius:50%;display:none;z-index:20}
+
+</style>
+</head>
+<body>
+<div id="menu" class="screen">
+<h1>BACKROOMS ESCAPE</h1>
+<input id="name" placeholder="Name" value="Explorer">
+<label>Player Color <input type="color" id="color" value="#ffffff"></label>
+<button id="start">ENTER</button>
+</div>
+
+<div id="win" class="screen" style="display:none">
+<h1>ESCAPED</h1>
+<button onclick="location.reload()">Main Menu</button>
+</div>
+
+<div id="lose" class="screen" style="display:none">
+<h1>THE BACTERIA GOT YOU</h1>
+<button onclick="location.reload()">Main Menu</button>
+</div>
+
+<div id="hud"></div>
+<div id="joystick"><div id="stick"></div></div><button id="runBtn">RUN</button><canvas id="c"></canvas>
+
+<script>
+const canvas=c,ctx=canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}
+addEventListener('resize',resize);resize();
+
+let game=false,name="Explorer",color="#fff";
+const player={x:96,y:96,s:24,vx:0,vy:0,st:100};
+const cam={x:0,y:0};
+const keys={};
+let walls=[],exit=null;
+const monster={x:0,y:0,s:24,speed:1};
+
+addEventListener('keydown',e=>keys[e.key]=true);
+addEventListener('keyup',e=>keys[e.key]=false);
+
+function rect(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+
+function genMap(){
+ walls=[];
+ const W=40,H=40,T=64;
+ let grid=Array.from({length:H},()=>Array(W).fill("#"));
+ let x=1,y=1;
+ grid[y][x]=".";
+ while(x<W-2||y<H-2){
+   if(Math.random()<0.5&&x<W-2)x++; else if(y<H-2)y++;
+   grid[y][x]=".";
+ }
+ for(let i=0;i<600;i++){
+   let rx=1+Math.floor(Math.random()*(W-2));
+   let ry=1+Math.floor(Math.random()*(H-2));
+   grid[ry][rx]=".";
+ }
+ for(let yy=0;yy<H;yy++)for(let xx=0;xx<W;xx++)
+   if(grid[yy][xx]=="#") walls.push({x:xx*T,y:yy*T,w:T,h:T});
+ player.x=96;player.y=96;
+ exit={x:(W-2)*T,y:(H-2)*T,w:T,h:T};
+ monster.x=(W/2)*T; monster.y=(H/2)*T;
+}
+
+function movePlayer(){
+ let sp=2.2;
+ if((keys.Shift||touch.sprint)&&player.st>0){sp=4;player.st-=1}
+ else player.st=Math.min(100,player.st+0.5);
+
+ let ax=0,ay=0;
+ if(keys.w||keys.ArrowUp||touch.up)ay=-1;
+ if(keys.s||keys.ArrowDown||touch.down)ay=1;
+ if(keys.a||keys.ArrowLeft||touch.left)ax=-1;
+ if(keys.d||keys.ArrowRight||touch.right)ax=1;
+
+ player.vx=(player.vx+ax*0.7)*0.82;
+ player.vy=(player.vy+ay*0.7)*0.82;
+
+ let nx=player.x+player.vx*sp;
+ let ny=player.y+player.vy*sp;
+
+ let px={x:nx,y:player.y,w:player.s,h:player.s};
+ let py={x:player.x,y:ny,w:player.s,h:player.s};
+
+ let hitx=false,hity=false;
+ for(const w of walls){
+   if(rect(px,w))hitx=true;
+   if(rect(py,w))hity=true;
+ }
+ if(!hitx)player.x=nx;
+ if(!hity)player.y=ny;
+
+ cam.x=player.x+player.s/2-canvas.width/2;
+ cam.y=player.y+player.s/2-canvas.height/2;
+}
+
+function moveMonster(){
+ let dx=player.x-monster.x,dy=player.y-monster.y;
+ let d=Math.hypot(dx,dy)||1;
+ let mx=monster.x+dx/d*monster.speed;
+ let my=monster.y+dy/d*monster.speed;
+
+ let bx=false,by=false;
+ for(const w of walls){
+   if(rect({x:mx,y:monster.y,w:monster.s,h:monster.s},w))bx=true;
+   if(rect({x:monster.x,y:my,w:monster.s,h:monster.s},w))by=true;
+ }
+ if(!bx)monster.x=mx;
+ if(!by)monster.y=my;
+
+ if(rect({x:monster.x,y:monster.y,w:monster.s,h:monster.s},
+         {x:player.x,y:player.y,w:player.s,h:player.s})){
+   game=false;lose.style.display='flex';
+ }
+}
+
+function draw(){
+ ctx.fillStyle="#b8aa62";ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ for(const w of walls){
+   ctx.fillStyle="#a08f52";
+   ctx.fillRect(w.x-cam.x,w.y-cam.y,w.w,w.h);
+ }
+
+ ctx.fillStyle="#4a6";
+ ctx.fillRect(exit.x-cam.x,exit.y-cam.y,exit.w,exit.h);
+
+ ctx.fillStyle="#111";
+ ctx.beginPath();
+ ctx.arc(monster.x-cam.x+12,monster.y-cam.y+12,12,0,Math.PI*2);
+ ctx.fill();
+
+ ctx.fillStyle=color;
+ ctx.fillRect(player.x-cam.x,player.y-cam.y,player.s,player.s);
+
+ let px=player.x-cam.x+12, py=player.y-cam.y+12;
+ let g=ctx.createRadialGradient(px,py,10,px,py,120);
+ g.addColorStop(0,"rgba(0,0,0,0)");
+ g.addColorStop(.3,"rgba(0,0,0,.6)");
+ g.addColorStop(1,"rgba(0,0,0,1)");
+ ctx.fillStyle=g;
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ hud.innerHTML=name+"<br>Stamina: "+Math.floor(player.st);
+
+ if(rect({x:player.x,y:player.y,w:player.s,h:player.s},exit)){
+   game=false;win.style.display='flex';
+ }
+}
+
+function loop(){
+ if(!game)return;
+ movePlayer();
+ moveMonster();
+ draw();
+ requestAnimationFrame(loop);
+}
+
+
+const touch={up:false,down:false,left:false,right:false,sprint:false};
+const joystick=document.getElementById('joystick');
+const stick=document.getElementById('stick');
+const runBtn=document.getElementById('runBtn');
+
+if(('ontouchstart' in window) || navigator.maxTouchPoints>0){
+ joystick.style.display='block';
+ runBtn.style.display='block';
+}
+
+let dragging=false;
+joystick.addEventListener('touchstart',e=>{dragging=true;e.preventDefault();});
+joystick.addEventListener('touchmove',e=>{
+ if(!dragging)return;
+ const r=joystick.getBoundingClientRect();
+ const t=e.touches[0];
+ let x=t.clientX-r.left-60;
+ let y=t.clientY-r.top-60;
+ const d=Math.min(40,Math.hypot(x,y));
+ const a=Math.atan2(y,x);
+ const sx=Math.cos(a)*d;
+ const sy=Math.sin(a)*d;
+ stick.style.transform=`translate(${sx}px,${sy}px)`;
+ touch.left=sx<-10; touch.right=sx>10;
+ touch.up=sy<-10; touch.down=sy>10;
+ e.preventDefault();
+});
+joystick.addEventListener('touchend',()=>{
+ dragging=false;
+ stick.style.transform='translate(0,0)';
+ touch.left=touch.right=touch.up=touch.down=false;
+});
+runBtn.addEventListener('touchstart',()=>touch.sprint=true);
+runBtn.addEventListener('touchend',()=>touch.sprint=false);
+
+start.onclick=()=>{
+ name=document.getElementById('name').value||"Explorer";
+ color=document.getElementById('color').value;
+ menu.style.display='none';
+ hud.style.display='block';
+ genMap();
+ game=true;
+ loop();
+};
+</script>
+</body>
+</html>
