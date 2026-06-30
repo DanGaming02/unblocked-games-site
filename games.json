@@ -12,9 +12,9 @@
     "thumbnail": "games/packman/thumbnail.png"
   },
   {
-    "name": "flappybird",
+    "name": "Casino",
     "type": "html",
-    "path": "games/flappybird/index.html",
+    "path": "games/Casino.html",
     "thumbnail": "games/flappybird/IMG_0583.jpeg"
   },
   {
