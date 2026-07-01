@@ -64,6 +64,12 @@
     "type": "html",
     "path": "games/BackroomsGame.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Swipe & Score",
+    "type": "html",
+    "path": "games/SoccerGame.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
