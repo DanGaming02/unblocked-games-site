@@ -7,622 +7,469 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-:root{--bg:#0c0c1d;--panel:rgba(20,20,40,0.88);--border:rgba(255,255,255,0.08);--emerald:#00E676;--diamond:#4DD9FF;--gold:#FFD700;--iron:#D4A574;--text:#ddd;--dim:#666}
+:root{--bg:#0c0c1d;--panel:rgba(18,18,38,0.92);--border:rgba(255,255,255,0.07);--emerald:#00E676;--diamond:#4DD9FF;--gold:#FFD700;--iron:#D4A574;--redstone:#FF3333;--lapis:#3355DD;--copper:#E87D4A;--text:#ddd;--dim:#555;--dim2:#888}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Press Start 2P',monospace;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;user-select:none}
 #particles{position:fixed;inset:0;pointer-events:none;z-index:50}
-.bg-sky{position:fixed;inset:0;background:linear-gradient(180deg,#060618 0%,#0d0d30 40%,#14143a 70%,#1a1a44 100%);z-index:0}
+.bg-sky{position:fixed;inset:0;background:linear-gradient(180deg,#060618 0%,#0d0d30 40%,#14143a 70%,#1a1a44 100%);z-index:0;transition:filter .5s}
 .bg-stars{position:fixed;inset:0;z-index:1;opacity:.6}
-.bg-ground{position:fixed;bottom:0;width:100%;height:22%;z-index:2;
-  background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 1px,transparent 1px 48px),
-  repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 48px),
-  linear-gradient(180deg,#5B8731 0%,#5B8731 10px,#8B6914 10px,#7a5c12 100%);
-  image-rendering:pixelated}
-.bg-ground::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.4) 100%)}
-#app{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:16px 12px 200px}
-header{text-align:center;margin-bottom:8px;width:100%}
-header h1{font-size:clamp(14px,3vw,22px);color:var(--emerald);text-shadow:0 0 20px rgba(0,230,118,.4),3px 3px 0 #000;letter-spacing:2px;margin-bottom:14px}
-.stats-bar{display:flex;justify-content:center;gap:clamp(10px,3vw,30px);flex-wrap:wrap}
-.stat{background:var(--panel);border:1px solid var(--border);padding:8px 16px;border-radius:4px;display:flex;align-items:center;gap:8px;font-size:clamp(8px,1.5vw,11px)}
-.stat i{font-size:clamp(10px,1.8vw,14px)}
-.stat.emeralds i{color:var(--emerald)}
-.stat.cps i{color:var(--diamond)}
-.stat.clicks i{color:var(--gold)}
-.stat .val{color:#fff;min-width:40px;text-align:right}
-.block-area{position:relative;margin:20px 0 10px;display:flex;flex-direction:column;align-items:center}
-.block-scene{width:clamp(120px,25vw,170px);height:clamp(120px,25vw,170px);perspective:600px;cursor:pointer;position:relative}
+.bg-ground{position:fixed;bottom:0;width:100%;height:22%;z-index:2;background:repeating-linear-gradient(90deg,rgba(0,0,0,.12) 0 1px,transparent 1px 48px),repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 48px),linear-gradient(180deg,#5B8731 0%,#5B8731 10px,#8B6914 10px,#7a5c12 100%);image-rendering:pixelated}
+.bg-ground::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.45))}
+#app{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;min-height:100vh;padding:14px 10px 220px}
+header{text-align:center;margin-bottom:6px;width:100%}
+header h1{font-size:clamp(12px,2.8vw,20px);color:var(--emerald);text-shadow:0 0 20px rgba(0,230,118,.35),3px 3px 0 #000;letter-spacing:2px;margin-bottom:12px}
+.stats-bar{display:flex;justify-content:center;gap:clamp(6px,2vw,18px);flex-wrap:wrap}
+.stat{background:var(--panel);border:1px solid var(--border);padding:6px 12px;border-radius:3px;display:flex;align-items:center;gap:6px;font-size:clamp(7px,1.3vw,10px)}
+.stat i{font-size:clamp(9px,1.5vw,12px)}
+.stat.emeralds i{color:var(--emerald)}.stat.cps i{color:var(--diamond)}.stat.clicks i{color:var(--gold)}.stat.prestige i{color:#c084fc}
+.stat .val{color:#fff;min-width:30px;text-align:right}
+.block-area{position:relative;margin:16px 0 6px;display:flex;flex-direction:column;align-items:center}
+.pickaxe-wrap{position:absolute;left:clamp(-70px,-12vw,-90px);top:50%;transform:translateY(-55%);text-align:center;z-index:5}
+.pickaxe{width:36px;height:64px;position:relative;transform:rotate(-45deg);transform-origin:80% 90%;margin:0 auto;transition:transform .08s}
+.pickaxe.swing{animation:pickSwing .14s ease-out}
+@keyframes pickSwing{0%{transform:rotate(-45deg)}45%{transform:rotate(-10deg)}100%{transform:rotate(-45deg)}}
+.pk-head{position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:7px;border-radius:1px;transition:background .3s}
+.pk-head::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.25);border-radius:1px 1px 0 0}
+.pk-handle{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:5px;height:42px;background:#7a5230;border-radius:1px}
+.pk-tier{font-size:5px;color:var(--dim);margin-top:12px;white-space:nowrap;transition:color .3s}
+.block-scene{width:clamp(110px,22vw,160px);height:clamp(110px,22vw,160px);perspective:600px;cursor:pointer;position:relative}
 .block-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;transform:rotateX(-22deg) rotateY(32deg);transition:filter .1s}
 .block-cube.idle{animation:idleBob 3.5s ease-in-out infinite}
 .block-cube.clicked{animation:clickPulse .12s ease-out}
 .block-cube.breaking{animation:breakAnim .35s ease-out forwards}
 .block-cube.reforming{animation:reformAnim .4s ease-out forwards}
-@keyframes idleBob{0%,100%{transform:rotateX(-22deg) rotateY(32deg) translateY(0)}50%{transform:rotateX(-22deg) rotateY(38deg) translateY(-6px)}}
-@keyframes clickPulse{0%{transform:rotateX(-22deg) rotateY(32deg) scale(1)}50%{transform:rotateX(-22deg) rotateY(32deg) scale(.88)}100%{transform:rotateX(-22deg) rotateY(32deg) scale(1)}}
-@keyframes breakAnim{0%{transform:rotateX(-22deg) rotateY(32deg) scale(1);opacity:1}40%{transform:rotateX(-10deg) rotateY(50deg) scale(1.15);opacity:.7}100%{transform:rotateX(-22deg) rotateY(32deg) scale(0);opacity:0}}
+@keyframes idleBob{0%,100%{transform:rotateX(-22deg) rotateY(32deg) translateY(0)}50%{transform:rotateX(-22deg) rotateY(38deg) translateY(-5px)}}
+@keyframes clickPulse{0%{transform:rotateX(-22deg) rotateY(32deg) scale(1)}50%{transform:rotateX(-22deg) rotateY(32deg) scale(.87)}100%{transform:rotateX(-22deg) rotateY(32deg) scale(1)}}
+@keyframes breakAnim{0%{transform:rotateX(-22deg) rotateY(32deg) scale(1);opacity:1}40%{transform:rotateX(-10deg) rotateY(50deg) scale(1.15);opacity:.6}100%{transform:rotateX(-22deg) rotateY(32deg) scale(0);opacity:0}}
 @keyframes reformAnim{0%{transform:rotateX(-22deg) rotateY(32deg) scale(0);opacity:0}60%{transform:rotateX(-22deg) rotateY(32deg) scale(1.12);opacity:1}100%{transform:rotateX(-22deg) rotateY(32deg) scale(1);opacity:1}}
 .face{position:absolute;width:100%;height:100%;image-rendering:pixelated;background-size:cover;backface-visibility:hidden}
-.face.front{transform:translateZ(calc(clamp(120px,25vw,170px)/2))}
-.face.back{transform:rotateY(180deg) translateZ(calc(clamp(120px,25vw,170px)/2))}
-.face.right{transform:rotateY(90deg) translateZ(calc(clamp(120px,25vw,170px)/2))}
-.face.left{transform:rotateY(-90deg) translateZ(calc(clamp(120px,25vw,170px)/2))}
-.face.top{transform:rotateX(90deg) translateZ(calc(clamp(120px,25vw,170px)/2))}
-.face.bottom{transform:rotateX(-90deg) translateZ(calc(clamp(120px,25vw,170px)/2))}
-.block-shadow{width:120px;height:24px;background:radial-gradient(ellipse,rgba(0,0,0,.35),transparent 70%);margin-top:10px;transition:all .15s;border-radius:50%}
-.block-shadow.pulse{width:160px;height:32px;opacity:.5}
-.damage-overlay{position:absolute;inset:0;pointer-events:none;border-radius:2px;transition:all .2s}
-.combo-display{position:absolute;top:-30px;font-size:clamp(8px,1.2vw,11px);color:var(--gold);text-shadow:0 0 8px rgba(255,215,0,.6);opacity:0;transition:all .2s}
+.sz{--s:clamp(110px,22vw,160px)}
+.face.front{transform:translateZ(calc(var(--s)/2))}.face.back{transform:rotateY(180deg) translateZ(calc(var(--s)/2))}.face.right{transform:rotateY(90deg) translateZ(calc(var(--s)/2))}.face.left{transform:rotateY(-90deg) translateZ(calc(var(--s)/2))}.face.top{transform:rotateX(90deg) translateZ(calc(var(--s)/2))}.face.bottom{transform:rotateX(-90deg) translateZ(calc(var(--s)/2))}
+.dmg-overlay{position:absolute;inset:0;pointer-events:none;border-radius:2px;transition:all .15s}
+.health-wrap{width:clamp(100px,20vw,150px);height:7px;background:rgba(0,0,0,.5);border:1px solid var(--border);margin-top:10px;border-radius:1px;overflow:hidden}
+.health-bar{height:100%;background:var(--emerald);transition:width .12s,background .3s;width:0%}
+.block-shadow{width:110px;height:20px;background:radial-gradient(ellipse,rgba(0,0,0,.3),transparent 70%);margin-top:8px;transition:all .15s;border-radius:50%}
+.block-shadow.pulse{width:150px;height:28px;opacity:.5}
+.combo-display{position:absolute;top:-28px;font-size:clamp(7px,1.1vw,10px);color:var(--gold);text-shadow:0 0 8px rgba(255,215,0,.5);opacity:0;transition:all .15s;white-space:nowrap}
 .combo-display.active{opacity:1}
-.floating-num{position:absolute;pointer-events:none;font-family:'Press Start 2P',monospace;font-size:clamp(10px,1.5vw,14px);color:var(--emerald);text-shadow:2px 2px 0 #000,-1px -1px 0 #000;z-index:60;animation:floatUp .9s ease-out forwards;white-space:nowrap}
-.floating-num.fortune{font-size:clamp(14px,2vw,20px);color:var(--gold);animation:floatUpF .9s ease-out forwards}
-.floating-num.break{font-size:clamp(16px,2.5vw,24px);color:#fff;animation:floatUpB 1.1s ease-out forwards}
-@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-70px) scale(.6)}}
-@keyframes floatUpF{0%{opacity:1;transform:translateY(0) scale(1.2)}30%{transform:translateY(-20px) scale(1.4)}100%{opacity:0;transform:translateY(-90px) scale(.5)}}
-@keyframes floatUpB{0%{opacity:1;transform:translateY(0) scale(1.5)}40%{transform:translateY(-30px) scale(1.8)}100%{opacity:0;transform:translateY(-110px) scale(.4)}}
-.block-selector{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0 20px}
-.block-opt{width:52px;text-align:center;cursor:pointer;transition:all .15s;position:relative}
-.block-opt:hover{transform:translateY(-3px)}
-.block-opt.locked{opacity:.4;cursor:not-allowed}
-.block-opt.locked:hover{transform:none}
-.block-opt.active .block-preview{box-shadow:0 0 0 2px var(--emerald),0 0 12px rgba(0,230,118,.3)}
-.block-preview{width:44px;height:44px;image-rendering:pixelated;border:2px solid rgba(255,255,255,.1);border-radius:2px;margin:0 auto 4px;transition:all .15s}
-.block-opt .block-name{font-size:5px;color:var(--dim);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.block-opt .block-cost{font-size:5px;color:var(--emerald);margin-top:2px}
-.block-opt.locked .block-cost{color:#f44}
-.lock-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;color:rgba(255,255,255,.6);text-shadow:0 0 4px #000}
-.section-title{font-size:clamp(9px,1.5vw,12px);color:var(--dim);margin-bottom:12px;text-align:center;letter-spacing:1px}
-.upgrades-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;width:100%;max-width:800px}
-.upgrade-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:12px;display:flex;align-items:center;gap:12px;transition:all .15s;position:relative;overflow:hidden}
-.upgrade-card:hover{border-color:rgba(255,255,255,.15);background:rgba(30,30,55,.9)}
-.upgrade-card.affordable{border-color:rgba(0,230,118,.25)}
-.upgrade-card.affordable:hover{border-color:rgba(0,230,118,.4);box-shadow:0 0 15px rgba(0,230,118,.08)}
-.upgrade-icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;font-size:18px;border-radius:4px;flex-shrink:0;border:1px solid var(--border)}
-.upgrade-info{flex:1;min-width:0}
-.upgrade-name{font-size:clamp(7px,1.2vw,9px);margin-bottom:4px;color:#fff}
-.upgrade-desc{font-size:clamp(6px,1vw,7px);color:var(--dim);line-height:1.6;margin-bottom:6px}
-.upgrade-level{font-size:clamp(6px,1vw,7px);color:var(--diamond);margin-bottom:6px}
-.upgrade-buy{background:rgba(0,230,118,.12);border:1px solid rgba(0,230,118,.3);color:var(--emerald);font-family:inherit;font-size:clamp(6px,1vw,8px);padding:5px 10px;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.upgrade-buy:hover{background:rgba(0,230,118,.25);border-color:rgba(0,230,118,.5)}
-.upgrade-buy:disabled{background:rgba(255,255,255,.04);border-color:var(--border);color:#444;cursor:not-allowed}
-.upgrade-buy:disabled:hover{background:rgba(255,255,255,.04);border-color:var(--border)}
-#toastContainer{position:fixed;top:16px;right:16px;z-index:200;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{background:rgba(20,20,40,.95);border:1px solid var(--gold);border-radius:6px;padding:10px 14px;display:flex;align-items:center;gap:10px;transform:translateX(120%);transition:transform .3s ease;pointer-events:auto;max-width:300px}
-.toast.show{transform:translateX(0)}
-.toast-icon{font-size:18px;color:var(--gold);flex-shrink:0}
-.toast-title{font-size:7px;color:var(--gold);margin-bottom:3px}
-.toast-desc{font-size:6px;color:var(--dim);line-height:1.5}
-.achievements-section{width:100%;max-width:800px;margin-top:16px}
-.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
-.ach-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px 10px;display:flex;align-items:center;gap:8px;font-size:6px;opacity:.35;transition:all .3s}
-.ach-card.unlocked{opacity:1;border-color:rgba(255,215,0,.3)}
-.ach-card .ach-icon{font-size:12px;color:#444;flex-shrink:0;width:20px;text-align:center}
+.floating-num{position:fixed;pointer-events:none;font-family:'Press Start 2P',monospace;font-size:clamp(9px,1.4vw,13px);color:var(--emerald);text-shadow:2px 2px 0 #000,-1px -1px 0 #000;z-index:60;animation:floatUp .85s ease-out forwards;white-space:nowrap}
+.floating-num.fortune{font-size:clamp(13px,2vw,18px);color:var(--gold);animation:floatUpF .85s ease-out forwards}
+.floating-num.explosive{font-size:clamp(15px,2.2vw,22px);color:var(--redstone);animation:floatUpE .9s ease-out forwards}
+.floating-num.brk{font-size:clamp(14px,2.2vw,22px);color:#fff;animation:floatUpB 1s ease-out forwards}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-65px) scale(.5)}}
+@keyframes floatUpF{0%{opacity:1;transform:translateY(0) scale(1.2)}25%{transform:translateY(-18px) scale(1.4)}100%{opacity:0;transform:translateY(-85px) scale(.4)}}
+@keyframes floatUpE{0%{opacity:1;transform:translateY(0) scale(1.3)}30%{transform:translateY(-20px) scale(1.6)}100%{opacity:0;transform:translateY(-95px) scale(.3)}}
+@keyframes floatUpB{0%{opacity:1;transform:translateY(0) scale(1.4)}35%{transform:translateY(-25px) scale(1.6)}100%{opacity:0;transform:translateY(-105px) scale(.3)}}
+.block-selector{display:flex;gap:7px;overflow-x:auto;padding:4px 8px 8px;max-width:100%;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
+.block-selector::-webkit-scrollbar{height:4px}.block-selector::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.block-opt{width:50px;text-align:center;cursor:pointer;transition:all .15s;position:relative;flex-shrink:0}
+.block-opt:hover{transform:translateY(-2px)}.block-opt.locked{opacity:.35;cursor:not-allowed}.block-opt.locked:hover{transform:none}
+.block-opt.active .block-preview{box-shadow:0 0 0 2px var(--emerald),0 0 10px rgba(0,230,118,.25)}
+.block-preview{width:40px;height:40px;image-rendering:pixelated;border:2px solid rgba(255,255,255,.08);border-radius:2px;margin:0 auto 3px;transition:all .15s}
+.block-opt .bname{font-size:4.5px;color:var(--dim);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.block-opt .bcost{font-size:4.5px;color:var(--emerald);margin-top:1px}.block-opt.locked .bcost{color:#f44}
+.lock-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:rgba(255,255,255,.5);text-shadow:0 0 3px #000;pointer-events:none}
+.section-title{font-size:clamp(8px,1.3vw,11px);color:var(--dim);margin:14px 0 8px;text-align:center;letter-spacing:1px}
+.buy-mode{display:flex;gap:4px;justify-content:center;margin-bottom:8px}
+.buy-mode button{font-family:inherit;font-size:6px;padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--dim);border-radius:2px;cursor:pointer;transition:all .15s}
+.buy-mode button.active{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3);color:var(--emerald)}
+.buy-mode button:hover{border-color:rgba(255,255,255,.2)}
+.upgrades-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;width:100%;max-width:780px}
+.upgrade-card{background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:10px;display:flex;align-items:center;gap:10px;transition:all .15s}
+.upgrade-card:hover{border-color:rgba(255,255,255,.13);background:rgba(25,25,48,.95)}
+.upgrade-card.affordable{border-color:rgba(0,230,118,.2)}.upgrade-card.affordable:hover{border-color:rgba(0,230,118,.35);box-shadow:0 0 12px rgba(0,230,118,.06)}
+.upg-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:3px;flex-shrink:0;border:1px solid var(--border)}
+.upg-info{flex:1;min-width:0}
+.upg-name{font-size:clamp(6px,1.1vw,8px);margin-bottom:3px;color:#fff}
+.upg-desc{font-size:clamp(5px,.9vw,6.5px);color:var(--dim);line-height:1.5;margin-bottom:4px}
+.upg-level{font-size:clamp(5px,.9vw,6.5px);color:var(--diamond);margin-bottom:4px}
+.upg-buy{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:var(--emerald);font-family:inherit;font-size:clamp(5px,.9vw,7px);padding:4px 8px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0}
+.upg-buy:hover{background:rgba(0,230,118,.22);border-color:rgba(0,230,118,.45)}
+.upg-buy:disabled{background:rgba(255,255,255,.03);border-color:var(--border);color:#333;cursor:not-allowed}
+.upg-buy:disabled:hover{background:rgba(255,255,255,.03);border-color:var(--border)}
+.prestige-box{background:var(--panel);border:1px solid rgba(192,132,252,.2);border-radius:6px;padding:14px 20px;display:flex;align-items:center;gap:16px;max-width:500px;width:100%;margin-top:4px}
+.prestige-box.available{border-color:rgba(192,132,252,.5);box-shadow:0 0 20px rgba(192,132,252,.08)}
+.prest-info{flex:1}.prest-lvl{font-size:clamp(7px,1.1vw,9px);color:#c084fc;margin-bottom:4px}
+.prest-mult{font-size:clamp(6px,1vw,8px);color:var(--dim2);margin-bottom:3px}
+.prest-req{font-size:clamp(5px,.9vw,7px);color:var(--dim)}
+.prest-btn{font-family:inherit;font-size:clamp(6px,1vw,8px);padding:8px 14px;background:rgba(192,132,252,.1);border:1px solid rgba(192,132,252,.3);color:#c084fc;border-radius:3px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.prest-btn:hover:not(:disabled){background:rgba(192,132,252,.25);border-color:rgba(192,132,252,.5)}
+.prest-btn:disabled{opacity:.3;cursor:not-allowed}
+.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px;max-width:780px;width:100%}
+.ach-card{background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:6px 8px;display:flex;align-items:center;gap:7px;font-size:5.5px;opacity:.3;transition:all .3s}
+.ach-card.unlocked{opacity:1;border-color:rgba(255,215,0,.25)}
+.ach-icon{font-size:11px;color:#333;flex-shrink:0;width:18px;text-align:center}
 .ach-card.unlocked .ach-icon{color:var(--gold)}
-.ach-card .ach-name{color:#888}
-.ach-card.unlocked .ach-name{color:#fff}
+.ach-name{color:#555}.ach-card.unlocked .ach-name{color:#ccc}
+.save-indicator{position:fixed;bottom:10px;right:14px;font-size:6px;color:var(--dim);z-index:200;transition:opacity .3s}
+.reset-btn{font-family:inherit;font-size:5px;color:#555;background:none;border:1px solid rgba(255,255,255,.05);padding:3px 8px;border-radius:2px;cursor:pointer;margin-top:8px;transition:all .15s}
+.reset-btn:hover{color:#f44;border-color:rgba(255,68,68,.3)}
+#toastContainer{position:fixed;top:14px;right:14px;z-index:200;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:rgba(18,18,38,.95);border:1px solid var(--gold);border-radius:5px;padding:8px 12px;display:flex;align-items:center;gap:8px;transform:translateX(120%);transition:transform .3s ease;pointer-events:auto;max-width:280px}
+.toast.show{transform:translateX(0)}
+.toast-icon{font-size:16px;color:var(--gold);flex-shrink:0}
+.toast-title{font-size:6px;color:var(--gold);margin-bottom:2px}
+.toast-desc{font-size:5px;color:var(--dim);line-height:1.4}
 .screen-flash{position:fixed;inset:0;background:#fff;pointer-events:none;z-index:100;opacity:0;animation:flash .2s ease-out}
-@keyframes flash{0%{opacity:.25}100%{opacity:0}}
-@media(max-width:600px){.upgrades-grid{grid-template-columns:1fr}.ach-grid{grid-template-columns:1fr 1fr}.block-selector{gap:5px}.block-opt{width:44px}.block-preview{width:36px;height:36px}}
+@keyframes flash{0%{opacity:.2}100%{opacity:0}}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,1px)}80%{transform:translate(2px,-1px)}}
+.shake{animation:shake .25s ease-out}
+@media(max-width:600px){.upgrades-grid{grid-template-columns:1fr}.ach-grid{grid-template-columns:1fr 1fr}.pickaxe-wrap{display:none}.prestige-box{flex-direction:column;text-align:center;gap:10px}.stat{padding:5px 8px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:0s!important;transition-duration:0s!important}}
 </style>
 </head>
 <body>
-<div class="bg-sky"></div>
+<div class="bg-sky" id="bgSky"></div>
 <canvas class="bg-stars" id="starsCanvas"></canvas>
 <div class="bg-ground"></div>
 <canvas id="particles"></canvas>
-
 <div id="app">
   <header>
     <h1>MINECRAFT CLICKER</h1>
     <div class="stats-bar">
-      <div class="stat emeralds"><i class="fas fa-gem"></i><span class="val" id="emeraldCount">0</span></div>
-      <div class="stat cps"><i class="fas fa-bolt"></i><span class="val" id="cpsCount">0</span>/s</div>
-      <div class="stat clicks"><i class="fas fa-crosshairs"></i><span class="val" id="clickCount">0</span></div>
+      <div class="stat emeralds"><i class="fas fa-gem"></i><span class="val" id="sEmeralds">0</span></div>
+      <div class="stat cps"><i class="fas fa-bolt"></i><span class="val" id="sCps">0</span>/s</div>
+      <div class="stat clicks"><i class="fas fa-crosshairs"></i><span class="val" id="sClicks">0</span></div>
+      <div class="stat prestige"><i class="fas fa-rotate"></i><span class="val" id="sPrestige">0</span></div>
     </div>
   </header>
-
   <div class="block-area" id="blockArea">
-    <div class="combo-display" id="comboDisplay">COMBO x1</div>
-    <div class="block-scene" id="blockScene">
+    <div class="combo-display" id="comboDisp">COMBO x1</div>
+    <div class="pickaxe-wrap" id="pickWrap">
+      <div class="pickaxe" id="pickaxe"><div class="pk-head" id="pkHead"></div><div class="pk-handle"></div></div>
+      <div class="pk-tier" id="pkTier">Wood</div>
+    </div>
+    <div class="block-scene sz" id="blockScene" tabindex="0" role="button" aria-label="Mine the block">
       <div class="block-cube idle" id="blockCube">
-        <div class="face front"></div>
-        <div class="face back"></div>
-        <div class="face left"></div>
-        <div class="face right"></div>
-        <div class="face top"></div>
-        <div class="face bottom"></div>
-        <div class="damage-overlay" id="damageOverlay"></div>
+        <div class="face front"></div><div class="face back"></div><div class="face left"></div><div class="face right"></div><div class="face top"></div><div class="face bottom"></div>
+        <div class="dmg-overlay" id="dmgOverlay"></div>
       </div>
     </div>
+    <div class="health-wrap"><div class="health-bar" id="healthBar"></div></div>
     <div class="block-shadow" id="blockShadow"></div>
   </div>
-
-  <div class="block-selector" id="blockSelector"></div>
-
+  <div class="block-selector" id="blockSel"></div>
   <div class="section-title">UPGRADES</div>
-  <div class="upgrades-grid" id="upgradesGrid"></div>
-
-  <div class="achievements-section">
-    <div class="section-title" style="margin-top:16px">ACHIEVEMENTS</div>
-    <div class="ach-grid" id="achGrid"></div>
+  <div class="buy-mode" id="buyMode">
+    <button class="active" data-m="1">x1</button>
+    <button data-m="10">x10</button>
+    <button data-m="max">MAX</button>
   </div>
+  <div class="upgrades-grid" id="upgGrid"></div>
+  <div class="section-title">PRESTIGE</div>
+  <div class="prestige-box" id="prestBox">
+    <div class="prest-info">
+      <div class="prest-lvl">Level <span id="prestLvl">0</span></div>
+      <div class="prest-mult">Multiplier: <span id="prestMult">1.0x</span> all earnings</div>
+      <div class="prest-req">Requires: <span id="prestReq">10M</span> total earned</div>
+    </div>
+    <button class="prest-btn" id="prestBtn" disabled>PRESTIGE</button>
+  </div>
+  <div class="section-title">ACHIEVEMENTS <span id="achCount" style="color:var(--gold)">0/25</span></div>
+  <div class="ach-grid" id="achGrid"></div>
+  <button class="reset-btn" onclick="resetSave()">Reset Save</button>
 </div>
-
 <div id="toastContainer"></div>
+<div class="save-indicator" id="saveInd"></div>
 
 <script>
-/* ===== BLOCK TYPES ===== */
-const blockTypes = [
-  { name:'Grass Block', mult:1, cost:0, top:'#5B8731', topN:['#4C7A2B','#6B9E3A','#528532'], side:'#8B6914', sideN:['#7A5C12','#9C7A1A','#6B5210'], bot:'#8B6914', botN:['#7A5C12','#9C7A1A'], particles:['#5B8731','#4C7A2B','#8B6914','#6B5210'], ore:null, grassSide:3 },
-  { name:'Stone', mult:2, cost:100, top:'#8B8B8B', topN:['#7A7A7A','#9C9C9C','#6E6E6E'], side:'#808080', sideN:['#737373','#919191','#6A6A6A'], bot:'#777', botN:['#6E6E6E','#888'], particles:['#8B8B8B','#7A7A7A','#6E6E6E'], ore:null, grassSide:0 },
-  { name:'Iron Ore', mult:5, cost:500, top:'#8B8B8B', topN:['#7A7A7A','#9C9C9C','#6E6E6E'], side:'#808080', sideN:['#737373','#919191','#6A6A6A'], bot:'#777', botN:['#6E6E6E','#888'], particles:['#8B8B8B','#D4A574','#7A7A7A'], ore:'#D4A574', grassSide:0 },
-  { name:'Gold Ore', mult:12, cost:3000, top:'#8B8B8B', topN:['#7A7A7A','#9C9C9C','#6E6E6E'], side:'#808080', sideN:['#737373','#919191','#6A6A6A'], bot:'#777', botN:['#6E6E6E','#888'], particles:['#8B8B8B','#FFD700','#7A7A7A'], ore:'#FFD700', grassSide:0 },
-  { name:'Diamond Ore', mult:30, cost:18000, top:'#8B8B8B', topN:['#7A7A7A','#9C9C9C','#6E6E6E'], side:'#808080', sideN:['#737373','#919191','#6A6A6A'], bot:'#777', botN:['#6E6E6E','#888'], particles:['#8B8B8B','#4DD9FF','#7A7A7A','#80E8FF'], ore:'#4DD9FF', grassSide:0 },
-  { name:'Emerald Ore', mult:80, cost:120000, top:'#8B8B8B', topN:['#7A7A7A','#9C9C9C','#6E6E6E'], side:'#808080', sideN:['#737373','#919191','#6A6A6A'], bot:'#777', botN:['#6E6E6E','#888'], particles:['#8B8B8B','#00E676','#7A7A7A','#40FF90'], ore:'#00E676', grassSide:0 }
+/* ===== BLOCK DEFINITIONS ===== */
+const BT=[
+  {name:'Grass Block',mult:1,cost:0,top:'#5B8731',topN:['#4C7A2B','#6B9E3A','#528532'],side:'#8B6914',sideN:['#7A5C12','#9C7A1A','#6B5210'],bot:'#8B6914',botN:['#7A5C12','#9C7A1A'],pts:['#5B8731','#4C7A2B','#8B6914','#6B5210'],ore:null,gs:3},
+  {name:'Cobblestone',mult:2,cost:250,top:'#7A7A7A',topN:['#6E6E6E','#888','#666'],side:'#707070',sideN:['#656565','#7D7D7D','#5E5E5E'],bot:'#6A6A6A',botN:['#606060','#777'],pts:['#7A7A7A','#6E6E6E','#666'],ore:null,gs:0},
+  {name:'Coal Ore',mult:5,cost:2000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#333','#222','#555'],ore:'#2A2A2A',gs:0},
+  {name:'Iron Ore',mult:12,cost:12000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#D4A574','#7A7A7A'],ore:'#D4A574',gs:0},
+  {name:'Copper Ore',mult:28,cost:65000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#E87D4A','#C66A3A'],ore:'#E87D4A',gs:0},
+  {name:'Gold Ore',mult:65,cost:400000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#FFD700','#DAA520'],ore:'#FFD700',gs:0},
+  {name:'Redstone Ore',mult:150,cost:2500000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#FF3333','#CC0000','#FF6666'],ore:'#FF3333',gs:0},
+  {name:'Lapis Ore',mult:350,cost:18000000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#3355DD','#2244BB','#5577FF'],ore:'#3355DD',gs:0},
+  {name:'Diamond Ore',mult:900,cost:150000000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#4DD9FF','#80E8FF','#00BBDD'],ore:'#4DD9FF',gs:0},
+  {name:'Emerald Ore',mult:2500,cost:1500000000,top:'#8B8B8B',topN:['#7A7A7A','#9C9C9C','#6E6E6E'],side:'#808080',sideN:['#737373','#919191','#6A6A6A'],bot:'#777',botN:['#6E6E6E','#888'],pts:['#8B8B8B','#00E676','#40FF90','#00CC66'],ore:'#00E676',gs:0}
 ];
 
 /* ===== UPGRADES ===== */
-const upgrades = [
-  { id:'pickaxe', name:'Better Pickaxe', desc:'+1 emerald per click', icon:'fa-hammer', iconBg:'rgba(139,105,20,.2)', iconColor:'#D4A574', baseCost:15, mult:1.55, level:0 },
-  { id:'autoMiner', name:'Auto-Miner', desc:'+0.5 emeralds per second', icon:'fa-gears', iconBg:'rgba(77,217,255,.15)', iconColor:'var(--diamond)', baseCost:50, mult:1.6, level:0 },
-  { id:'fortune', name:'Fortune', desc:'+5% chance for 3x drop', icon:'fa-clover', iconBg:'rgba(255,215,0,.15)', iconColor:'var(--gold)', baseCost:250, mult:1.8, level:0 },
-  { id:'efficiency', name:'Efficiency', desc:'-2% upgrade costs', icon:'fa-bolt', iconBg:'rgba(0,230,118,.12)', iconColor:'var(--emerald)', baseCost:1200, mult:2.0, level:0 }
+const UG=[
+  {id:'pick',name:'Better Pickaxe',desc:'+1 emerald per click',icon:'fa-hammer',ibg:'rgba(139,105,20,.2)',ic:'#D4A574',bc:15,bm:1.55,lv:0},
+  {id:'auto',name:'Auto-Miner',desc:'+0.5 emeralds/sec',icon:'fa-gears',ibg:'rgba(77,217,255,.12)',ic:'var(--diamond)',bc:50,bm:1.6,lv:0},
+  {id:'fort',name:'Fortune',desc:'+5% chance for 3x',icon:'fa-clover',ibg:'rgba(255,215,0,.12)',ic:'var(--gold)',bc:250,bm:1.8,lv:0},
+  {id:'eff',name:'Efficiency',desc:'-2% all upgrade costs',icon:'fa-bolt',ibg:'rgba(0,230,118,.1)',ic:'var(--emerald)',bc:1200,bm:2.0,lv:0},
+  {id:'haste',name:'Haste',desc:'+50% auto-miner speed',icon:'fa-forward-fast',ibg:'rgba(255,100,100,.12)',ic:'#ff8888',bc:5000,bm:2.2,lv:0},
+  {id:'expl',name:'Explosive',desc:'+3% chance for 5x click',icon:'fa-explosion',ibg:'rgba(255,50,50,.12)',ic:'var(--redstone)',bc:25000,bm:2.5,lv:0},
+  {id:'silk',name:'Silk Touch',desc:'+25% block break bonus',icon:'fa-wand-sparkles',ibg:'rgba(192,132,252,.12)',ic:'#c084fc',bc:100000,bm:2.8,lv:0},
+  {id:'loot',name:'Looting',desc:'+2 flat emerald to all',icon:'fa-sack-dollar',ibg:'rgba(0,230,118,.1)',ic:'var(--emerald)',bc:500000,bm:3.0,lv:0}
 ];
 
 /* ===== ACHIEVEMENTS ===== */
-const achievements = [
-  { id:'first', name:'First Strike', desc:'Click the block', icon:'fa-hand-pointer', check:()=>G.totalClicks>=1 },
-  { id:'c100', name:'Miner', desc:'100 clicks', icon:'fa-pickaxe', check:()=>G.totalClicks>=100 },
-  { id:'c1000', name:'Dedicated', desc:'1,000 clicks', icon:'fa-mountain', check:()=>G.totalClicks>=1000 },
-  { id:'c10000', name:'Click Legend', desc:'10,000 clicks', icon:'fa-crown', check:()=>G.totalClicks>=10000 },
-  { id:'e100', name:'Emerald Hoarder', desc:'Earn 100 total', icon:'fa-gem', check:()=>G.totalEarned>=100 },
-  { id:'e1k', name:'Wealthy', desc:'Earn 1,000 total', icon:'fa-sack-dollar', check:()=>G.totalEarned>=1000 },
-  { id:'e10k', name:'Diamond Hands', desc:'Earn 10,000 total', icon:'fa-diamond', check:()=>G.totalEarned>=10000 },
-  { id:'e100k', name:'Emerald Tycoon', desc:'Earn 100,000 total', icon:'fa-landmark', check:()=>G.totalEarned>=100000 },
-  { id:'upgrade1', name:'Upgrader', desc:'Buy first upgrade', icon:'fa-arrow-up', check:()=>upgrades.reduce((s,u)=>s+u.level,0)>=1 },
-  { id:'block2', name:'New Horizons', desc:'Unlock Stone block', icon:'fa-cube', check:()=>G.currentBlock>=1 },
-  { id:'block5', name:'Into the Deep', desc:'Unlock Diamond Ore', icon:'fa-cubes', check:()=>G.currentBlock>=4 },
-  { id:'cps10', name:'Automation', desc:'Reach 10 CPS', icon:'fa-robot', check:()=>G.cps>=10 },
-  { id:'fortune1', name:'Lucky Strike', desc:'Get a Fortune proc', icon:'fa-clover', check:()=>G.fortuneHits>=1 },
-  { id:'combo10', name:'Combo Master', desc:'Reach 10x combo', icon:'fa-fire', check:()=>G.maxCombo>=10 }
+const ACH=[
+  {id:'first',n:'First Strike',d:'Click the block',i:'fa-hand-pointer',ck:()=>G.tc>=1},
+  {id:'c100',n:'Apprentice Miner',d:'100 clicks',i:'fa-hammer',ck:()=>G.tc>=100},
+  {id:'c1k',n:'Skilled Miner',d:'1,000 clicks',i:'fa-helmet-safety',ck:()=>G.tc>=1000},
+  {id:'c10k',n:'Master Miner',d:'10,000 clicks',i:'fa-mountain',ck:()=>G.tc>=10000},
+  {id:'c100k',n:'Legendary Miner',d:'100,000 clicks',i:'fa-crown',ck:()=>G.tc>=100000},
+  {id:'e100',n:'Emerald Finder',d:'Earn 100 total',i:'fa-gem',ck:()=>G.te>=100},
+  {id:'e1k',n:'Emerald Hoarder',d:'Earn 1K total',i:'fa-box',ck:()=>G.te>=1000},
+  {id:'e10k',n:'Wealthy',d:'Earn 10K total',i:'fa-sack-dollar',ck:()=>G.te>=10000},
+  {id:'e100k',n:'Rich',d:'Earn 100K total',i:'fa-coins',ck:()=>G.te>=100000},
+  {id:'e1m',n:'Millionaire',d:'Earn 1M total',i:'fa-landmark',ck:()=>G.te>=1e6},
+  {id:'e100m',n:'Billionaire',d:'Earn 100M total',i:'fa-vault',ck:()=>G.te>=1e8},
+  {id:'e10b',n:'Trillionaire',d:'Earn 10B total',i:'fa-money-bill-trend-up',ck:()=>G.te>=1e10},
+  {id:'u1',n:'Upgrader',d:'Buy first upgrade',i:'fa-arrow-up',ck:()=>UG.reduce((s,u)=>s+u.lv,0)>=1},
+  {id:'u10',n:'Enchanter',d:'10 total upgrade lvls',i:'fa-wand-sparkles',ck:()=>UG.reduce((s,u)=>s+u.lv,0)>=10},
+  {id:'u30',n:'Master Enchanter',d:'30 total upgrade lvls',i:'fa-hat-wizard',ck:()=>UG.reduce((s,u)=>s+u.lv,0)>=30},
+  {id:'b1',n:'Stone Age',d:'Unlock Cobblestone',i:'fa-cube',ck:()=>G.cb>=1},
+  {id:'b5',n:'Deep Miner',d:'Unlock Gold Ore',i:'fa-cubes',ck:()=>G.cb>=5},
+  {id:'b8',n:'Diamond Hunter',d:'Unlock Diamond Ore',i:'fa-diamond',ck:()=>G.cb>=8},
+  {id:'b9',n:'Ultimate Miner',d:'Unlock Emerald Ore',i:'fa-gem',ck:()=>G.cb>=9},
+  {id:'cps10',n:'Automation',d:'Reach 10 CPS',i:'fa-robot',ck:()=>G.cps>=10},
+  {id:'cps100',n:'Factory',d:'Reach 100 CPS',i:'fa-industry',ck:()=>G.cps>=100},
+  {id:'fort1',n:'Lucky Strike',d:'Fortune proc',i:'fa-clover',ck:()=>G.fh>=1},
+  {id:'expl1',n:'BOOM',d:'Explosive proc',i:'fa-explosion',ck:()=>G.eh>=1},
+  {id:'co10',n:'Combo King',d:'10x combo',i:'fa-fire',ck:()=>G.mc>=10},
+  {id:'co25',n:'Combo Legend',d:'25x combo',i:'fa-fire-flame-curved',ck:()=>G.mc>=25},
+  {id:'p1',n:'Rebirth',d:'First prestige',i:'fa-rotate',ck:()=>G.pl>=1},
+  {id:'p5',n:'Transcendent',d:'Prestige 5 times',i:'fa-star',ck:()=>G.pl>=5}
+];
+
+/* ===== PICKAXE TIERS ===== */
+const PK_TIERS=[
+  {name:'Wood',color:'#A0724A',min:0},{name:'Stone',color:'#8B8B8B',min:5},
+  {name:'Iron',color:'#D4D4D4',min:15},{name:'Gold',color:'#FFD700',min:30},
+  {name:'Diamond',color:'#4DD9FF',min:50},{name:'Emerald',color:'#00E676',min:75}
 ];
 
 /* ===== GAME STATE ===== */
-const G = {
-  emeralds: 0, totalEarned: 0, totalClicks: 0, clickPower: 1, cps: 0,
-  currentBlock: 0, cracks: 0, maxCracks: 10,
-  combo: 0, comboTimer: null, maxCombo: 0, fortuneHits: 0,
-  unlockedAchievements: new Set()
-};
+const G={em:0,te:0,tc:0,cb:0,cr:0,mc:10,combo:0,ct:null,maxCo:0,fh:0,eh:0,pl:0,ua:new Set()};
+let buyMode=1;
 
-/* ===== TEXTURE GENERATION ===== */
-function genTexture(blockIdx, face) {
-  const c = document.createElement('canvas'); c.width=16; c.height=16;
-  const ctx = c.getContext('2d');
-  const b = blockTypes[blockIdx];
-  function noise(colors, prob) {
-    for(let x=0;x<16;x++) for(let y=0;y<16;y++)
-      if(Math.random()<prob){ctx.fillStyle=colors[Math.floor(Math.random()*colors.length)];ctx.fillRect(x,y,1,1)}
-  }
-  function oreSpots(col,prob){
-    for(let x=0;x<16;x++) for(let y=0;y<16;y++)
-      if(Math.random()<prob){ctx.fillStyle=col;ctx.fillRect(x,y,1,1)}
-  }
-  if(face==='top'){
-    ctx.fillStyle=b.top; ctx.fillRect(0,0,16,16); noise(b.topN,.3);
-  } else if(face==='bottom'){
-    ctx.fillStyle=b.bot; ctx.fillRect(0,0,16,16); noise(b.botN,.3);
-  } else {
-    ctx.fillStyle=b.side; ctx.fillRect(0,0,16,16);
-    if(b.grassSide>0){ctx.fillStyle=b.top; ctx.fillRect(0,0,16,b.grassSide); noise(b.topN,.25)}
-    noise(b.sideN,.3);
-    if(b.ore) oreSpots(b.ore,.12);
-  }
+/* ===== HELPERS ===== */
+function fmt(n){if(n>=1e12)return(n/1e12).toFixed(1)+'T';if(n>=1e9)return(n/1e9).toFixed(1)+'B';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n).toString()}
+function costAt(u,lv){const b=u.bc*Math.pow(u.bm,lv);const e=1-(UG[3].lv*0.02);return Math.floor(b*Math.max(0.5,e))}
+function nextCost(u){return costAt(u,u.lv)}
+function dispCost(u){
+  if(buyMode===1)return nextCost(u);
+  const mx=buyMode==='max'?maxBuy(u):buyMode;let t=0;
+  for(let i=0;i<mx;i++)t+=costAt(u,u.lv+i);return t;
+}
+function maxBuy(u){let c=0,e=G.em;for(let i=0;i<200;i++){const co=costAt(u,u.lv+i);if(e<co)break;e-=co;c++}return c||1}
+function prestMult(){return 1+G.pl*0.5}
+function prestReq(){return Math.floor(1e7*Math.pow(2,G.pl))}
+function recalc(){G.cps=(UG[1].lv*0.5)*(1+UG[4].lv*0.5);updatePickaxe()}
+
+/* ===== TEXTURES ===== */
+function genTex(bi,face){
+  const c=document.createElement('canvas');c.width=16;c.height=16;const x=c.getContext('2d');const b=BT[bi];
+  function noise(cs,p){for(let i=0;i<16;i++)for(let j=0;j<16;j++)if(Math.random()<p){x.fillStyle=cs[Math.floor(Math.random()*cs.length)];x.fillRect(i,j,1,1)}}
+  function ore(cl,p){for(let i=0;i<16;i++)for(let j=0;j<16;j++)if(Math.random()<p){x.fillStyle=cl;x.fillRect(i,j,1,1)}}
+  if(face==='top'){x.fillStyle=b.top;x.fillRect(0,0,16,16);noise(b.topN,.3)}
+  else if(face==='bot'){x.fillStyle=b.bot;x.fillRect(0,0,16,16);noise(b.botN,.3)}
+  else{x.fillStyle=b.side;x.fillRect(0,0,16,16);if(b.gs>0){x.fillStyle=b.top;x.fillRect(0,0,16,b.gs);noise(b.topN,.25)}noise(b.sideN,.3);if(b.ore)ore(b.ore,.12)}
   return c.toDataURL();
 }
-
-function applyBlockTextures(idx) {
-  const faces = document.querySelectorAll('.face');
-  const t = genTexture(idx,'top'), s = genTexture(idx,'side'), bt = genTexture(idx,'bottom');
-  faces.forEach(f => {
-    f.style.imageRendering='pixelated'; f.style.backgroundSize='cover';
-    if(f.classList.contains('top')) f.style.backgroundImage=`url(${t})`;
-    else if(f.classList.contains('bottom')) f.style.backgroundImage=`url(${bt})`;
-    else f.style.backgroundImage=`url(${s})`;
-  });
+function applyTex(i){
+  const t=genTex(i,'top'),s=genTex(i,'side'),bt=genTex(i,'bot');
+  document.querySelectorAll('.face').forEach(f=>{f.style.imageRendering='pixelated';f.style.backgroundSize='cover';
+    if(f.classList.contains('top'))f.style.backgroundImage=`url(${t})`;
+    else if(f.classList.contains('bottom'))f.style.backgroundImage=`url(${bt})`;
+    else f.style.backgroundImage=`url(${s})`});
 }
 
 /* ===== PARTICLES ===== */
-const pCanvas = document.getElementById('particles');
-const pCtx = pCanvas.getContext('2d');
-let particles = [];
+const pC=document.getElementById('particles'),pX=pC.getContext('2d');let pts=[];
+function rsP(){pC.width=innerWidth;pC.height=innerHeight}
+addEventListener('resize',rsP);rsP();
+class P{constructor(x,y,c,s,vx,vy,l){this.x=x;this.y=y;this.c=c;this.s=s;this.vx=vx;this.vy=vy;this.l=l;this.ml=l;this.r=Math.random()*6.28;this.rs=(Math.random()-.5)*.3}
+  up(){this.x+=this.vx;this.y+=this.vy;this.vy+=.17;this.l--;this.r+=this.rs}
+  dr(x){const a=this.l/this.ml;x.save();x.translate(this.x,this.y);x.rotate(this.r);x.globalAlpha=a;x.fillStyle=this.c;x.fillRect(-this.s/2,-this.s/2,this.s,this.s);x.restore()}
+  get dead(){return this.l<=0}}
+function spawnP(cx,cy,brk){const b=BT[G.cb],n=brk?50:16;for(let i=0;i<n;i++){const a=Math.random()*6.28,sp=(brk?3.5:2)+Math.random()*(brk?7:4),sz=(brk?4:3)+Math.random()*(brk?7:3);pts.push(new P(cx,cy,b.pts[Math.floor(Math.random()*b.pts.length)],sz,Math.cos(a)*sp,Math.sin(a)*sp-2,28+Math.random()*22))}}
+let ambT=0;
+function ambP(){if(pts.length<250){const x=Math.random()*pC.width,y=pC.height*.72+Math.random()*pC.height*.28;pts.push(new P(x,y,'rgba(255,255,255,0.12)',1+Math.random(),(Math.random()-.5)*.3,-.15-Math.random()*.25,100+Math.random()*80))}}
+function tickP(){pX.clearRect(0,0,pC.width,pC.height);pts=pts.filter(p=>!p.dead);pts.forEach(p=>{p.up();p.dr(pX)});if(++ambT%10===0)ambP();requestAnimationFrame(tickP)}
+tickP();
 
-function resizeParticles(){ pCanvas.width=window.innerWidth; pCanvas.height=window.innerHeight; }
-window.addEventListener('resize', resizeParticles); resizeParticles();
+/* ===== STARS ===== */
+!function(){const c=document.getElementById('starsCanvas');c.width=innerWidth;c.height=innerHeight;const x=c.getContext('2d');
+for(let i=0;i<140;i++){x.fillStyle=`rgba(255,255,255,${.15+Math.random()*.5})`;const s=1+Math.random()*1.5;x.fillRect(Math.floor(Math.random()*c.width),Math.floor(Math.random()*c.height*.72),Math.ceil(s),Math.ceil(s))}
+x.fillStyle='rgba(235,235,215,0.8)';x.beginPath();x.arc(c.width*.83,c.height*.1,26,0,6.28);x.fill();
+x.fillStyle='#060618';x.beginPath();x.arc(c.width*.83+9,c.height*.1-4,21,0,6.28);x.fill();
+}();
 
-class Particle {
-  constructor(x,y,color,size,vx,vy,life){
-    this.x=x;this.y=y;this.color=color;this.size=size;
-    this.vx=vx;this.vy=vy;this.life=life;this.maxLife=life;
-    this.rot=Math.random()*Math.PI*2;this.rotS=(Math.random()-.5)*.3;this.gravity=.18;
-  }
-  update(){this.x+=this.vx;this.y+=this.vy;this.vy+=this.gravity;this.life--;this.rot+=this.rotS;}
-  draw(ctx){
-    const a=this.life/this.maxLife;
-    ctx.save();ctx.translate(this.x,this.y);ctx.rotate(this.rot);
-    ctx.globalAlpha=a;ctx.fillStyle=this.color;
-    ctx.fillRect(-this.size/2,-this.size/2,this.size,this.size);
-    ctx.restore();
-  }
-  get dead(){return this.life<=0;}
-}
+/* ===== DAY/NIGHT ===== */
+let dayT=0;
+!function dnLoop(){dayT=(dayT+.0008)%1;const br=.35+.65*Math.abs(Math.sin(dayT*3.14));document.getElementById('bgSky').style.filter=`brightness(${br})`;requestAnimationFrame(dnLoop)}();
 
-function spawnClickParticles(cx, cy, isBreak) {
-  const b = blockTypes[G.currentBlock];
-  const count = isBreak ? 45 : 18;
-  for(let i=0;i<count;i++){
-    const angle = Math.random()*Math.PI*2;
-    const speed = (isBreak?3:2) + Math.random()*(isBreak?6:4);
-    const size = (isBreak?4:3) + Math.random()*(isBreak?6:3);
-    const color = b.particles[Math.floor(Math.random()*b.particles.length)];
-    particles.push(new Particle(cx, cy, color, size, Math.cos(angle)*speed, Math.sin(angle)*speed-2, 30+Math.random()*20));
-  }
-}
-
-/* Ambient dust */
-let ambientTimer = 0;
-function spawnAmbient() {
-  if(particles.length > 300) return;
-  const x = Math.random()*pCanvas.width;
-  const y = pCanvas.height * .7 + Math.random()*pCanvas.height*.3;
-  particles.push(new Particle(x,y,'rgba(255,255,255,0.15)',1+Math.random(),(Math.random()-.5)*.3,-.2-Math.random()*.3,120+Math.random()*80));
-}
-
-function updateParticles(){
-  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-  particles = particles.filter(p=>!p.dead);
-  particles.forEach(p=>{p.update();p.draw(pCtx);});
-  ambientTimer++;
-  if(ambientTimer%8===0) spawnAmbient();
-  requestAnimationFrame(updateParticles);
-}
-updateParticles();
-
-/* ===== STARS BACKGROUND ===== */
-(function drawStars(){
-  const c = document.getElementById('starsCanvas');
-  c.width=window.innerWidth; c.height=window.innerHeight;
-  const ctx=c.getContext('2d');
-  for(let i=0;i<120;i++){
-    const x=Math.random()*c.width, y=Math.random()*c.height*.75;
-    const s=1+Math.random()*1.5;
-    ctx.fillStyle=`rgba(255,255,255,${.2+Math.random()*.5})`;
-    ctx.fillRect(Math.floor(x),Math.floor(y),Math.ceil(s),Math.ceil(s));
-  }
-  /* Moon */
-  ctx.fillStyle='rgba(240,240,220,0.85)';
-  ctx.beginPath(); ctx.arc(c.width*.82,c.height*.12,28,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#060618';
-  ctx.beginPath(); ctx.arc(c.width*.82+10,c.height*.12-5,22,0,Math.PI*2); ctx.fill();
-})();
-
-/* ===== NUMBER FORMATTING ===== */
-function fmt(n){
-  if(n>=1e9) return (n/1e9).toFixed(1)+'B';
-  if(n>=1e6) return (n/1e6).toFixed(1)+'M';
-  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
-  return Math.floor(n).toString();
-}
+/* ===== MOUSE TRACKING ===== */
+let hovering=false;
+const scene=document.getElementById('blockScene'),cube=document.getElementById('blockCube');
+scene.addEventListener('mouseenter',()=>{hovering=true;if(!isBrk)cube.classList.remove('idle')});
+scene.addEventListener('mouseleave',()=>{hovering=false;if(!isBrk)cube.classList.add('idle');cube.style.transform=''});
+scene.addEventListener('mousemove',e=>{if(!hovering||isBrk)return;const r=scene.getBoundingClientRect(),mx=(e.clientX-r.left-r.width/2)/r.width,my=(e.clientY-r.top-r.height/2)/r.height;cube.style.transform=`rotateX(${-22-my*12}deg) rotateY(${32+mx*18}deg)`});
 
 /* ===== DISPLAY ===== */
-let displayedEmeralds = 0;
-function updateDisplay(){
-  /* Smooth emerald counter */
-  const diff = G.emeralds - displayedEmeralds;
-  if(Math.abs(diff)<1) displayedEmeralds = G.emeralds;
-  else displayedEmeralds += diff * 0.18;
-  document.getElementById('emeraldCount').textContent = fmt(Math.max(0,displayedEmeralds));
-  document.getElementById('cpsCount').textContent = fmt(G.cps);
-  document.getElementById('clickCount').textContent = fmt(G.totalClicks);
-
-  /* Upgrade affordability */
-  upgrades.forEach((u,i)=>{
-    const cost = getCost(u);
-    const btn = document.querySelector(`[data-upgrade="${i}"]`);
-    if(!btn) return;
-    btn.disabled = G.emeralds < cost;
-    btn.closest('.upgrade-card').classList.toggle('affordable', G.emeralds >= cost);
-    btn.querySelector('.cost-val').textContent = fmt(cost);
-    btn.closest('.upgrade-card').querySelector('.upgrade-level').textContent = 'Level ' + u.level;
-  });
-
-  /* Block selector */
-  blockTypes.forEach((b,i)=>{
-    const el = document.querySelector(`[data-block="${i}"]`);
-    if(!el) return;
-    const locked = i > 0 && G.totalEarned < b.cost;
-    el.classList.toggle('locked', locked);
-    el.classList.toggle('active', G.currentBlock === i);
-    const costEl = el.querySelector('.block-cost');
-    if(i===0) costEl.textContent = 'START';
-    else if(!locked) costEl.textContent = 'OWNED';
-    else costEl.textContent = fmt(b.cost);
-  });
+let dEm=0;
+function updateDisp(){
+  const df=G.em-dEm;if(Math.abs(df)<1)dEm=G.em;else dEm+=df*.18;
+  document.getElementById('sEmeralds').textContent=fmt(Math.max(0,dEm));
+  document.getElementById('sCps').textContent=fmt(G.cps);
+  document.getElementById('sClicks').textContent=fmt(G.tc);
+  document.getElementById('sPrestige').textContent=G.pl;
+  /* Upgrades */
+  UG.forEach((u,i)=>{const co=dispCost(u),btn=document.querySelector(`[data-ug="${i}"]`);if(!btn)return;
+    btn.disabled=G.em<co;btn.closest('.upgrade-card').classList.toggle('affordable',G.em>=co);
+    btn.querySelector('.cv').textContent=fmt(co);btn.closest('.upgrade-card').querySelector('.ul').textContent='Lv '+u.lv});
+  /* Blocks */
+  BT.forEach((b,i)=>{const el=document.querySelector(`[data-bt="${i}"]`);if(!el)return;
+    const lk=i>0&&G.te<b.cost;el.classList.toggle('locked',lk);el.classList.toggle('active',G.cb===i);
+    const ce=el.querySelector('.bcost');ce.textContent=i===0?'START':!lk?'OWNED':fmt(b.cost)});
+  /* Prestige */
+  const pr=prestReq(),pa=G.te>=pr;
+  document.getElementById('prestLvl').textContent=G.pl;
+  document.getElementById('prestMult').textContent=prestMult().toFixed(1)+'x all earnings';
+  document.getElementById('prestReq').textContent='Requires: '+fmt(pr)+' total earned';
+  document.getElementById('prestBtn').disabled=!pa;
+  document.getElementById('prestBox').classList.toggle('available',pa);
+  /* Achievements */
+  document.getElementById('achCount').textContent=G.ua.size+'/'+ACH.length;
 }
 
-/* ===== COST CALCULATION ===== */
-function getCost(u){
-  const base = u.baseCost * Math.pow(u.mult, u.level);
-  const eff = 1 - (upgrades[3].level * 0.02);
-  return Math.floor(base * Math.max(0.5, eff));
+/* ===== HEALTH BAR ===== */
+function updateHB(){const p=(G.cr/G.mc)*100,b=document.getElementById('healthBar');b.style.width=p+'%';b.style.background=p<40?'var(--emerald)':p<70?'var(--gold)':'#f44'}
+
+/* ===== DAMAGE OVERLAY ===== */
+function updateDmg(){const p=G.cr/G.mc,a=Math.min(p*.5,.45);document.getElementById('dmgOverlay').style.background=`rgba(0,0,0,${a})`;document.getElementById('dmgOverlay').style.boxShadow=p>.5?`inset 0 0 ${p*18}px rgba(0,0,0,${p*.4})`:'none'}
+
+/* ===== PICKAXE ===== */
+function updatePickaxe(){
+  let tier=PK_TIERS[0];for(const t of PK_TIERS)if(UG[0].lv>=t.min)tier=t;
+  document.getElementById('pkHead').style.background=tier.color;
+  const pt=document.getElementById('pkTier');pt.textContent=tier.name;pt.style.color=tier.color;
 }
 
-/* ===== CLICK HANDLER ===== */
-const cube = document.getElementById('blockCube');
-const shadow = document.getElementById('blockShadow');
-const scene = document.getElementById('blockScene');
-const blockArea = document.getElementById('blockArea');
-const comboEl = document.getElementById('comboDisplay');
-const dmgOverlay = document.getElementById('damageOverlay');
-let isBreaking = false;
-
-function handleClick(e) {
-  if(isBreaking) return;
-  const rect = scene.getBoundingClientRect();
-  const cx = rect.left + rect.width/2;
-  const cy = rect.top + rect.height/2;
-
+/* ===== CLICK ===== */
+let isBrk=false;
+function handleClick(e){
+  if(isBrk)return;
+  const r=scene.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
   /* Combo */
-  G.combo++;
-  if(G.combo > G.maxCombo) G.maxCombo = G.combo;
-  clearTimeout(G.comboTimer);
-  G.comboTimer = setTimeout(()=>{ G.combo=0; comboEl.classList.remove('active'); }, 600);
-  const comboMult = 1 + Math.min(G.combo * 0.08, 2);
-  if(G.combo > 1){
-    comboEl.textContent = 'COMBO x' + G.combo;
-    comboEl.classList.add('active');
-  }
+  G.combo++;if(G.combo>G.maxCo)G.maxCo=G.combo;
+  clearTimeout(G.ct);G.ct=setTimeout(()=>{G.combo=0;document.getElementById('comboDisp').classList.remove('active')},600);
+  const coMul=1+Math.min(G.combo*.08,2);
+  if(G.combo>1){const cd=document.getElementById('comboDisp');cd.textContent='COMBO x'+G.combo;cd.classList.add('active')}
+  /* Yield calc */
+  let y=(UG[0].lv+1+UG[7].lv*2)*BT[G.cb].mult*coMul*prestMult();
+  let isF=false,isE=false;
+  if(Math.random()<UG[2].lv*.05){y*=3;isF=true;G.fh++}
+  if(Math.random()<UG[5].lv*.03){y*=5;isE=true;G.eh++}
+  G.em+=y;G.te+=y;G.tc++;G.cr++;
+  /* Visuals */
+  cube.classList.remove('idle','clicked');void cube.offsetWidth;cube.classList.add('clicked');
+  document.getElementById('blockShadow').classList.add('pulse');
+  const pk=document.getElementById('pickaxe');pk.classList.remove('swing');void pk.offsetWidth;pk.classList.add('swing');
+  setTimeout(()=>{document.getElementById('blockShadow').classList.remove('pulse');cube.classList.remove('clicked');if(!hovering)cube.classList.add('idle')},130);
+  spawnFloat(e?e.clientX:cx,e?e.clientY:cy,y,isF,isE,false);
+  spawnP(cx,cy,false);updateDmg();updateHB();
+  if(G.cr>=G.mc)breakBlock(cx,cy);
+  checkAch();
+}
+scene.addEventListener('click',handleClick);
+scene.addEventListener('touchstart',e=>{e.preventDefault();handleClick(e.touches[0])},{passive:false});
+scene.addEventListener('keydown',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();handleClick(null)}});
 
-  /* Calculate yield */
-  let yield_ = G.clickPower * blockTypes[G.currentBlock].mult * comboMult;
-  let isFortune = false;
-  const fortuneChance = upgrades[2].level * 0.05;
-  if(Math.random() < fortuneChance){ yield_ *= 3; isFortune = true; G.fortuneHits++; }
-
-  G.emeralds += yield_;
-  G.totalEarned += yield_;
-  G.totalClicks++;
-  G.cracks++;
-
-  /* Visual feedback */
-  cube.classList.remove('idle','clicked');
-  void cube.offsetWidth;
-  cube.classList.add('clicked');
-  shadow.classList.add('pulse');
-  setTimeout(()=>{ shadow.classList.remove('pulse'); cube.classList.remove('clicked'); cube.classList.add('idle'); }, 130);
-
-  /* Floating number */
-  spawnFloating(e ? e.clientX : cx, e ? e.clientY : cy, yield_, isFortune, false);
-
-  /* Particles */
-  spawnClickParticles(cx, cy, false);
-
-  /* Damage overlay */
-  updateDamage();
-
-  /* Check break */
-  if(G.cracks >= G.maxCracks) breakBlock(cx, cy);
-
-  checkAchievements();
+function breakBlock(cx,cy){
+  isBrk=true;G.cr=0;updateDmg();updateHB();
+  const silkM=1+UG[6].lv*.25;const bonus=(UG[0].lv+1+UG[7].lv*2)*BT[G.cb].mult*5*silkM*prestMult();
+  G.em+=bonus;G.te+=bonus;
+  spawnFloat(cx,cy,bonus,false,false,true);
+  const fl=document.createElement('div');fl.className='screen-flash';document.body.appendChild(fl);setTimeout(()=>fl.remove(),250);
+  document.getElementById('app').classList.add('shake');setTimeout(()=>document.getElementById('app').classList.remove('shake'),280);
+  spawnP(cx,cy,true);
+  cube.classList.remove('idle','clicked');cube.classList.add('breaking');
+  setTimeout(()=>{cube.classList.remove('breaking');cube.classList.add('reforming');
+    setTimeout(()=>{cube.classList.remove('reforming');if(!hovering)cube.classList.add('idle');isBrk=false;applyTex(G.cb)},420)},360);
+  checkAch();
 }
 
-scene.addEventListener('click', handleClick);
-scene.addEventListener('touchstart', (e)=>{ e.preventDefault(); handleClick(e.touches[0]); }, {passive:false});
-
-function updateDamage(){
-  const pct = G.cracks / G.maxCracks;
-  const alpha = Math.min(pct * 0.5, 0.45);
-  const dark = Math.floor(pct * 60);
-  dmgOverlay.style.background = `rgba(0,0,0,${alpha})`;
-  if(pct > 0.6) dmgOverlay.style.boxShadow = `inset 0 0 ${pct*20}px rgba(0,0,0,${pct*0.5})`;
+function spawnFloat(x,y,amt,f,e,brk){
+  const el=document.createElement('div');el.className='floating-num'+(f?' fortune':'')+(e?' explosive':'')+(brk?' brk':'');
+  el.textContent='+'+fmt(amt);el.style.left=(x+(Math.random()-.5)*30)+'px';el.style.top=(y-20)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1100);
 }
 
-function breakBlock(cx, cy) {
-  isBreaking = true;
-  G.cracks = 0;
-  dmgOverlay.style.background = 'transparent';
-  dmgOverlay.style.boxShadow = 'none';
-
-  /* Break bonus */
-  const bonus = G.clickPower * blockTypes[G.currentBlock].mult * 5;
-  G.emeralds += bonus;
-  G.totalEarned += bonus;
-  spawnFloating(cx, cy, bonus, false, true);
-
-  /* Screen flash */
-  const flash = document.createElement('div');
-  flash.className = 'screen-flash';
-  document.body.appendChild(flash);
-  setTimeout(()=>flash.remove(), 250);
-
-  /* Big particle burst */
-  spawnClickParticles(cx, cy, true);
-
-  /* Break animation */
-  cube.classList.remove('idle','clicked');
-  cube.classList.add('breaking');
-
-  setTimeout(()=>{
-    cube.classList.remove('breaking');
-    cube.classList.add('reforming');
-    setTimeout(()=>{
-      cube.classList.remove('reforming');
-      cube.classList.add('idle');
-      isBreaking = false;
-      applyBlockTextures(G.currentBlock);
-    }, 420);
-  }, 360);
-}
-
-function spawnFloating(x, y, amount, isFortune, isBreak) {
-  const el = document.createElement('div');
-  el.className = 'floating-num' + (isFortune?' fortune':'') + (isBreak?' break':'');
-  el.textContent = '+' + fmt(amount);
-  el.style.left = (x + (Math.random()-0.5)*40) + 'px';
-  el.style.top = (y - 20) + 'px';
-  el.style.position = 'fixed';
-  document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 1100);
-}
+/* ===== BUY MODE ===== */
+document.getElementById('buyMode').addEventListener('click',e=>{const btn=e.target.closest('button');if(!btn)return;
+  document.querySelectorAll('.buy-mode button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const m=btn.dataset.m;buyMode=m==='max'?'max':parseInt(m)});
 
 /* ===== BUY UPGRADE ===== */
-function buyUpgrade(idx) {
-  const u = upgrades[idx];
-  const cost = getCost(u);
-  if(G.emeralds < cost) return;
-  G.emeralds -= cost;
-  u.level++;
-
-  /* Apply effects */
-  G.clickPower = 1 + upgrades[0].level;
-  G.cps = upgrades[1].level * 0.5;
-
-  checkAchievements();
+function buyUp(i){
+  const u=UG[i];let bought=0;
+  if(buyMode==='max'){for(let j=0;j<200;j++){const c=costAt(u,u.lv);if(G.em<c)break;G.em-=c;u.lv++;bought++}}
+  else{for(let j=0;j<buyMode;j++){const c=costAt(u,u.lv);if(G.em<c)break;G.em-=c;u.lv++;bought++}}
+  if(bought>0){recalc();checkAch()}
 }
 
-/* ===== UNLOCK BLOCK ===== */
-function selectBlock(idx) {
-  if(idx === 0 || G.totalEarned >= blockTypes[idx].cost) {
-    G.currentBlock = idx;
-    applyBlockTextures(idx);
-    G.cracks = 0;
-    dmgOverlay.style.background = 'transparent';
-    dmgOverlay.style.boxShadow = 'none';
-    checkAchievements();
-  }
+/* ===== BLOCK SELECT ===== */
+function selBlock(i){if(i===0||G.te>=BT[i].cost){G.cb=i;applyTex(i);G.cr=0;updateDmg();updateHB();checkAch()}}
+
+/* ===== PRESTIGE ===== */
+function doPrestige(){
+  if(G.te<prestReq())return;
+  G.em=0;G.cr=0;G.combo=0;G.cb=0;UG.forEach(u=>u.lv=0);G.pl++;recalc();applyTex(0);
+  updateDmg();updateHB();checkAch();showToast('Prestige ' + G.pl,'Multiplier now '+prestMult().toFixed(1)+'x','fa-rotate');
 }
+document.getElementById('prestBtn').addEventListener('click',doPrestige);
 
 /* ===== ACHIEVEMENTS ===== */
-function checkAchievements() {
-  achievements.forEach(a => {
-    if(!G.unlockedAchievements.has(a.id) && a.check()) {
-      G.unlockedAchievements.add(a.id);
-      showToast(a.name, a.desc, a.icon);
-      const card = document.querySelector(`[data-ach="${a.id}"]`);
-      if(card) card.classList.add('unlocked');
-    }
-  });
-}
+function checkAch(){ACH.forEach(a=>{if(!G.ua.has(a.id)&&a.ck()){G.ua.add(a.id);showToast(a.n,a.d,a.i);const c=document.querySelector(`[data-ach="${a.id}"]`);if(c)c.classList.add('unlocked')}})}
+function showToast(t,d,ic){const c=document.getElementById('toastContainer'),el=document.createElement('div');el.className='toast';
+  el.innerHTML=`<div class="toast-icon"><i class="fas ${ic}"></i></div><div><div class="toast-title">${t}</div><div class="toast-desc">${d}</div></div>`;
+  c.appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),350)},3500)}
 
-function showToast(title, desc, icon) {
-  const c = document.getElementById('toastContainer');
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.innerHTML = `<div class="toast-icon"><i class="fas ${icon}"></i></div><div><div class="toast-title">${title}</div><div class="toast-desc">${desc}</div></div>`;
-  c.appendChild(t);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(), 350); }, 3500);
-}
+/* ===== AUTO-MINER ===== */
+setInterval(()=>{if(G.cps>0){const g=(G.cps/20)*BT[G.cb].mult*(1+UG[7].lv*.3)*prestMult();G.em+=g;G.te+=g}},50);
 
-/* ===== AUTO-MINER TICK ===== */
-setInterval(()=>{
-  if(G.cps > 0){
-    const gain = G.cps / 20;
-    G.emeralds += gain;
-    G.totalEarned += gain;
-  }
-}, 50);
+/* ===== RENDER ===== */
+function renderBlocks(){const c=document.getElementById('blockSel');c.innerHTML='';
+  BT.forEach((b,i)=>{const d=document.createElement('div');d.className='block-opt'+(i===0?' active':' locked');d.dataset.bt=i;d.addEventListener('click',()=>selBlock(i));
+    const pv=document.createElement('div');pv.className='block-preview';
+    const tc=document.createElement('canvas');tc.width=16;tc.height=16;const tx=tc.getContext('2d');
+    tx.fillStyle=b.top;tx.fillRect(0,0,16,16);
+    if(b.ore){for(let x=0;x<16;x++)for(let y=0;y<16;y++)if(Math.random()<.15){tx.fillStyle=b.ore;tx.fillRect(x,y,1,1)}}
+    else{for(let x=0;x<16;x++)for(let y=0;y<16;y++)if(Math.random()<.3){tx.fillStyle=b.topN[Math.floor(Math.random()*b.topN.length)];tx.fillRect(x,y,1,1)}}
+    pv.style.backgroundImage=`url(${tc.toDataURL()})`;
+    const nm=document.createElement('div');nm.className='bname';nm.textContent=b.name;
+    const co=document.createElement('div');co.className='bcost';co.textContent=i===0?'START':fmt(b.cost);
+    if(i>0){const lk=document.createElement('div');lk.className='lock-icon';lk.innerHTML='<i class="fas fa-lock"></i>';d.appendChild(lk)}
+    d.appendChild(pv);d.appendChild(nm);d.appendChild(co);c.appendChild(d)})}
 
-/* ===== RENDER BLOCK SELECTOR ===== */
-function renderBlockSelector() {
-  const container = document.getElementById('blockSelector');
-  container.innerHTML = '';
-  blockTypes.forEach((b, i) => {
-    const div = document.createElement('div');
-    div.className = 'block-opt' + (i===0?' active':' locked');
-    div.dataset.block = i;
-    div.addEventListener('click', ()=>selectBlock(i));
+function renderUpgrades(){const g=document.getElementById('upgGrid');g.innerHTML='';
+  UG.forEach((u,i)=>{const c=document.createElement('div');c.className='upgrade-card';
+    c.innerHTML=`<div class="upg-icon" style="background:${u.ibg};color:${u.ic}"><i class="fas ${u.icon}"></i></div>
+    <div class="upg-info"><div class="upg-name">${u.name}</div><div class="upg-desc">${u.desc}</div><div class="ul">Lv ${u.lv}</div></div>
+    <button class="upg-buy" data-ug="${i}" disabled><i class="fas fa-gem" style="margin-right:3px;font-size:6px"></i><span class="cv">${fmt(nextCost(u))}</span></button>`;
+    c.querySelector('.upg-buy').addEventListener('click',()=>buyUp(i));g.appendChild(c)})}
 
-    const preview = document.createElement('div');
-    preview.className = 'block-preview';
-    /* Mini texture */
-    const tc = document.createElement('canvas'); tc.width=16; tc.height=16;
-    const tctx = tc.getContext('2d');
-    tctx.fillStyle = b.top; tctx.fillRect(0,0,16,16);
-    if(b.ore){for(let x=0;x<16;x++)for(let y=0;y<16;y++)if(Math.random()<.15){tctx.fillStyle=b.ore;tctx.fillRect(x,y,1,1)}}
-    else{for(let x=0;x<16;x++)for(let y=0;y<16;y++)if(Math.random()<.3){tctx.fillStyle=b.topN[Math.floor(Math.random()*b.topN.length)];tctx.fillRect(x,y,1,1)}}
-    preview.style.backgroundImage = `url(${tc.toDataURL()})`;
+function renderAch(){const g=document.getElementById('achGrid');g.innerHTML='';
+  ACH.forEach(a=>{const c=document.createElement('div');c.className='ach-card';c.dataset.ach=a.id;
+    c.innerHTML=`<div class="ach-icon"><i class="fas ${a.i}"></i></div><div class="ach-name">${a.n}</div>`;g.appendChild(c)})}
 
-    const name = document.createElement('div');
-    name.className = 'block-name'; name.textContent = b.name;
-
-    const cost = document.createElement('div');
-    cost.className = 'block-cost'; cost.textContent = i===0?'START':fmt(b.cost);
-
-    if(i > 0){
-      const lock = document.createElement('div');
-      lock.className = 'lock-icon'; lock.innerHTML = '<i class="fas fa-lock"></i>';
-      div.appendChild(lock);
-    }
-
-    div.appendChild(preview);
-    div.appendChild(name);
-    div.appendChild(cost);
-    container.appendChild(div);
-  });
-}
-
-/* ===== RENDER UPGRADES ===== */
-function renderUpgrades() {
-  const grid = document.getElementById('upgradesGrid');
-  grid.innerHTML = '';
-  upgrades.forEach((u, i) => {
-    const card = document.createElement('div');
-    card.className = 'upgrade-card';
-    card.innerHTML = `
-      <div class="upgrade-icon" style="background:${u.iconBg};color:${u.iconColor}"><i class="fas ${u.icon}"></i></div>
-      <div class="upgrade-info">
-        <div class="upgrade-name">${u.name}</div>
-        <div class="upgrade-desc">${u.desc}</div>
-        <div class="upgrade-level">Level ${u.level}</div>
-      </div>
-      <button class="upgrade-buy" data-upgrade="${i}" onclick="buyUpgrade(${i})" disabled>
-        <i class="fas fa-gem" style="margin-right:4px;font-size:7px"></i><span class="cost-val">${fmt(getCost(u))}</span>
-      </button>`;
-    grid.appendChild(card);
-  });
-}
-
-/* ===== RENDER ACHIEVEMENTS ===== */
-function renderAchievements() {
-  const grid = document.getElementById('achGrid');
-  grid.innerHTML = '';
-  achievements.forEach(a => {
-    const card = document.createElement('div');
-    card.className = 'ach-card';
-    card.dataset.ach = a.id;
-    card.innerHTML = `<div class="ach-icon"><i class="fas ${a.icon}"></i></div><div class="ach-name">${a.name}</div>`;
-    grid.appendChild(card);
-  });
-}
+/* ===== SAVE / LOAD ===== */
+function saveGame(){const d={em:G.em,te:G.te,tc:G.tc,cb:G.cb,pl:G.pl,mc:G.maxCo,fh:G.fh,eh:G.eh,ul:UG.map(u=>u.lv),ua:[...G.ua]};
+  localStorage.setItem('mcClicker',JSON.stringify(d));const si=document.getElementById('saveInd');si.textContent='Saved';si.style.opacity='1';setTimeout(()=>si.style.opacity='0',1500)}
+function loadGame(){const d=localStorage.getItem('mcClicker');if(!d)return;const s=JSON.parse(d);
+  G.em=s.em||0;G.te=s.te||0;G.tc=s.tc||0;G.cb=s.cb||0;G.pl=s.pl||0;G.maxCo=s.mc||0;G.fh=s.fh||0;G.eh=s.eh||0;
+  s.ul.forEach((l,i)=>{if(UG[i])UG[i].lv=l});G.ua=new Set(s.ua||[]);recalc();applyTex(G.cb);
+  /* Mark unlocked achievements visually */
+  G.ua.forEach(id=>{const c=document.querySelector(`[data-ach="${id}"]`);if(c)c.classList.add('unlocked')})}
+function resetSave(){if(confirm('Delete all save data?')){localStorage.removeItem('mcClicker');location.reload()}}
+setInterval(saveGame,10000);addEventListener('beforeunload',saveGame);
 
 /* ===== MAIN LOOP ===== */
-function gameLoop() {
-  updateDisplay();
-  requestAnimationFrame(gameLoop);
-}
+!function loop(){updateDisp();requestAnimationFrame(loop)}();
 
 /* ===== INIT ===== */
-applyBlockTextures(0);
-renderBlockSelector();
-renderUpgrades();
-renderAchievements();
-gameLoop();
-
-/* Keyboard accessibility - space/enter on block */
-scene.setAttribute('tabindex','0');
-scene.setAttribute('role','button');
-scene.setAttribute('aria-label','Mine the block');
-scene.addEventListener('keydown', e=>{ if(e.key===' '||e.key==='Enter'){e.preventDefault();handleClick(null);} });
+loadGame();renderBlocks();renderUpgrades();renderAch();updatePickaxe();checkAch();
 </script>
 </body>
 </html>
