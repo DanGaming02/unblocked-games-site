@@ -70,6 +70,12 @@
     "type": "html",
     "path": "games/SoccerGame.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Plants vs Zombies von Wish",
+    "type": "html",
+    "path": "games/PVZ.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
