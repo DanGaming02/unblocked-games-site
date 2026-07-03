@@ -76,6 +76,12 @@
     "type": "html",
     "path": "games/PVZ.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Nuke Merger",
+    "type": "html",
+    "path": "games/NukeMerger.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
