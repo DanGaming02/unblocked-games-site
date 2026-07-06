@@ -82,6 +82,12 @@
     "type": "html",
     "path": "games/NukeMerger.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "ChatGPT 2",
+    "type": "html",
+    "path": "games/ChatGPT2.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
 
