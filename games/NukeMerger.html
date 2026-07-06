@@ -15,6 +15,7 @@ canvas{display:block;position:fixed;top:0;left:0}
 #resBar{position:absolute;top:max(8px,env(safe-area-inset-top,8px));left:max(8px,env(safe-area-inset-left,8px));background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:7px 14px;display:flex;align-items:center;gap:8px;pointer-events:auto}
 #resBar i{color:var(--gold);font-size:16px}
 #resVal{font-family:'Orbitron',monospace;font-size:17px;font-weight:700;color:var(--gold);min-width:40px}
+#incRate{font-family:'Rajdhani',sans-serif;font-size:11px;color:var(--success);font-weight:600}
 .btn-row{position:absolute;bottom:max(10px,env(safe-area-inset-bottom,10px));left:50%;transform:translateX(-50%);display:flex;gap:8px;pointer-events:auto}
 .gbtn{background:var(--panel);border:1.5px solid var(--border);border-radius:10px;padding:10px 16px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;min-height:42px}
 .gbtn:active{transform:scale(0.94);background:rgba(0,210,255,0.08)}
@@ -31,6 +32,7 @@ canvas{display:block;position:fixed;top:0;left:0}
 .ebar .ename{flex:1;font-weight:600;font-size:10px}
 .ebar .enuke{font-family:'Orbitron',monospace;font-size:9px;color:var(--muted)}
 .ebar .eshield{font-size:10px;color:var(--success)}
+.ebar .edead{font-size:9px;color:var(--danger)}
 #upgradePanel{position:fixed;top:0;right:0;bottom:0;width:min(300px,80vw);background:var(--panel);border-left:1px solid var(--border);z-index:20;transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding:16px 12px;display:flex;flex-direction:column;gap:12px;pointer-events:auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #upgradePanel.open{transform:translateX(0)}
 #upgradePanel h2{font-family:'Orbitron',monospace;font-size:14px;font-weight:900;color:var(--accent);display:flex;align-items:center;justify-content:space-between}
@@ -53,11 +55,6 @@ canvas{display:block;position:fixed;top:0;left:0}
 #startScreen p{font-size:14px;color:var(--muted);letter-spacing:4px;text-transform:uppercase}
 #startBtn{margin-top:16px;background:none;border:2px solid var(--accent);border-radius:12px;padding:14px 44px;font-family:'Orbitron',monospace;font-size:15px;font-weight:700;color:var(--accent);cursor:pointer;transition:all .3s;letter-spacing:2px;min-height:48px}
 #startBtn:active{background:rgba(0,212,255,0.15);transform:scale(0.96)}
-#gameOver{position:fixed;inset:0;z-index:50;background:rgba(6,10,20,0.92);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-#gameOver h1{font-family:'Orbitron',monospace;font-size:clamp(28px,7vw,48px);font-weight:900;letter-spacing:3px}
-#gameOver p{font-size:15px;color:var(--muted);text-align:center;padding:0 20px}
-#restartBtn{margin-top:8px;background:none;border:2px solid var(--accent);border-radius:12px;padding:12px 40px;font-family:'Orbitron',monospace;font-size:13px;font-weight:700;color:var(--accent);cursor:pointer;min-height:46px}
-#restartBtn:active{background:rgba(0,212,255,0.15);transform:scale(0.96)}
 #selInfo{position:absolute;bottom:68px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-family:'Orbitron',monospace;font-size:10px;color:var(--accent);opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
 #selInfo.show{opacity:1}
 #mapClose{position:fixed;top:max(8px,env(safe-area-inset-top,8px));left:50%;transform:translateX(-50%);z-index:15;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 20px;font-family:'Orbitron',monospace;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;pointer-events:auto;display:none;min-height:38px}
@@ -73,7 +70,7 @@ canvas{display:block;position:fixed;top:0;left:0}
 </div>
 
 <div id="hud">
-    <div id="resBar"><i class="fas fa-radiation"></i><span id="resVal">0</span></div>
+    <div id="resBar"><i class="fas fa-radiation"></i><span id="resVal">0</span><span id="incRate"></span></div>
     <div id="enemyBar"></div>
     <div id="selInfo"></div>
     <div class="btn-row">
@@ -92,14 +89,7 @@ canvas{display:block;position:fixed;top:0;left:0}
 
 <div id="toast"></div>
 
-<div id="gameOver">
-    <h1 id="goTitle"></h1>
-    <p id="goMsg"></p>
-    <button id="restartBtn" onclick="restartGame()">RETRY</button>
-</div>
-
 <script>
-/* ===== 常量 ===== */
 const TIERS=[
     {name:'Tiny',  color:'#4ade80',glow:'#22c55e',dmg:15, hp:1, r:16},
     {name:'Small', color:'#facc15',glow:'#eab308',dmg:35, hp:2, r:19},
@@ -108,16 +98,17 @@ const TIERS=[
     {name:'Mega',  color:'#c084fc',glow:'#a855f7',dmg:300,hp:8, r:30},
     {name:'Titan', color:'#f472b6',glow:'#ec4899',dmg:600,hp:12,r:35}
 ];
-const SHIELD_CD=10;
+const SHIELD_CD=25;
 const ENAME=['Crimson Isle','Obsidian Atoll','Storm Reef'];
 const ECOL=['#ff4466','#8866ff','#ff8833'];
+const CITY_RESPAWN=60;
+const ENEMY_RESPAWN=45;
+const PLAYER_RESPAWN=25;
 
-/* ===== 画布 ===== */
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 let W,H,dpr,unit,topSafe,botSafe,playH;
 
-/* 确定性伪随机，用于建筑窗户，避免每帧闪烁 */
 function hash(a,b){let h=((a*2654435761)^(b*2246822519))>>>0;return(h&0xFFFF)/0xFFFF;}
 
 function resize(){
@@ -126,8 +117,7 @@ function resize(){
     canvas.width=W*dpr;canvas.height=H*dpr;
     canvas.style.width=W+'px';canvas.style.height=H+'px';
     ctx.setTransform(dpr,0,0,dpr,0,0);
-    topSafe=44;botSafe=56;
-    playH=H-topSafe-botSafe;
+    topSafe=44;botSafe=56;playH=H-topSafe-botSafe;
     unit=Math.min(W,playH)/100;
     if(G)updatePositions();
 }
@@ -137,26 +127,26 @@ window.addEventListener('resize',resize);
 let G=null;
 function initGame(){
     G={
-        state:'playing',time:0,res:80,spawnTimer:0,
+        state:'playing',time:0,res:80,spawnTimer:0,incomeTimer:0,
         shakeX:0,shakeY:0,shakePow:0,
         player:{
-            nukes:[],selectedIdx:-1,
+            nukes:[],selectedIdx:-1,alive:true,respawnTimer:0,
             shield:{active:false,timer:0,cd:0},
             upgrades:{spawnTier:0,spawnLimit:0,shieldTime:0},
             hp:100,maxHp:100,x:0,y:0,size:0
         },
         enemies:[],
-        city:{x:0,y:0,hp:600,maxHp:600,size:0},
+        city:{x:0,y:0,hp:600,maxHp:600,size:0,alive:true,respawnTimer:0},
         projectiles:[],explosions:[],particles:[],floats:[],warnings:[],
         mapHover:-1,mapAnim:0,ambientParts:[]
     };
     for(let i=0;i<3;i++){
         G.enemies.push({
             name:ENAME[i],color:ECOL[i],
-            nukes:[],hp:80,maxHp:80,
+            nukes:[],hp:80,maxHp:80,alive:true,respawnTimer:0,
             shield:{active:false,timer:0,cd:0},
             spawnTimer:3+Math.random()*4,launchTimer:8+Math.random()*10,
-            x:0,y:0,size:0,alive:true
+            x:0,y:0,size:0
         });
     }
     updatePositions();
@@ -175,8 +165,8 @@ function initGame(){
 function updatePositions(){
     if(!G)return;
     const p=G.player;
-    p.x=W*0.5; p.y=topSafe+playH*0.82; p.size=unit*8;
-    G.city.x=W*0.5; G.city.y=topSafe+playH*0.35; G.city.size=unit*9;
+    p.x=W*0.5;p.y=topSafe+playH*0.82;p.size=unit*8;
+    G.city.x=W*0.5;G.city.y=topSafe+playH*0.35;G.city.size=unit*9;
     const margin=Math.max(unit*8,W*0.12);
     G.enemies[0].x=W*0.5;  G.enemies[0].y=topSafe+playH*0.08;
     G.enemies[1].x=margin;  G.enemies[1].y=topSafe+playH*0.42;
@@ -190,6 +180,7 @@ function lerp(a,b,t){return a+(b-a)*t}
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
 function rand(a,b){return a+Math.random()*(b-a)}
 function randInt(a,b){return Math.floor(rand(a,b+1))}
+function getScale(){return 1+G.time/300;} // 难度随时间增长
 
 function upgradeCost(type){
     const costs={spawnTier:[40,120,300,700,1500],spawnLimit:[30,60,110,180,270,380,520,700],shieldTime:[40,90,180,350,650]};
@@ -198,14 +189,24 @@ function upgradeCost(type){
 }
 function upgradeMax(type){return{spawnTier:5,spawnLimit:7,shieldTime:4}[type];}
 function upgradeDesc(type){
-    return{spawnTier:l=>`Spawn tier ${l+1} (${TIERS[l].name})`,spawnLimit:l=>`Max nukes: ${3+l}`,shieldTime:l=>`Shield: ${3+l*1.5}s`}[type](G.player.upgrades[type]);
+    return{spawnTier:l=>`Spawn tier ${l+1} (${TIERS[l].name})`,spawnLimit:l=>`Max nukes: ${3+l}`,shieldTime:l=>`Shield: ${getShieldTimeAt(l)}s`}[type](G.player.upgrades[type]);
 }
+function getShieldTimeAt(lv){return 6+lv*2.5;}
 function getSpawnTier(){return G.player.upgrades.spawnTier;}
 function getSpawnLimit(){return 3+G.player.upgrades.spawnLimit;}
-function getShieldTime(){return 3+G.player.upgrades.shieldTime*1.5;}
+function getShieldTime(){return getShieldTimeAt(G.player.upgrades.shieldTime);}
+
+/* 核弹收入：每2秒结算 */
+function getNukeIncome(nuke){return Math.round(Math.pow(1.8,nuke.tier)*2);}
+function getTotalIncome(){
+    let total=0;
+    G.player.nukes.forEach(n=>{total+=getNukeIncome(n);});
+    return total;
+}
 
 /* ===== 核弹生成 ===== */
 function spawnPlayerNuke(){
+    if(!G.player.alive)return;
     if(G.player.nukes.length>=getSpawnLimit())return;
     const tier=Math.min(getSpawnTier(),TIERS.length-1);
     G.player.nukes.push({tier,hp:TIERS[tier].hp,maxHp:TIERS[tier].hp,x:0,y:0,targetX:0,targetY:0,bobPhase:Math.random()*Math.PI*2});
@@ -253,7 +254,7 @@ function addExplosion(x,y,radius,color){
 /* ===== 盾牌 ===== */
 function toggleShield(){
     const p=G.player;
-    if(p.shield.active||p.shield.cd>0||G.state!=='playing')return;
+    if(!p.alive||p.shield.active||p.shield.cd>0||G.state!=='playing')return;
     p.shield.active=true;p.shield.timer=getShieldTime();
     showToast('SHIELD ACTIVE','#00ff88');
     addParticles(p.x,p.y,'#00ff88',15,60,0.6);
@@ -262,6 +263,7 @@ function toggleShield(){
 
 /* ===== 地图 ===== */
 function openMap(){
+    if(!G.player.alive)return;
     if(G.player.selectedIdx<0||G.player.selectedIdx>=G.player.nukes.length)return;
     G.state='map';G.mapAnim=0;G.mapHover=-1;
     document.getElementById('mapClose').style.display='block';
@@ -271,7 +273,9 @@ function closeMap(){
 }
 function getMapTargets(){
     const targets=[];
-    targets.push({type:'city',name:'MEGALOPOLIS',x:W*0.5,y:topSafe+playH*0.38,hp:G.city.hp,maxHp:G.city.maxHp,sub:'Central City'});
+    if(G.city.alive){
+        targets.push({type:'city',name:'MEGALOPOLIS',x:W*0.5,y:topSafe+playH*0.38,hp:G.city.hp,maxHp:G.city.maxHp,sub:'Central City'});
+    }
     G.enemies.forEach((e,i)=>{
         if(!e.alive)return;
         targets.push({type:'enemy',idx:i,name:e.name,x:e.x,y:e.y,hp:e.hp,maxHp:e.maxHp,
@@ -281,13 +285,19 @@ function getMapTargets(){
     return targets;
 }
 
-/* ===== 发射 ===== */
+/* ===== 发射（发射时盾牌关闭） ===== */
 function launchNuke(target){
     const p=G.player;if(p.selectedIdx<0)return;
     const nuke=p.nukes[p.selectedIdx];if(!nuke)return;
     const tier=TIERS[nuke.tier];
     p.nukes.splice(p.selectedIdx,1);p.selectedIdx=-1;
     updateNukePositions();
+    /* 发射时盾牌关闭 */
+    if(p.shield.active){
+        p.shield.active=false;
+        p.shield.cd=Math.floor(SHIELD_CD*0.6);
+        showToast('SHIELD DEACTIVATED','#ff8844');
+    }
     G.projectiles.push({
         fromX:p.x,fromY:p.y-p.size*0.3,
         toX:target.x,toY:target.y,
@@ -314,11 +324,10 @@ function launchEnemyNuke(e,targetX,targetY,target){
     });
 }
 
-/* ===== 伤害处理（修复：不再用排序索引，改为逐个查找最低级） ===== */
+/* ===== 伤害处理（安全索引） ===== */
 function applyDamage(base,dmg){
     let remaining=dmg;
     const nukes=base.nukes||[];
-    /* 每次找当前最低级核弹来扛伤害，删除后重新找，索引始终有效 */
     while(remaining>0&&nukes.length>0){
         let minTier=999,minIdx=-1;
         for(let i=0;i<nukes.length;i++){
@@ -331,7 +340,7 @@ function applyDamage(base,dmg){
             const deadName=TIERS[clamp(nukes[minIdx].tier,0,TIERS.length-1)].name;
             addFloat('-'+deadName,base.x+rand(-20,20),base.y-10,'#ff4444');
             nukes.splice(minIdx,1);
-        } else { remaining=0; }
+        }else{remaining=0;}
     }
     if(remaining>0){
         base.hp-=remaining;
@@ -347,7 +356,6 @@ function buyUpgrade(type){
     showToast('UPGRADED!','#a078ff');updateUI();renderUpgradeCards();
 }
 
-/* ===== 合并（不需要升级解锁） ===== */
 function canMerge(fromIdx,toIdx){
     if(fromIdx<0||toIdx<0||fromIdx===toIdx)return false;
     const p=G.player;
@@ -357,7 +365,7 @@ function canMerge(fromIdx,toIdx){
     return true;
 }
 
-/* ===== AI（修复：mergeEnemyNukes 不再用排序索引） ===== */
+/* ===== AI ===== */
 function updateAI(dt){
     G.enemies.forEach((e,i)=>{
         if(!e.alive)return;
@@ -369,19 +377,19 @@ function updateAI(dt){
         if(e.launchTimer<=0&&e.nukes.length>0){
             e.launchTimer=8+Math.random()*12;
             const roll=Math.random();
-            if(roll<0.35){launchEnemyNuke(e,G.city.x,G.city.y,{type:'city'});}
-            else if(roll<0.75){launchEnemyNuke(e,G.player.x,G.player.y-G.player.size,{type:'player'});}
+            if(roll<0.35&&G.city.alive){launchEnemyNuke(e,G.city.x,G.city.y,{type:'city'});}
+            else if(roll<0.75&&G.player.alive){launchEnemyNuke(e,G.player.x,G.player.y-G.player.size,{type:'player'});}
             else{
                 const others=G.enemies.filter((o,j)=>j!==i&&o.alive);
                 if(others.length>0){const t=others[randInt(0,others.length-1)];launchEnemyNuke(e,t.x,t.y+t.size,{type:'enemy',idx:G.enemies.indexOf(t)});}
+                else if(G.city.alive){launchEnemyNuke(e,G.city.x,G.city.y,{type:'city'});}
+                else if(G.player.alive){launchEnemyNuke(e,G.player.x,G.player.y-G.player.size,{type:'player'});}
             }
         }
         const incoming=G.projectiles.find(p=>p.owner!=='enemy'&&p.target&&p.target.type==='enemy'&&p.target.idx===i);
         if(incoming&&!e.shield.active&&e.shield.cd<=0&&Math.random()<0.4){e.shield.active=true;e.shield.timer=3;}
     });
 }
-
-/* 修复：遍历相邻同tier配对合并，不用排序索引 */
 function mergeEnemyNukes(e){
     let merged=true;
     while(merged){
@@ -390,16 +398,62 @@ function mergeEnemyNukes(e){
             if(e.nukes[i]&&e.nukes[i+1]&&e.nukes[i].tier===e.nukes[i+1].tier&&e.nukes[i].tier<TIERS.length-1){
                 const newTier=e.nukes[i].tier+1;
                 e.nukes[i]={tier:newTier,hp:TIERS[newTier].hp,maxHp:TIERS[newTier].hp,bobPhase:Math.random()*Math.PI*2};
-                e.nukes.splice(i+1,1);
-                merged=true;break;
+                e.nukes.splice(i+1,1);merged=true;break;
             }
+        }
+    }
+}
+
+/* ===== 重生逻辑 ===== */
+function handleRespawns(dt){
+    /* 城市 */
+    if(!G.city.alive){
+        G.city.respawnTimer-=dt;
+        if(G.city.respawnTimer<=0){
+            const sc=getScale();
+            G.city.alive=true;
+            G.city.maxHp=Math.floor(600*sc);
+            G.city.hp=G.city.maxHp;
+            showToast('MEGALOPOLIS REBUILT','#ff6432');
+            addParticles(G.city.x,G.city.y,'#ff6432',20,80,0.8);
+        }
+    }
+    /* 敌人 */
+    G.enemies.forEach(e=>{
+        if(!e.alive){
+            e.respawnTimer-=dt;
+            if(e.respawnTimer<=0){
+                const sc=getScale();
+                e.alive=true;
+                e.maxHp=Math.floor(80*sc);
+                e.hp=e.maxHp;
+                e.nukes=[];
+                e.spawnTimer=3;e.launchTimer=10+Math.random()*5;
+                e.shield={active:false,timer:0,cd:0};
+                showToast(e.name+' RESPAWNED',e.color);
+                addParticles(e.x,e.y,e.color,15,70,0.7);
+            }
+        }
+    });
+    /* 玩家 */
+    if(!G.player.alive){
+        G.player.respawnTimer-=dt;
+        if(G.player.respawnTimer<=0){
+            G.player.alive=true;
+            G.player.hp=G.player.maxHp;
+            G.player.nukes=[];
+            G.player.shield={active:false,timer:0,cd:0};
+            G.player.selectedIdx=-1;
+            spawnPlayerNuke();spawnPlayerNuke();
+            showToast('BASE REBUILT','#00d4ff');
+            addParticles(G.player.x,G.player.y,'#00d4ff',20,80,0.8);
         }
     }
 }
 
 /* ===== 主更新 ===== */
 function update(dt){
-    if(G.state==='gameover')return;
+    if(G.state!=='playing')return;
     G.time+=dt;
     if(G.shakePow>0){
         G.shakePow*=Math.pow(0.04,dt);
@@ -407,17 +461,30 @@ function update(dt){
         G.shakeY=(Math.random()-0.5)*G.shakePow;
         if(G.shakePow<0.3){G.shakePow=0;G.shakeX=0;G.shakeY=0;}
     }
-    if(G.state==='map'){G.mapAnim=Math.min(G.mapAnim+dt*3,1);return;}
+    /* 重生 */
+    handleRespawns(dt);
     const p=G.player;
+    /* 盾牌 */
     if(p.shield.active){p.shield.timer-=dt;if(p.shield.timer<=0){p.shield.active=false;p.shield.cd=SHIELD_CD;showToast('SHIELD DOWN','#ff8844');}}
     else{if(p.shield.cd>0)p.shield.cd-=dt;}
-    G.spawnTimer-=dt;
-    if(G.spawnTimer<=0){spawnPlayerNuke();G.spawnTimer=3.5;}
+    /* 核弹生成 */
+    if(p.alive){
+        G.spawnTimer-=dt;
+        if(G.spawnTimer<=0){spawnPlayerNuke();G.spawnTimer=3.5;}
+    }
+    /* 核弹位置 */
     p.nukes.forEach(n=>{
         n.x=lerp(n.x,n.targetX,Math.min(1,dt*8));
         n.y=lerp(n.y,n.targetY,Math.min(1,dt*8));
         n.bobPhase+=dt*2;
     });
+    /* 核弹收入 */
+    G.incomeTimer-=dt;
+    if(G.incomeTimer<=0){
+        G.incomeTimer=2;
+        const inc=getTotalIncome();
+        if(inc>0){G.res+=inc;addFloat('+'+inc,p.x+rand(-15,15),p.y-p.size-unit*2,'#ffd700');}
+    }
     /* 投射物 */
     for(let i=G.projectiles.length-1;i>=0;i--){
         const pr=G.projectiles[i];
@@ -425,25 +492,44 @@ function update(dt){
         if(pr.progress>=1){
             const tx=pr.toX,ty=pr.toY;
             const tier=TIERS[clamp(pr.tier,0,TIERS.length-1)];
+            /* 始终显示爆炸效果 */
+            addExplosion(tx,ty,unit*4+pr.tier*unit,tier.color);
             let deflected=false;
             if(pr.target.type==='city'){
-                G.city.hp-=pr.dmg;
-                addFloat('-'+pr.dmg,tx,ty-20,'#ff6432');
-                addExplosion(tx,ty,unit*4+pr.tier*unit,tier.color);
-                if(pr.owner==='player'){const gain=Math.floor(pr.dmg*1.5);G.res+=gain;addFloat('+'+gain,tx+30,ty,'#ffd700');}
-                if(G.city.hp<=0){G.city.hp=0;endGame(true);}
+                if(G.city.alive){
+                    if(pr.owner==='player'){const gain=Math.floor(pr.dmg*1.5);G.res+=gain;addFloat('+'+gain,tx+30,ty,'#ffd700');}
+                    G.city.hp-=pr.dmg;
+                    addFloat('-'+pr.dmg,tx,ty-20,'#ff6432');
+                    if(G.city.hp<=0){
+                        G.city.hp=0;G.city.alive=false;G.city.respawnTimer=CITY_RESPAWN;
+                        showToast('MEGALOPOLIS DESTROYED - '+CITY_RESPAWN+'s','#ff2244');
+                    }
+                }
             }else if(pr.target.type==='player'){
-                if(p.shield.active){deflected=true;showToast('DEFLECTED!','#00ff88');addParticles(tx,ty,'#00ff88',15,80,0.5);}
-                else{applyDamage(p,pr.dmg);addExplosion(tx,ty,unit*3.5+pr.tier*unit,tier.color);if(p.hp<=0){p.hp=0;endGame(false);}updateNukePositions();}
+                if(p.alive){
+                    if(p.shield.active){deflected=true;showToast('DEFLECTED!','#00ff88');addParticles(tx,ty,'#00ff88',15,80,0.5);}
+                    else{
+                        applyDamage(p,pr.dmg);
+                        if(p.hp<=0){
+                            p.hp=0;p.alive=false;p.respawnTimer=PLAYER_RESPAWN;
+                            p.nukes=[];p.shield.active=false;p.selectedIdx=-1;
+                            showToast('BASE DESTROYED - '+PLAYER_RESPAWN+'s','#ff2244');
+                        }
+                        updateNukePositions();
+                    }
+                }
             }else if(pr.target.type==='enemy'){
                 const eIdx=pr.target.idx;
                 const e=(eIdx>=0&&eIdx<G.enemies.length)?G.enemies[eIdx]:null;
                 if(e&&e.alive){
                     if(e.shield.active){deflected=true;addParticles(tx,ty,'#00ff88',12,70,0.4);}
                     else{
-                        applyDamage(e,pr.dmg);addExplosion(tx,ty,unit*3+pr.tier*unit,tier.color);
+                        applyDamage(e,pr.dmg);
                         if(pr.owner==='player'){const gain=10+pr.tier*5;G.res+=gain;addFloat('+'+gain,tx+20,ty,'#ffd700');}
-                        if(e.hp<=0){e.alive=false;addExplosion(e.x,e.y,unit*6,e.color);showToast(e.name+' ELIMINATED!','#ffd700');if(G.enemies.every(en=>!en.alive))endGame(true);}
+                        if(e.hp<=0){
+                            e.alive=false;e.respawnTimer=ENEMY_RESPAWN;e.nukes=[];
+                            showToast(e.name+' DESTROYED - '+ENEMY_RESPAWN+'s','#ffd700');
+                        }
                     }
                 }
             }
@@ -459,25 +545,38 @@ function update(dt){
     updateAI(dt);updateUI();
 }
 
-function endGame(win){
-    G.state='gameover';
-    const el=document.getElementById('gameOver');el.style.display='flex';
-    const title=document.getElementById('goTitle'),msg=document.getElementById('goMsg');
-    if(win){title.textContent='VICTORY';title.style.color='#00ff88';msg.textContent='The world has been reshaped by your firepower.';}
-    else{title.textContent='DEFEATED';title.style.color='#ff2244';msg.textContent='Your island has been obliterated.';}
-}
-function restartGame(){document.getElementById('gameOver').style.display='none';initGame();}
+function restartGame(){initGame();}
 
 /* ===== 绘制 ===== */
 function render(){
     ctx.save();ctx.translate(G.shakeX,G.shakeY);
     drawOcean();drawWarnings();drawConnections();
-    G.enemies.forEach(e=>{if(!e.alive)return;drawIsland(e.x,e.y,e.size,false,e.name,e.color);drawEnemyNukes(e);if(e.shield.active)drawShieldDome(e.x,e.y,e.size,e.color);drawHPBar(e.x,e.y-e.size*0.6-unit,e.size*1.2,e.hp,e.maxHp,e.color);});
-    drawCity();
-    drawIsland(G.player.x,G.player.y,G.player.size,true,'YOUR BASE','#00d4ff');
-    if(G.player.shield.active)drawShieldDome(G.player.x,G.player.y,G.player.size,'#00ff88');
-    drawHPBar(G.player.x,G.player.y+G.player.size*0.7,G.player.size*1.4,G.player.hp,G.player.maxHp,'#00d4ff');
-    drawPlayerNukes();
+    /* 敌人 */
+    G.enemies.forEach(e=>{
+        if(e.alive){
+            drawIsland(e.x,e.y,e.size,false,e.name,e.color);
+            drawEnemyNukes(e);
+            if(e.shield.active)drawShieldDome(e.x,e.y,e.size,e.color);
+            drawHPBar(e.x,e.y-e.size*0.6-unit,e.size*1.2,e.hp,e.maxHp,e.color);
+        }else{
+            drawDeadIsland(e.x,e.y,e.size,e.name,e.color,e.respawnTimer);
+        }
+    });
+    /* 城市 */
+    if(G.city.alive){
+        drawCity();
+    }else{
+        drawDeadCity();
+    }
+    /* 玩家 */
+    if(G.player.alive){
+        drawIsland(G.player.x,G.player.y,G.player.size,true,'YOUR BASE','#00d4ff');
+        if(G.player.shield.active)drawShieldDome(G.player.x,G.player.y,G.player.size,'#00ff88');
+        drawHPBar(G.player.x,G.player.y+G.player.size*0.7,G.player.size*1.4,G.player.hp,G.player.maxHp,'#00d4ff');
+        drawPlayerNukes();
+    }else{
+        drawDeadIsland(G.player.x,G.player.y,G.player.size,'YOUR BASE','#00d4ff',G.player.respawnTimer);
+    }
     G.projectiles.forEach(drawProjectile);
     G.explosions.forEach(drawExplosion);
     G.particles.forEach(drawParticle);
@@ -499,10 +598,12 @@ function drawOcean(){
         ctx.strokeStyle=`rgba(0,160,220,${alpha})`;ctx.lineWidth=1;ctx.stroke();
     }
 }
-
 function drawConnections(){
     ctx.setLineDash([4,8]);ctx.lineWidth=0.5;ctx.strokeStyle='rgba(0,180,255,0.06)';
-    const p=G.player;[G.city,...G.enemies.filter(e=>e.alive)].forEach(t=>{ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(t.x,t.y);ctx.stroke();});
+    const p=G.player;[G.city,...G.enemies].forEach(t=>{
+        if(!t.alive)return;
+        ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(t.x,t.y);ctx.stroke();
+    });
     ctx.setLineDash([]);
 }
 
@@ -525,15 +626,27 @@ function drawIsland(x,y,size,isPlayer,name,color){
     ctx.font=`700 ${fs}px Orbitron`;ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(name,x,y-s*0.82);
 }
 
-/* 修复：用确定性hash代替Math.random()避免窗户闪烁 */
+/* 被摧毁的岛屿：灰色+倒计时 */
+function drawDeadIsland(x,y,size,name,color,timer){
+    ctx.save();ctx.globalAlpha=0.25;
+    const s=size;
+    ctx.beginPath();ctx.ellipse(x,y,s,s*0.58,0,0,Math.PI*2);ctx.fillStyle='#333';ctx.fill();
+    ctx.beginPath();ctx.ellipse(x,y,s*0.85,s*0.48,0,0,Math.PI*2);ctx.fillStyle='#444';ctx.fill();
+    ctx.globalAlpha=0.6;
+    ctx.font=`900 ${Math.max(14,s*0.5)}px Orbitron`;ctx.fillStyle='#ff4444';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(Math.ceil(timer)+'s',x,y);
+    ctx.textBaseline='alphabetic';
+    ctx.font=`700 ${Math.max(7,s*0.15)}px Orbitron`;ctx.fillStyle='#666';ctx.fillText(name,x,y-s*0.82);
+    ctx.restore();
+}
+
 function drawBldg(x,y,w,h,base,hl,seed){
     ctx.fillStyle=base;ctx.fillRect(x-w/2,y-h,w,h);
     ctx.fillStyle=hl;ctx.fillRect(x-w/2,y-h,w,2);
     const rows=Math.max(1,Math.floor(h/6)),cols=Math.max(1,Math.floor(w/5));
     for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
         if(hash(seed*100+r*7+c*13,r*31+c*47+seed*17)>0.4){
-            const bright=0.3+hash(r*53+c*59+seed*23,r*71+c*83)*0.5;
-            ctx.fillStyle=`rgba(255,220,100,${bright})`;
+            ctx.fillStyle=`rgba(255,220,100,${0.3+hash(r*53+c*59+seed*23,r*71+c*83)*0.5})`;
             ctx.fillRect(x-w/2+2+c*5,y-h+3+r*6,2,2);
         }
     }
@@ -552,8 +665,7 @@ function drawCity(){
         ctx.fillStyle='#2a2a4e';ctx.fillRect(bx-bw/2,by-bh,bw,2);
         for(let wy=by-bh+4;wy<by-2;wy+=5)for(let wx=bx-bw/2+2;wx<bx+bw/2-2;wx+=4){
             if(hash(wx*7+wy*11+bi*100,wx*13+wy*17+bi*200)>0.35){
-                const g=180+hash(wx*23+wy*29,bi)*75|0;
-                const bl=50+hash(wx*37+wy*41,bi)*50|0;
+                const g=180+hash(wx*23+wy*29,bi)*75|0,bl=50+hash(wx*37+wy*41,bi)*50|0;
                 ctx.fillStyle=`rgba(255,${g},${bl},${0.4+hash(wx*43+wy*47,bi)*0.5})`;
                 ctx.fillRect(wx,wy,2,2);
             }
@@ -563,6 +675,23 @@ function drawCity(){
     const fs=Math.max(9,s*0.15);
     ctx.font=`900 ${fs}px Orbitron`;ctx.fillStyle='#ff6432';ctx.textAlign='center';ctx.fillText('MEGALOPOLIS',c.x,c.y-s*0.55);
     drawHPBar(c.x,c.y+s*0.25,s*1.4,c.hp,c.maxHp,'#ff6432');
+}
+
+function drawDeadCity(){
+    const c=G.city,s=c.size;
+    ctx.save();ctx.globalAlpha=0.25;
+    ctx.fillStyle='#1a1a2a';ctx.fillRect(c.x-s*0.6,c.y+s*0.15,s*1.2,4);
+    const buildings=[{x:-0.4,w:0.12,h:0.3},{x:-0.22,w:0.15,h:0.4},{x:-0.05,w:0.1,h:0.5},{x:0.08,w:0.18,h:0.35},{x:0.28,w:0.12,h:0.25},{x:0.42,w:0.1,h:0.2}];
+    buildings.forEach(b=>{
+        const bx=c.x+b.x*s,bw=b.w*s,bh=b.h*s*0.6,by=c.y+s*0.15;
+        ctx.fillStyle='#222';ctx.fillRect(bx-bw/2,by-bh,bw,bh);
+    });
+    ctx.globalAlpha=0.6;
+    ctx.font=`900 ${Math.max(16,s*0.5)}px Orbitron`;ctx.fillStyle='#ff4444';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(Math.ceil(c.respawnTimer)+'s',c.x,c.y-s*0.1);
+    ctx.textBaseline='alphabetic';
+    ctx.font=`900 ${Math.max(8,s*0.13)}px Orbitron`;ctx.fillStyle='#664422';ctx.fillText('MEGALOPOLIS',c.x,c.y-s*0.55);
+    ctx.restore();
 }
 
 function drawHPBar(x,y,w,hp,maxHp,color){
@@ -712,7 +841,7 @@ function getNukeAtPos(mx,my){
 }
 
 function handleDown(x,y){
-    if(G.state==='gameover')return;
+    if(!G.player.alive&&G.state==='playing')return;
     inputX=x;inputY=y;
     if(G.state==='map'){
         const targets=getMapTargets();
@@ -762,38 +891,42 @@ function handleUp(x,y){
     inputDown=false;dragIdx=-1;isDragging=false;updateUI();
 }
 
-/* 鼠标 */
 canvas.addEventListener('mousedown',e=>{const r=canvas.getBoundingClientRect();handleDown(e.clientX-r.left,e.clientY-r.top);});
 canvas.addEventListener('mousemove',e=>{const r=canvas.getBoundingClientRect();handleMove(e.clientX-r.left,e.clientY-r.top);});
 canvas.addEventListener('mouseup',e=>{const r=canvas.getBoundingClientRect();handleUp(e.clientX-r.left,e.clientY-r.top);});
 canvas.addEventListener('contextmenu',e=>e.preventDefault());
-
-/* 触摸（iPad） */
 canvas.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0],r=canvas.getBoundingClientRect();handleDown(t.clientX-r.left,t.clientY-r.top);},{passive:false});
 canvas.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0],r=canvas.getBoundingClientRect();handleMove(t.clientX-r.left,t.clientY-r.top);},{passive:false});
 canvas.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0],r=canvas.getBoundingClientRect();handleUp(t.clientX-r.left,t.clientY-r.top);},{passive:false});
-
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&G.state==='map')closeMap();});
 
 /* ===== UI ===== */
 function updateUI(){
     if(!G)return;
     document.getElementById('resVal').textContent=G.res;
+    /* 收入显示 */
+    const inc=getTotalIncome();
+    document.getElementById('incRate').textContent=inc>0?'+'+inc+'/2s':'';
+    /* 盾牌 */
     const sb=document.getElementById('shieldBtn'),scd=document.getElementById('shieldCd');
-    if(G.player.shield.active){sb.classList.add('active');sb.classList.remove('cooldown','disabled');scd.textContent=G.player.shield.timer.toFixed(1)+'s';}
+    if(!G.player.alive){sb.classList.add('disabled');sb.classList.remove('active','cooldown');scd.textContent='';}
+    else if(G.player.shield.active){sb.classList.add('active');sb.classList.remove('cooldown','disabled');scd.textContent=G.player.shield.timer.toFixed(1)+'s';}
     else if(G.player.shield.cd>0){sb.classList.remove('active');sb.classList.add('cooldown');sb.classList.remove('disabled');scd.textContent=G.player.shield.cd.toFixed(0)+'s';}
     else{sb.classList.remove('active','cooldown','disabled');scd.textContent='';}
+    /* 发射 */
     const lb=document.getElementById('launchBtn');
-    if(G.player.selectedIdx>=0&&G.player.selectedIdx<G.player.nukes.length)lb.classList.remove('disabled');
-    else lb.classList.add('disabled');
+    if(!G.player.alive||G.player.selectedIdx<0||G.player.selectedIdx>=G.player.nukes.length)lb.classList.add('disabled');
+    else lb.classList.remove('disabled');
+    /* 选中信息 */
     const si=document.getElementById('selInfo');
-    if(G.player.selectedIdx>=0&&G.player.selectedIdx<G.player.nukes.length){
+    if(G.player.alive&&G.player.selectedIdx>=0&&G.player.selectedIdx<G.player.nukes.length){
         const n=G.player.nukes[G.player.selectedIdx],t=TIERS[clamp(n.tier,0,TIERS.length-1)];
-        si.textContent=`${t.name} T${n.tier+1} | DMG: ${t.dmg} | HP: ${n.hp}/${n.maxHp}`;
+        si.textContent=`${t.name} T${n.tier+1} | DMG: ${t.dmg} | Income: +${getNukeIncome(n)}/2s`;
         si.classList.add('show');
     }else{si.classList.remove('show');}
+    /* 敌人栏 */
     document.getElementById('enemyBar').innerHTML=G.enemies.map(e=>{
-        if(!e.alive)return`<div class="ebar" style="opacity:0.3"><span class="dot" style="background:${e.color}"></span><span class="ename">${e.name}</span><span class="enuke">DEAD</span></div>`;
+        if(!e.alive)return`<div class="ebar" style="opacity:0.4"><span class="dot" style="background:${e.color}"></span><span class="ename">${e.name}</span><span class="edead">${Math.ceil(e.respawnTimer)}s</span></div>`;
         return`<div class="ebar"><span class="dot" style="background:${e.color}"></span><span class="ename">${e.name}</span><span class="enuke">${e.nukes.length} nukes</span>${e.shield.active?'<span class="eshield"><i class="fas fa-shield-halved"></i></span>':''}</div>`;
     }).join('');
 }
@@ -820,8 +953,11 @@ function renderUpgradeCards(){
 let lastTime=0;
 function gameLoop(ts){
     const dt=Math.min(0.05,(ts-lastTime)/1000);lastTime=ts;
-    if(G&&G.state!=='gameover')update(dt);
-    if(G)render();
+    if(G){
+        if(G.state==='map'){G.mapAnim=Math.min(G.mapAnim+dt*3,1);}
+        else{update(dt);}
+        render();
+    }
     requestAnimationFrame(gameLoop);
 }
 resize();initGame();requestAnimationFrame(gameLoop);
