@@ -84,7 +84,7 @@
     "thumbnail": "default-thumbnail.jpg"
   },
   {
-    "name": "ChatGPT 2",
+    "name": "ChatGPT2",
     "type": "html",
     "path": "games/ChatGPT2.html",
     "thumbnail": "default-thumbnail.jpg"
