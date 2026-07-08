@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Swipe & Score</title>
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,33 +19,29 @@
             --danger: #ef476f;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
             background: var(--bg);
-            background-image: radial-gradient(ellipse at 50% 30%, #132744 0%, #0a1628 70%);
             color: var(--fg);
             font-family: 'Source Sans 3', sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             touch-action: none;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
         #gameContainer {
-            position: relative;
-            width: 100%;
-            max-width: 420px;
+            position: fixed;
+            inset: 0;
+            width: 100vw;
             height: 100vh;
-            max-height: 680px;
+            /* Safe area for iPad notch */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         }
         canvas {
             width: 100%;
             height: 100%;
             display: block;
-            border-radius: 14px;
-            box-shadow: 0 0 60px rgba(0,0,0,0.6), 0 0 120px rgba(244,162,97,0.08);
         }
         .overlay {
             position: absolute;
@@ -56,14 +52,13 @@
             align-items: center;
             background: rgba(10, 22, 40, 0.88);
             backdrop-filter: blur(10px);
-            border-radius: 14px;
             transition: opacity 0.35s ease;
             z-index: 10;
         }
         .overlay.hidden { opacity: 0; pointer-events: none; }
         .game-title {
             font-family: 'Oswald', sans-serif;
-            font-size: 3.2rem;
+            font-size: clamp(2.2rem, 6vw, 3.8rem);
             font-weight: 700;
             color: var(--accent);
             text-transform: uppercase;
@@ -72,7 +67,7 @@
         }
         .game-subtitle {
             font-family: 'Oswald', sans-serif;
-            font-size: 1.1rem;
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
             color: var(--muted);
             letter-spacing: 6px;
             text-transform: uppercase;
@@ -80,11 +75,11 @@
         }
         .btn {
             font-family: 'Oswald', sans-serif;
-            font-size: 1.15rem;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 2px;
-            padding: 14px 52px;
+            padding: 14px 56px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -102,8 +97,9 @@
         .btn-primary:hover { box-shadow: 0 6px 32px rgba(244, 162, 97, 0.55); }
         #hud {
             position: absolute;
-            top: 0; left: 0; right: 0;
-            padding: 8px 14px;
+            top: env(safe-area-inset-top, 0px);
+            left: 0; right: 0;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -112,11 +108,11 @@
             pointer-events: none;
         }
         .hud-item {
-            background: rgba(10, 22, 40, 0.75);
+            background: rgba(10, 22, 40, 0.78);
             backdrop-filter: blur(4px);
-            padding: 4px 12px;
+            padding: 5px 14px;
             border-radius: 6px;
-            font-size: 0.82rem;
+            font-size: clamp(0.75rem, 1.8vw, 0.95rem);
             font-weight: 400;
             letter-spacing: 1px;
             border: 1px solid rgba(255,255,255,0.06);
@@ -137,24 +133,24 @@
         .level-intro.show { opacity: 1; }
         .level-intro-text {
             font-family: 'Oswald', sans-serif;
-            font-size: 3.5rem;
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
             font-weight: 700;
             color: var(--fg);
             text-transform: uppercase;
             letter-spacing: 5px;
         }
         .level-intro-sub {
-            font-size: 0.95rem;
+            font-size: clamp(0.8rem, 2.2vw, 1.05rem);
             color: var(--muted);
             margin-top: 8px;
         }
         .result-text {
             position: absolute;
-            top: 38%;
+            top: 42%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.8);
             font-family: 'Oswald', sans-serif;
-            font-size: 2.8rem;
+            font-size: clamp(2.2rem, 7vw, 3.5rem);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 5px;
@@ -166,18 +162,19 @@
         .result-text.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         .instructions {
             color: var(--muted);
-            font-size: 0.88rem;
+            font-size: clamp(0.85rem, 2vw, 1rem);
             text-align: center;
             line-height: 1.7;
-            max-width: 280px;
+            max-width: 320px;
+            padding: 0 20px;
         }
         .stat-row {
             display: flex;
             justify-content: space-between;
-            width: 210px;
-            padding: 7px 0;
+            width: 230px;
+            padding: 8px 0;
             border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
+            font-size: clamp(0.85rem, 2vw, 1rem);
         }
         .stat-label { color: var(--muted); }
         .stat-value { font-weight: 700; color: var(--accent); font-family: 'Oswald', sans-serif; }
@@ -187,20 +184,11 @@
             color: var(--bg);
             font-family: 'Oswald', sans-serif;
             font-weight: 700;
-            font-size: 0.8rem;
-            padding: 2px 10px;
+            font-size: 0.85rem;
+            padding: 3px 12px;
             border-radius: 4px;
             letter-spacing: 1px;
             margin-bottom: 12px;
-        }
-        @keyframes floatIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .float-in { animation: floatIn 0.5s ease forwards; }
-        @media (max-height: 680px) {
-            .game-title { font-size: 2.5rem; }
-            .level-intro-text { font-size: 2.8rem; }
         }
         @media (prefers-reduced-motion: reduce) {
             *, *::before, *::after {
@@ -214,40 +202,35 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
 
-        <!-- HUD -->
         <div id="hud" class="hidden">
             <div class="hud-item">LEVEL <span class="hud-value" id="hudLevel">1</span></div>
             <div class="hud-item"><i class="fas fa-futbol" style="color:var(--success);margin-right:4px"></i><span class="hud-value" id="hudGoals">0</span>/<span id="hudNeeded">3</span></div>
             <div class="hud-item"><i class="fas fa-bolt" style="color:var(--accent);margin-right:4px"></i><span class="hud-value" id="hudAttempts">5</span></div>
         </div>
 
-        <!-- Level Intro -->
         <div class="level-intro" id="levelIntro">
             <div class="level-intro-text" id="levelIntroText">LEVEL 1</div>
             <div class="level-intro-sub" id="levelIntroSub">Pull back and release to shoot</div>
         </div>
 
-        <!-- Result Text -->
         <div class="result-text" id="resultText"></div>
 
-        <!-- Menu Overlay -->
         <div class="overlay" id="menuOverlay">
-            <div style="margin-bottom:8px">
-                <i class="fas fa-futbol" style="font-size:2.4rem;color:var(--accent);opacity:0.7"></i>
+            <div style="margin-bottom:10px">
+                <i class="fas fa-futbol" style="font-size:clamp(2rem,5vw,2.8rem);color:var(--accent);opacity:0.7"></i>
             </div>
             <div class="game-title">Swipe & Score</div>
             <div class="game-subtitle">Penalty Challenge</div>
-            <div class="instructions" style="margin:28px 0 32px">
+            <div class="instructions" style="margin:28px 0 34px">
                 Pull the ball back like a slingshot and release to shoot. Score enough goals to advance. Each level gets tougher!
             </div>
             <button class="btn btn-primary" id="btnPlay" aria-label="Start Game">PLAY</button>
         </div>
 
-        <!-- Level Complete Overlay -->
         <div class="overlay hidden" id="levelCompleteOverlay">
             <div class="level-badge" id="lcBadge">LEVEL 1</div>
-            <div class="game-title" style="font-size:2.4rem">CLEARED</div>
-            <div style="margin:20px 0 28px">
+            <div class="game-title" style="font-size:clamp(1.8rem,5vw,2.6rem)">CLEARED</div>
+            <div style="margin:22px 0 30px">
                 <div class="stat-row"><span class="stat-label">Goals</span><span class="stat-value" id="lcGoals">3</span></div>
                 <div class="stat-row"><span class="stat-label">Accuracy</span><span class="stat-value" id="lcAccuracy">60%</span></div>
                 <div class="stat-row"><span class="stat-label">Total Score</span><span class="stat-value" id="lcScore">300</span></div>
@@ -255,13 +238,12 @@
             <button class="btn btn-primary" id="btnNext" aria-label="Next Level">NEXT LEVEL</button>
         </div>
 
-        <!-- Game Over Overlay -->
         <div class="overlay hidden" id="gameOverOverlay">
-            <div style="margin-bottom:8px">
-                <i class="fas fa-flag-checkered" style="font-size:2rem;color:var(--danger);opacity:0.7"></i>
+            <div style="margin-bottom:10px">
+                <i class="fas fa-flag-checkered" style="font-size:clamp(1.8rem,4.5vw,2.4rem);color:var(--danger);opacity:0.7"></i>
             </div>
-            <div class="game-title" style="font-size:2.6rem;color:var(--danger)">GAME OVER</div>
-            <div style="margin:20px 0 28px">
+            <div class="game-title" style="font-size:clamp(2rem,6vw,3rem);color:var(--danger)">GAME OVER</div>
+            <div style="margin:22px 0 30px">
                 <div class="stat-row"><span class="stat-label">Reached Level</span><span class="stat-value" id="goLevel">1</span></div>
                 <div class="stat-row"><span class="stat-label">Total Score</span><span class="stat-value" id="goScore">0</span></div>
             </div>
@@ -273,9 +255,73 @@
     // ==================== CANVAS SETUP ====================
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
-    const W = 400, H = 650;
-    canvas.width = W;
-    canvas.height = H;
+    let W, H;
+
+    function resizeCanvas() {
+        const container = document.getElementById('gameContainer');
+        W = container.clientWidth;
+        H = container.clientHeight;
+        canvas.width = W;
+        canvas.height = H;
+        // Recalculate positions based on new size
+        recalcPositions();
+    }
+
+    // ==================== DYNAMIC POSITIONS ====================
+    let GOAL_LINE_Y, GOAL_DEPTH, GOAL_BACK_Y, BALL_START_X, BALL_START_Y;
+    let POST_RADIUS, BALL_RADIUS;
+    let MAX_DRAG_DIST, PA_BOTTOM, SYA_BOTTOM;
+
+    function recalcPositions() {
+        const minDim = Math.min(W, H);
+        BALL_RADIUS = Math.max(12, minDim * 0.028);
+        POST_RADIUS = Math.max(4, BALL_RADIUS * 0.35);
+        GOAL_DEPTH = Math.max(28, H * 0.055);
+        GOAL_LINE_Y = H * 0.22;
+        GOAL_BACK_Y = GOAL_LINE_Y - GOAL_DEPTH;
+        BALL_START_X = W / 2;
+        BALL_START_Y = H * 0.62;
+        MAX_DRAG_DIST = Math.max(80, H * 0.2);
+        PA_BOTTOM = GOAL_LINE_Y + H * 0.27;
+        SYA_BOTTOM = GOAL_LINE_Y + H * 0.075;
+
+        // Re-setup level if playing
+        if (state !== 'menu') {
+            setupLevelPositions();
+        }
+    }
+
+    function setupLevelPositions() {
+        const cfg = getLevelConfig(level);
+        goalWidth = W * cfg.goalWidthPct;
+        goalLeft = (W - goalWidth) / 2;
+        goalRight = goalLeft + goalWidth;
+        keeper.width = Math.max(40, minDim() * cfg.keeperWidthPct);
+        keeper.height = keeper.width * 0.72;
+        keeper.y = GOAL_LINE_Y + keeper.height * 0.15;
+
+        // Regenerate obstacles if needed
+        if (obstacles.length > 0) {
+            const lineY = BALL_START_Y - (BALL_START_Y - GOAL_LINE_Y) * 0.42;
+            const span = goalWidth + minDim() * 0.06;
+            const startX = (W - span) / 2;
+            obstacles.forEach((obs, i) => {
+                const t = (i + 0.5) / obstacles.length;
+                obs.baseX = startX + span * t + (Math.sin(i * 7.3) * 0.5) * 20;
+                obs.x = obs.baseX;
+                obs.y = lineY + (Math.cos(i * 5.1) * 0.5) * 25;
+                obs.radius = Math.max(10, minDim() * 0.028);
+                obs.moveAmp = Math.max(10, minDim() * 0.035);
+            });
+        }
+
+        if (state === 'aiming') {
+            ball.x = BALL_START_X;
+            ball.y = BALL_START_Y;
+        }
+    }
+
+    function minDim() { return Math.min(W, H); }
 
     // ==================== AUDIO ====================
     let audioCtx = null;
@@ -284,14 +330,16 @@
     }
     function playTone(freq, dur, type = 'triangle', vol = 0.15) {
         if (!audioCtx) return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + dur);
+        try {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        } catch(e) {}
     }
     function sfxShoot() { playTone(220, 0.15, 'sawtooth', 0.12); playTone(160, 0.1, 'square', 0.08); }
     function sfxGoal() { playTone(523, 0.12, 'triangle', 0.18); setTimeout(() => playTone(659, 0.12, 'triangle', 0.18), 100); setTimeout(() => playTone(784, 0.25, 'triangle', 0.2), 200); }
@@ -301,21 +349,13 @@
     function sfxLevelUp() { [523,659,784,1047].forEach((f,i) => setTimeout(() => playTone(f, 0.2, 'triangle', 0.15), i*120)); }
 
     // ==================== CONSTANTS ====================
-    const GOAL_LINE_Y = 105;
-    const GOAL_DEPTH = 38;
-    const GOAL_BACK_Y = GOAL_LINE_Y - GOAL_DEPTH;
-    const POST_RADIUS = 5;
-    const BALL_RADIUS = 15;
-    const BALL_START_X = W / 2;
-    const BALL_START_Y = 530;
     const MAX_SHOT_SPEED = 820;
-    const MAX_DRAG_DIST = 140;
     const MIN_DRAG_DIST = 25;
     const GOALS_NEEDED = 3;
     const MAX_ATTEMPTS = 5;
 
     // ==================== STATE ====================
-    let state = 'menu'; // menu, levelIntro, aiming, shooting, result, levelComplete, gameOver
+    let state = 'menu';
     let level = 1;
     let goalsScored = 0;
     let attemptsLeft = MAX_ATTEMPTS;
@@ -326,26 +366,13 @@
     let introTimer = 0;
     let shotTimer = 0;
 
-    // Ball
-    let ball = { x: BALL_START_X, y: BALL_START_Y, vx: 0, vy: 0, rotation: 0 };
-
-    // Goal dimensions (set per level)
-    let goalWidth = 0;
-    let goalLeft = 0;
-    let goalRight = 0;
-
-    // Keeper
-    let keeper = { x: W/2, y: GOAL_LINE_Y + 2, width: 48, height: 36, speed: 1, dir: 1, targetX: W/2, reacting: false, reactionTimer: 0, tilt: 0 };
-
-    // Obstacles
+    let ball = { x: 0, y: 0, vx: 0, vy: 0, rotation: 0 };
+    let goalWidth = 0, goalLeft = 0, goalRight = 0;
+    let keeper = { x: 0, y: 0, width: 48, height: 36, speed: 1, dir: 1, targetX: 0, reacting: false, reactionTimer: 0, tilt: 0 };
     let obstacles = [];
-
-    // Drag / aiming
     let isDragging = false;
     let dragStart = { x: 0, y: 0 };
     let dragCurrent = { x: 0, y: 0 };
-
-    // Effects
     let particles = [];
     let trail = [];
     let shakeAmount = 0;
@@ -357,7 +384,7 @@
         return {
             goalWidthPct: Math.max(0.30, 0.74 - (lvl - 1) * 0.045),
             keeperSpeed: 0.9 + (lvl - 1) * 0.38,
-            keeperWidth: Math.min(78, 46 + lvl * 4),
+            keeperWidthPct: Math.min(0.14, 0.085 + lvl * 0.006),
             keeperReacts: lvl >= 3,
             reactionDelay: Math.max(0.05, 0.45 - (lvl - 1) * 0.07),
             numObstacles: lvl >= 4 ? Math.min(lvl - 3, 5) : 0,
@@ -371,7 +398,9 @@
         goalLeft = (W - goalWidth) / 2;
         goalRight = goalLeft + goalWidth;
 
-        keeper.width = cfg.keeperWidth;
+        keeper.width = Math.max(40, minDim() * cfg.keeperWidthPct);
+        keeper.height = keeper.width * 0.72;
+        keeper.y = GOAL_LINE_Y + keeper.height * 0.15;
         keeper.speed = cfg.keeperSpeed;
         keeper.x = W / 2;
         keeper.dir = 1;
@@ -379,21 +408,21 @@
         keeper.reactionTimer = 0;
         keeper.tilt = 0;
 
-        // Generate obstacles
         obstacles = [];
         if (cfg.numObstacles > 0) {
-            const lineY = BALL_START_Y - (BALL_START_Y - GOAL_LINE_Y) * 0.45;
-            const span = goalWidth + 40;
+            const lineY = BALL_START_Y - (BALL_START_Y - GOAL_LINE_Y) * 0.42;
+            const span = goalWidth + minDim() * 0.06;
             const startX = (W - span) / 2;
             for (let i = 0; i < cfg.numObstacles; i++) {
                 const t = (i + 0.5) / cfg.numObstacles;
+                const bx = startX + span * t + (Math.random() - 0.5) * 20;
                 obstacles.push({
-                    x: startX + span * t + (Math.random() - 0.5) * 20,
+                    x: bx,
                     y: lineY + (Math.random() - 0.5) * 25,
-                    radius: 16,
-                    baseX: startX + span * t + (Math.random() - 0.5) * 20,
+                    radius: Math.max(10, minDim() * 0.028),
+                    baseX: bx,
                     moveSpeed: 0.5 + Math.random() * 0.8,
-                    moveAmp: 15 + Math.random() * 20,
+                    moveAmp: Math.max(10, minDim() * 0.035),
                     phase: Math.random() * Math.PI * 2,
                     moving: cfg.obstacleMoving
                 });
@@ -431,8 +460,7 @@
         ensureAudio();
         if (state !== 'aiming') return;
         const pos = getCanvasCoords(e.clientX, e.clientY);
-        // Allow starting drag from lower 60% of screen
-        if (pos.y > H * 0.35) {
+        if (pos.y > H * 0.25) {
             isDragging = true;
             dragStart.x = pos.x;
             dragStart.y = pos.y;
@@ -440,14 +468,12 @@
             dragCurrent.y = pos.y;
         }
     }
-
     function onPointerMove(e) {
         if (!isDragging) return;
         const pos = getCanvasCoords(e.clientX, e.clientY);
         dragCurrent.x = pos.x;
         dragCurrent.y = pos.y;
     }
-
     function onPointerUp(e) {
         if (!isDragging) return;
         isDragging = false;
@@ -455,12 +481,10 @@
         dragCurrent.x = pos.x;
         dragCurrent.y = pos.y;
 
-        // Calculate shot
         const dx = ball.x - dragCurrent.x;
         const dy = ball.y - dragCurrent.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
-
-        if (dist < MIN_DRAG_DIST) return; // Too small, ignore
+        if (dist < MIN_DRAG_DIST) return;
 
         const power = Math.min(dist / MAX_DRAG_DIST, 1);
         const angle = Math.atan2(dy, dx);
@@ -491,25 +515,25 @@
     canvas.addEventListener('touchmove', e => { e.preventDefault(); onPointerMove(e.touches[0]); }, { passive: false });
     canvas.addEventListener('touchend', e => { e.preventDefault(); if (e.changedTouches.length) onPointerUp(e.changedTouches[0]); }, { passive: false });
 
-    // ==================== PHYSICS & COLLISION ====================
+    // ==================== PHYSICS ====================
     function circleCircle(ax, ay, ar, bx, by, br) {
         const dx = ax - bx, dy = ay - by;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        return dist < ar + br ? { dx, dy, dist, overlap: ar + br - dist } : null;
+        return dist < ar + br ? { dx, dy, dist: Math.max(dist, 0.01), overlap: ar + br - dist } : null;
     }
 
-    function resolveCircleBounce(ball, cx, cy, cr, restitution = 0.55) {
-        const col = circleCircle(ball.x, ball.y, BALL_RADIUS, cx, cy, cr);
+    function resolveCircleBounce(b, cx, cy, cr, restitution = 0.55) {
+        const col = circleCircle(b.x, b.y, BALL_RADIUS, cx, cy, cr);
         if (!col) return false;
-        const nx = col.dx / Math.max(col.dist, 0.01);
-        const ny = col.dy / Math.max(col.dist, 0.01);
-        const dot = ball.vx * nx + ball.vy * ny;
-        ball.vx -= 2 * dot * nx;
-        ball.vy -= 2 * dot * ny;
-        ball.vx *= restitution;
-        ball.vy *= restitution;
-        ball.x += nx * col.overlap;
-        ball.y += ny * col.overlap;
+        const nx = col.dx / col.dist;
+        const ny = col.dy / col.dist;
+        const dot = b.vx * nx + b.vy * ny;
+        b.vx -= 2 * dot * nx;
+        b.vy -= 2 * dot * ny;
+        b.vx *= restitution;
+        b.vy *= restitution;
+        b.x += nx * col.overlap;
+        b.y += ny * col.overlap;
         return true;
     }
 
@@ -549,37 +573,32 @@
         ball.vx *= 0.997;
         ball.vy *= 0.997;
 
-        // Trail
         if (Math.abs(ball.vx) + Math.abs(ball.vy) > 30) {
             trail.push({ x: ball.x, y: ball.y, life: 1 });
         }
 
-        // Keeper AI
         updateKeeperAI(dt);
 
-        // Collision: obstacles
         for (const obs of obstacles) {
             if (resolveCircleBounce(ball, obs.x, obs.y, obs.radius, 0.5)) {
                 spawnParticles(ball.x, ball.y, 6, '#5a9bbd', 120);
             }
         }
 
-        // Collision: posts
-        if (resolveCircleBounce(ball, goalLeft, GOAL_LINE_Y - GOAL_DEPTH / 2, POST_RADIUS, 0.6)) {
+        const postCenterY = GOAL_LINE_Y - GOAL_DEPTH / 2;
+        if (resolveCircleBounce(ball, goalLeft, postCenterY, POST_RADIUS, 0.6)) {
             sfxPost(); shakeAmount = 4; spawnParticles(goalLeft, GOAL_LINE_Y, 8, '#ffffff', 150);
         }
-        if (resolveCircleBounce(ball, goalRight, GOAL_LINE_Y - GOAL_DEPTH / 2, POST_RADIUS, 0.6)) {
+        if (resolveCircleBounce(ball, goalRight, postCenterY, POST_RADIUS, 0.6)) {
             sfxPost(); shakeAmount = 4; spawnParticles(goalRight, GOAL_LINE_Y, 8, '#ffffff', 150);
         }
 
-        // Collision: keeper
         if (keeperRectCollision()) {
             sfxSave();
             showResult('save');
             return;
         }
 
-        // Goal check
         if (ball.y - BALL_RADIUS <= GOAL_LINE_Y && ball.vy < 0) {
             if (ball.x > goalLeft + POST_RADIUS + 2 && ball.x < goalRight - POST_RADIUS - 2) {
                 sfxGoal();
@@ -597,14 +616,12 @@
             }
         }
 
-        // Out of bounds
-        if (ball.x < -40 || ball.x > W + 40 || ball.y < -40 || ball.y > H + 40) {
+        if (ball.x < -60 || ball.x > W + 60 || ball.y < -60 || ball.y > H + 60) {
             sfxMiss();
             showResult('miss');
             return;
         }
 
-        // Timeout
         if (shotTimer > 3.5) {
             sfxMiss();
             showResult('miss');
@@ -614,16 +631,13 @@
     function updateKeeperAI(dt) {
         const cfg = getLevelConfig(level);
 
-        // Reaction delay
         if (cfg.keeperReacts && !keeper.reacting) {
             keeper.reactionTimer -= dt;
             if (keeper.reactionTimer <= 0) {
                 keeper.reacting = true;
-                // Predict where ball crosses goal line
                 if (ball.vy < -10) {
                     const timeToGoal = (GOAL_LINE_Y - ball.y) / ball.vy;
                     keeper.targetX = ball.x + ball.vx * timeToGoal;
-                    // Add some inaccuracy based on level (less at higher levels)
                     const inaccuracy = Math.max(5, 40 - level * 4);
                     keeper.targetX += (Math.random() - 0.5) * inaccuracy;
                     keeper.targetX = Math.max(goalLeft + keeper.width / 2, Math.min(goalRight - keeper.width / 2, keeper.targetX));
@@ -632,7 +646,6 @@
         }
 
         if (keeper.reacting) {
-            // Move toward predicted position
             const diff = keeper.targetX - keeper.x;
             if (Math.abs(diff) > 2) {
                 const moveDir = diff > 0 ? 1 : -1;
@@ -642,7 +655,6 @@
                 keeper.tilt *= 0.9;
             }
         } else {
-            // Patrol
             const patrolLeft = goalLeft + keeper.width / 2 + 5;
             const patrolRight = goalRight - keeper.width / 2 - 5;
             keeper.x += keeper.dir * keeper.speed * dt * 60;
@@ -650,7 +662,6 @@
             if (keeper.x <= patrolLeft) { keeper.dir = 1; keeper.x = patrolLeft; }
             keeper.tilt = keeper.dir * 0.15;
         }
-
         keeper.tilt *= 0.95;
     }
 
@@ -684,11 +695,10 @@
             const p = particles[i];
             p.x += p.vx * dt;
             p.y += p.vy * dt;
-            p.vy += 300 * dt; // gravity
+            p.vy += 300 * dt;
             p.life -= p.decay;
             if (p.life <= 0) particles.splice(i, 1);
         }
-        // Trail decay
         for (let i = trail.length - 1; i >= 0; i--) {
             trail[i].life -= 0.04;
             if (trail[i].life <= 0) trail.splice(i, 1);
@@ -697,37 +707,33 @@
 
     // ==================== RENDERING ====================
     function drawField() {
-        // Base green
         ctx.fillStyle = '#1a6b30';
         ctx.fillRect(0, 0, W, H);
 
-        // Mowed stripes
-        const stripeH = 38;
+        const stripeH = Math.max(30, H * 0.055);
         for (let y = 0; y < H; y += stripeH * 2) {
             ctx.fillStyle = '#1e7a38';
             ctx.fillRect(0, y, W, stripeH);
         }
 
-        // Subtle vignette
-        const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.7);
+        const vig = ctx.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, H * 0.75);
         vig.addColorStop(0, 'rgba(0,0,0,0)');
         vig.addColorStop(1, 'rgba(0,0,0,0.35)');
         ctx.fillStyle = vig;
         ctx.fillRect(0, 0, W, H);
 
-        // Field markings
-        ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+        ctx.strokeStyle = 'rgba(255,255,255,0.22)';
         ctx.lineWidth = 2;
 
         // Penalty area
-        const paW = W - 50;
+        const paW = W - minDim() * 0.1;
         const paL = (W - paW) / 2;
-        ctx.strokeRect(paL, GOAL_LINE_Y, paW, 165);
+        ctx.strokeRect(paL, GOAL_LINE_Y, paW, PA_BOTTOM - GOAL_LINE_Y);
 
         // 6-yard box
-        const syaW = goalWidth + 70;
+        const syaW = goalWidth + minDim() * 0.12;
         const syaL = (W - syaW) / 2;
-        ctx.strokeRect(syaL, GOAL_LINE_Y, syaW, 48);
+        ctx.strokeRect(syaL, GOAL_LINE_Y, syaW, SYA_BOTTOM - GOAL_LINE_Y);
 
         // Penalty spot
         ctx.beginPath();
@@ -735,23 +741,27 @@
         ctx.fillStyle = 'rgba(255,255,255,0.35)';
         ctx.fill();
 
-        // Arc above penalty spot
+        // Arc
+        const arcR = minDim() * 0.1;
         ctx.beginPath();
-        ctx.arc(W / 2, GOAL_LINE_Y + 165, 50, -Math.PI * 0.65, -Math.PI * 0.35);
+        ctx.arc(W / 2, PA_BOTTOM, arcR, -Math.PI * 0.65, -Math.PI * 0.35);
         ctx.stroke();
     }
 
     function drawGoalNet() {
-        const netL = goalLeft - 8;
-        const netR = goalRight + 8;
-        const netT = GOAL_BACK_Y - 8;
+        const margin = minDim() * 0.015;
+        const netL = goalLeft - margin;
+        const netR = goalRight + margin;
+        const netT = GOAL_BACK_Y - margin;
         const netB = GOAL_LINE_Y + 2;
 
+        ctx.fillStyle = 'rgba(0,0,0,0.15)';
+        ctx.fillRect(netL, netT, netR - netL, netB - netT);
+
         ctx.lineWidth = 0.8;
-        const spacing = 9;
+        const spacing = Math.max(7, minDim() * 0.014);
         const time = performance.now() * 0.001;
 
-        // Vertical lines
         for (let x = netL; x <= netR; x += spacing) {
             ctx.strokeStyle = 'rgba(255,255,255,0.1)';
             ctx.beginPath();
@@ -762,8 +772,6 @@
             }
             ctx.stroke();
         }
-
-        // Horizontal lines
         for (let y = netT; y <= netB; y += spacing) {
             ctx.strokeStyle = 'rgba(255,255,255,0.08)';
             ctx.beginPath();
@@ -774,10 +782,6 @@
             }
             ctx.stroke();
         }
-
-        // Net background (subtle fill)
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.fillRect(netL, netT, netR - netL, netB - netT);
     }
 
     function drawGoalPosts() {
@@ -785,19 +789,13 @@
         ctx.shadowColor = 'rgba(0,0,0,0.4)';
         ctx.shadowBlur = 6;
         ctx.shadowOffsetY = 2;
-
         ctx.fillStyle = '#ffffff';
 
-        // Left post
         roundRectFill(ctx, goalLeft - POST_RADIUS, GOAL_BACK_Y, POST_RADIUS * 2, GOAL_DEPTH, 2);
-        // Right post
         roundRectFill(ctx, goalRight - POST_RADIUS, GOAL_BACK_Y, POST_RADIUS * 2, GOAL_DEPTH, 2);
-        // Crossbar
         roundRectFill(ctx, goalLeft - POST_RADIUS, GOAL_BACK_Y - POST_RADIUS, goalWidth + POST_RADIUS * 2, POST_RADIUS * 2, 2);
-
         ctx.restore();
 
-        // Goal flash
         if (goalFlash > 0) {
             ctx.fillStyle = `rgba(6, 214, 160, ${goalFlash * 0.25})`;
             ctx.fillRect(goalLeft, GOAL_BACK_Y, goalWidth, GOAL_DEPTH);
@@ -812,13 +810,11 @@
         ctx.translate(kx, ky);
         ctx.rotate(keeper.tilt);
 
-        // Shadow
         ctx.beginPath();
         ctx.ellipse(2, 4, kw / 2 + 2, 6, 0, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
         ctx.fill();
 
-        // Body
         const bodyH = kh * 0.6;
         const grad = ctx.createLinearGradient(0, -bodyH / 2, 0, bodyH / 2);
         grad.addColorStop(0, '#e63946');
@@ -826,23 +822,21 @@
         ctx.fillStyle = grad;
         roundRectFill(ctx, -kw / 2, -bodyH / 2, kw, bodyH, 5);
 
-        // Shorts
         ctx.fillStyle = '#1d3557';
         roundRectFill(ctx, -kw / 2 + 3, bodyH / 2 - 6, kw - 6, 8, 2);
 
-        // Head
+        const headR = Math.max(6, kw * 0.16);
         ctx.beginPath();
-        ctx.arc(0, -bodyH / 2 - 9, 8, 0, Math.PI * 2);
+        ctx.arc(0, -bodyH / 2 - headR, headR, 0, Math.PI * 2);
         ctx.fillStyle = '#f4d6a0';
         ctx.fill();
         ctx.strokeStyle = '#c9a96e';
         ctx.lineWidth = 1;
         ctx.stroke();
 
-        // Arms
         const armExtend = Math.abs(keeper.tilt) * 18 + 10;
         ctx.strokeStyle = '#e63946';
-        ctx.lineWidth = 5;
+        ctx.lineWidth = Math.max(3, kw * 0.08);
         ctx.lineCap = 'round';
         ctx.beginPath();
         ctx.moveTo(-kw / 2, -bodyH / 4);
@@ -853,13 +847,13 @@
         ctx.lineTo(kw / 2 + armExtend, -bodyH / 4 - 8);
         ctx.stroke();
 
-        // Gloves
+        const gloveR = Math.max(3, kw * 0.08);
         ctx.fillStyle = '#ffd166';
         ctx.beginPath();
-        ctx.arc(-kw / 2 - armExtend, -bodyH / 4 - 8, 4.5, 0, Math.PI * 2);
+        ctx.arc(-kw / 2 - armExtend, -bodyH / 4 - 8, gloveR, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.arc(kw / 2 + armExtend, -bodyH / 4 - 8, 4.5, 0, Math.PI * 2);
+        ctx.arc(kw / 2 + armExtend, -bodyH / 4 - 8, gloveR, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.restore();
@@ -867,13 +861,11 @@
 
     function drawObstacles() {
         for (const obs of obstacles) {
-            // Shadow
             ctx.beginPath();
             ctx.ellipse(obs.x + 2, obs.y + 3, obs.radius, obs.radius * 0.75, 0, 0, Math.PI * 2);
             ctx.fillStyle = 'rgba(0,0,0,0.2)';
             ctx.fill();
 
-            // Body
             const grad = ctx.createRadialGradient(obs.x - obs.radius * 0.3, obs.y - obs.radius * 0.3, 0, obs.x, obs.y, obs.radius);
             grad.addColorStop(0, '#5da3c4');
             grad.addColorStop(1, '#2a6f97');
@@ -885,7 +877,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Label
             ctx.fillStyle = '#fff';
             ctx.font = `bold ${obs.radius * 0.9}px Oswald`;
             ctx.textAlign = 'center';
@@ -898,7 +889,6 @@
         ctx.save();
         ctx.translate(x, y);
 
-        // Shadow
         ctx.beginPath();
         ctx.ellipse(3, 4, r * 0.95, r * 0.7, 0, 0, Math.PI * 2);
         ctx.fillStyle = 'rgba(0,0,0,0.25)';
@@ -906,7 +896,6 @@
 
         ctx.rotate(rotation);
 
-        // Ball body
         const grad = ctx.createRadialGradient(-r * 0.25, -r * 0.25, 0, 0, 0, r);
         grad.addColorStop(0, '#ffffff');
         grad.addColorStop(0.7, '#e8e8e8');
@@ -919,7 +908,6 @@
         ctx.lineWidth = 1.2;
         ctx.stroke();
 
-        // Pentagon pattern
         ctx.fillStyle = '#333';
         drawPentagon(ctx, 0, 0, r * 0.32);
         for (let i = 0; i < 5; i++) {
@@ -927,7 +915,6 @@
             drawPentagon(ctx, Math.cos(a) * r * 0.68, Math.sin(a) * r * 0.68, r * 0.18);
         }
 
-        // Lines connecting pentagons
         ctx.strokeStyle = '#555';
         ctx.lineWidth = 0.8;
         for (let i = 0; i < 5; i++) {
@@ -982,7 +969,6 @@
 
     function drawAimingUI() {
         if (!isDragging) {
-            // Pulsing glow on ball
             const pulse = Math.sin(performance.now() * 0.004) * 0.5 + 0.5;
             const glowR = BALL_RADIUS + 10 + pulse * 6;
             const glow = ctx.createRadialGradient(ball.x, ball.y, BALL_RADIUS, ball.x, ball.y, glowR);
@@ -993,11 +979,10 @@
             ctx.fillStyle = glow;
             ctx.fill();
 
-            // Hint text
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.font = '13px "Source Sans 3"';
+            ctx.font = `${Math.max(12, minDim() * 0.02)}px "Source Sans 3"`;
             ctx.textAlign = 'center';
-            ctx.fillText('Pull back to aim', ball.x, ball.y + 40);
+            ctx.fillText('Pull back to aim', ball.x, ball.y + BALL_RADIUS + 28);
             return;
         }
 
@@ -1007,7 +992,6 @@
         const power = Math.min(dist / MAX_DRAG_DIST, 1);
         const angle = Math.atan2(dy, dx);
 
-        // Rubber band line (ball to finger)
         ctx.setLineDash([5, 5]);
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
         ctx.lineWidth = 1.5;
@@ -1017,19 +1001,16 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Shot direction arrow
-        const arrowLen = power * 130;
+        const arrowLen = power * minDim() * 0.2;
         const arrowEndX = ball.x + Math.cos(angle) * arrowLen;
         const arrowEndY = ball.y + Math.sin(angle) * arrowLen;
 
-        // Color based on power
         let r, g, b;
         if (power < 0.4) { r = 6; g = 214; b = 160; }
         else if (power < 0.75) { r = 255; g = 209; b = 102; }
         else { r = 239; g = 71; b = 111; }
         const arrowColor = `rgb(${r},${g},${b})`;
 
-        // Trajectory dots
         const numDots = 8;
         for (let i = 1; i <= numDots; i++) {
             const t = i / numDots;
@@ -1045,7 +1026,6 @@
         }
         ctx.globalAlpha = 1;
 
-        // Arrow line
         ctx.strokeStyle = arrowColor;
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
@@ -1054,7 +1034,6 @@
         ctx.lineTo(arrowEndX, arrowEndY);
         ctx.stroke();
 
-        // Arrowhead
         const headLen = 12;
         ctx.beginPath();
         ctx.moveTo(arrowEndX, arrowEndY);
@@ -1066,10 +1045,10 @@
         ctx.stroke();
 
         // Power bar
-        const barX = W - 28;
-        const barY = H * 0.45;
-        const barH = H * 0.35;
-        const barW = 8;
+        const barW = Math.max(8, minDim() * 0.015);
+        const barX = W - barW - minDim() * 0.04;
+        const barH = H * 0.3;
+        const barY = H * 0.35;
         ctx.fillStyle = 'rgba(0,0,0,0.4)';
         roundRectFill(ctx, barX - 1, barY - 1, barW + 2, barH + 2, 4);
         const fillH = barH * power;
@@ -1078,17 +1057,19 @@
         barGrad.addColorStop(0.5, '#ffd166');
         barGrad.addColorStop(1, '#ef476f');
         ctx.fillStyle = barGrad;
-        roundRectFill(ctx, barX, barY + barH - fillH, barW, fillH, 3);
+        if (fillH > 1) roundRectFill(ctx, barX, barY + barH - fillH, barW, fillH, 3);
 
-        // Power percentage
         ctx.fillStyle = arrowColor;
-        ctx.font = 'bold 15px Oswald';
+        ctx.font = `bold ${Math.max(13, minDim() * 0.022)}px Oswald`;
         ctx.textAlign = 'center';
-        ctx.fillText(Math.round(power * 100) + '%', ball.x, ball.y + 38);
+        ctx.fillText(Math.round(power * 100) + '%', ball.x, ball.y + BALL_RADIUS + 28);
     }
 
     function roundRectFill(ctx, x, y, w, h, r) {
-        r = Math.min(r, Math.max(0.01, w / 2), Math.max(0.01, h / 2));
+        w = Math.max(0.1, w);
+        h = Math.max(0.1, h);
+        r = Math.min(r, w / 2, h / 2);
+        r = Math.max(0, r);
         ctx.beginPath();
         ctx.moveTo(x + r, y);
         ctx.lineTo(x + w - r, y);
@@ -1103,16 +1084,10 @@
         ctx.fill();
     }
 
-    // ==================== MAIN RENDER ====================
     function render() {
         ctx.save();
-
-        // Screen shake
         if (shakeAmount > 0.5) {
-            ctx.translate(
-                (Math.random() - 0.5) * shakeAmount,
-                (Math.random() - 0.5) * shakeAmount
-            );
+            ctx.translate((Math.random() - 0.5) * shakeAmount, (Math.random() - 0.5) * shakeAmount);
         }
 
         drawField();
@@ -1122,16 +1097,11 @@
         drawKeeper();
         drawTrail();
 
-        if (state === 'aiming' || state === 'shooting') {
+        if (state === 'aiming' || state === 'shooting' || state === 'result') {
             drawBall(ball.x, ball.y, BALL_RADIUS, ball.rotation);
         }
-
-        if (state === 'aiming') {
-            drawAimingUI();
-        }
-
+        if (state === 'aiming') drawAimingUI();
         drawParticles();
-
         ctx.restore();
     }
 
@@ -1176,7 +1146,6 @@
 
         const el = document.getElementById('levelIntro');
         document.getElementById('levelIntroText').textContent = `LEVEL ${level}`;
-        const cfg = getLevelConfig(level);
         let sub = 'Pull back and release to shoot';
         if (level >= 3) sub = 'Keeper is getting smarter...';
         if (level >= 4) sub = 'Watch out for defenders!';
@@ -1218,7 +1187,6 @@
         lastTime = timestamp;
         const time = timestamp * 0.001;
 
-        // Decay effects
         shakeAmount *= 0.88;
         netDisturbance *= 0.96;
         goalFlash *= 0.93;
@@ -1232,24 +1200,13 @@
         }
 
         if (state === 'aiming') {
-            // Keeper patrols during aiming
-            const cfg = getLevelConfig(level);
-            if (!cfg.keeperReacts) {
-                const patrolLeft = goalLeft + keeper.width / 2 + 5;
-                const patrolRight = goalRight - keeper.width / 2 - 5;
-                keeper.x += keeper.dir * keeper.speed * dt * 60;
-                if (keeper.x >= patrolRight) { keeper.dir = -1; keeper.x = patrolRight; }
-                if (keeper.x <= patrolLeft) { keeper.dir = 1; keeper.x = patrolLeft; }
-                keeper.tilt = keeper.dir * 0.12;
-            } else {
-                // Smart keeper also patrols but more aggressively
-                const patrolLeft = goalLeft + keeper.width / 2 + 5;
-                const patrolRight = goalRight - keeper.width / 2 - 5;
-                keeper.x += keeper.dir * keeper.speed * 0.7 * dt * 60;
-                if (keeper.x >= patrolRight) { keeper.dir = -1; keeper.x = patrolRight; }
-                if (keeper.x <= patrolLeft) { keeper.dir = 1; keeper.x = patrolLeft; }
-                keeper.tilt = keeper.dir * 0.12;
-            }
+            const patrolLeft = goalLeft + keeper.width / 2 + 5;
+            const patrolRight = goalRight - keeper.width / 2 - 5;
+            const spd = keeper.speed * (getLevelConfig(level).keeperReacts ? 0.7 : 1);
+            keeper.x += keeper.dir * spd * dt * 60;
+            if (keeper.x >= patrolRight) { keeper.dir = -1; keeper.x = patrolRight; }
+            if (keeper.x <= patrolLeft) { keeper.dir = 1; keeper.x = patrolLeft; }
+            keeper.tilt = keeper.dir * 0.12;
             updateObstacles(dt, time);
         }
 
@@ -1260,7 +1217,6 @@
 
         if (state === 'result') {
             resultTimer += dt;
-            // Ball continues moving (slowly)
             ball.x += ball.vx * dt * 0.3;
             ball.y += ball.vy * dt * 0.3;
             ball.vx *= 0.95;
@@ -1303,7 +1259,6 @@
         startLevelIntro();
     });
 
-    // ==================== KEYBOARD SUPPORT ====================
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             if (state === 'menu') document.getElementById('btnPlay').click();
@@ -1313,8 +1268,17 @@
     });
 
     // ==================== INIT ====================
-    // Initial render so the field is visible behind the menu
-    setupLevel();
+    window.addEventListener('resize', () => {
+        resizeCanvas();
+    });
+
+    // Prevent iPad bounce scroll
+    document.body.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+    resizeCanvas();
+    // Set initial ball pos for the background render behind menu
+    ball.x = BALL_START_X;
+    ball.y = BALL_START_Y;
     render();
     requestAnimationFrame(gameLoop);
     </script>
