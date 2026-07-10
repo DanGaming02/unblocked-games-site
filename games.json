@@ -82,5 +82,11 @@
     "type": "html",
     "path": "games/ChatGPT2.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Strike Counter 3",
+    "type": "html",
+    "path": "games/StrikeCounter3.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
