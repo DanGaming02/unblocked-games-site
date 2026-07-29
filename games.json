@@ -88,5 +88,11 @@
     "type": "html",
     "path": "games/StrikeCounter3.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Supersonic Acrobatic Rocket-Powered Battle-Cars".
+    "type": "html",
+    "path": "games/RL.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
