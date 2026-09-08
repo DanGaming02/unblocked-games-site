@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotmetal · The HTML Press</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23B3371A'/%3E%3Ctext x='16' y='23' font-family='Georgia' font-size='21' font-weight='900' fill='%23F5EFE3' text-anchor='middle'%3EH%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5EFE3;      /* page */
+    --paper-2:#ECE4D2;    /* proof desk */
+    --paper-3:#D9CFB6;    /* hairlines */
+    --ink:#231D14;
+    --ink-60:#5E5443;
+    --ink-40:#8D8067;
+    --red:#B3371A;        /* press vermillion */
+    --red-deep:#8F2A12;
+    --sheet:#FFFFFF;
+    /* ink-on-paper syntax palette */
+    --t-tag:#B3371A; --t-attr:#7A5E12; --t-str:#3E6B2F;
+    --t-com:#9A8B71;      --t-doc:#7A6A50; --t-pun:#8D8067;
+    --t-ent:#7A5E12;      --t-num:#7A5E12; --t-kw:#8F2A12;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    display:flex; flex-direction:column; overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .grow{ flex:1; }
+
+  /* ---------- masthead ---------- */
+  .masthead{
+    flex:none; background:var(--paper);
+    border-top:5px solid var(--ink); border-bottom:2px solid var(--ink);
+    padding:12px 20px 14px;
+    display:flex; align-items:center; gap:22px; flex-wrap:wrap; row-gap:12px;
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand h1{
+    font-family:'Fraunces', Georgia, serif; font-weight:900;
+    font-size:34px; line-height:.9; margin:0; letter-spacing:-.5px;
+  }
+  .brand h1 .dot{ color:var(--red); }
+  .brand-sub{
+    border-left:1px solid var(--ink-40); padding-left:14px;
+    font-size:9px; font-weight:700; letter-spacing:2.2px; text-transform:uppercase;
+    color:var(--ink-60); line-height:1.8;
+  }
+  .brand-sub em{ font-style:normal; display:block; font-weight:500; letter-spacing:1.4px; color:var(--ink-40); }
+  .actions{ margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .filewrap{ display:flex; align-items:center; gap:8px; }
+  .microlabel{ font-size:9px; font-weight:700; letter-spacing:2px; color:var(--ink-40); text-transform:uppercase; }
+  #fileName{
+    font:600 12px/1 'IBM Plex Mono', monospace; letter-spacing:.4px;
+    color:var(--ink); background:var(--paper);
+    border:1.5px solid var(--ink); padding:9px 12px; width:170px; outline:none;
+  }
+  #fileName:focus{ border-color:var(--red); box-shadow:3px 3px 0 var(--red); }
+  .vsep{ width:1px; height:30px; background:var(--paper-3); }
+
+  /* ---------- letterpress buttons ---------- */
+  .obtn,.pbtn,.bbtn{
+    display:inline-flex; align-items:center; gap:8px; cursor:pointer;
+    font:700 10.5px/1 'IBM Plex Mono', monospace; letter-spacing:1.6px; text-transform:uppercase;
+    border:1.5px solid var(--ink);
+    transition:transform .1s, box-shadow .1s, background .12s, color .12s;
+  }
+  .obtn{ background:var(--paper); color:var(--ink); padding:9px 13px; box-shadow:3px 3px 0 var(--ink); }
+  .obtn:hover{ background:var(--ink); color:var(--paper); }
+  .obtn:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+  .pbtn{ background:var(--red); color:#F9F3E6; padding:10px 18px; box-shadow:4px 4px 0 var(--ink); }
+  .pbtn:hover{ background:var(--red-deep); }
+  .pbtn:active,.pbtn.hit{ transform:translate(3px,3px); box-shadow:1px 1px 0 var(--ink); }
+  .bbtn{ background:var(--ink); color:var(--paper); padding:10px 15px; box-shadow:4px 4px 0 var(--red); }
+  .bbtn:hover{ background:#3A3226; }
+  .bbtn:active,.bbtn.hit{ transform:translate(3px,3px); box-shadow:1px 1px 0 var(--red); }
+  .obtn:focus-visible,.pbtn:focus-visible,.bbtn:focus-visible,.tbtn:focus-visible,.fbtn:focus-visible,.ibtn:focus-visible,#fileName:focus-visible{
+    outline:2px solid var(--red); outline-offset:2px;
+  }
+
+  .ic{ width:14px; height:14px; flex:none; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
+  .pbtn .ic,.bbtn .ic{ width:15px; height:15px; }
+
+  /* ---------- panes ---------- */
+  main{ flex:1; display:flex; min-height:0; }
+  .pane{ display:flex; flex-direction:column; min-width:0; min-height:0; }
+  .pane-src{ flex:0 0 50%; }
+  .pane-proof{ flex:1 1 auto; background:var(--paper-2); }
+  .pane-head{
+    flex:none; display:flex; align-items:center; gap:10px;
+    padding:9px 16px; border-bottom:1px solid var(--ink-40);
+  }
+  .pane-src .pane-head{ background:var(--paper); }
+  .pane-proof .pane-head{ background:var(--paper-2); }
+  .ph-num{ color:var(--red); font-weight:700; font-size:10px; letter-spacing:1px; }
+  .ph-title{ font-weight:700; font-size:11px; letter-spacing:2px; }
+  .ph-sub{ color:var(--ink-40); font-size:9px; font-weight:500; letter-spacing:1.4px; text-transform:uppercase; }
+
+  .tbtn,.fbtn{
+    display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    font:700 9.5px/1 'IBM Plex Mono', monospace; letter-spacing:1.6px; text-transform:uppercase;
+    color:var(--ink-60); background:transparent; border:1px solid transparent; padding:6px 9px;
+    transition:color .12s, border-color .12s, background .12s;
+  }
+  .tbtn:hover,.fbtn:hover{ color:var(--red); border-color:var(--red); }
+  .tbtn .ic,.fbtn .ic{ width:12px; height:12px; stroke-width:1.9; }
+  .fbtn.on{ background:var(--ink); color:var(--paper); border-color:var(--ink); }
+
+  .pstat{ display:inline-flex; align-items:center; gap:7px; font-size:9.5px; font-weight:700; letter-spacing:1.6px; color:var(--ink-60); text-transform:uppercase; }
+  .pdot{ width:7px; height:7px; background:var(--ink-40); }
+  .pstat.dirty .pdot{ background:var(--red); animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse{ 50%{ opacity:.2; } }
+  .vsep2{ width:1px; height:18px; background:var(--ink-40); margin:0 4px; }
+  .ibtn{
+    width:28px; height:26px; display:inline-flex; align-items:center; justify-content:center;
+    border:1px solid var(--ink-40); background:var(--paper); color:var(--ink-60); cursor:pointer;
+  }
+  .ibtn:hover{ color:var(--ink); border-color:var(--ink); }
+  .ibtn:active{ transform:translateY(1px); }
+
+  /* ---------- divider ---------- */
+  .divider{
+    flex:0 0 11px; cursor:col-resize; background:var(--paper);
+    border-left:1px solid var(--paper-3); border-right:1px solid var(--paper-3);
+    display:flex; align-items:center; justify-content:center; touch-action:none;
+  }
+  .grip{
+    width:3px; height:3px; border-radius:50%; background:var(--ink-40);
+    box-shadow:0 -7px 0 var(--ink-40), 0 7px 0 var(--ink-40);
+    transition:background .15s, box-shadow .15s;
+  }
+  .divider:hover{ background:rgba(179,55,26,.06); }
+  .divider:hover .grip{ background:var(--red); box-shadow:0 -7px 0 var(--red), 0 7px 0 var(--red); }
+  body.dragging{ cursor:col-resize; user-select:none; }
+  body.dragging .sheet iframe{ pointer-events:none; }
+
+  /* ---------- editor (highlight layer under a transparent textarea) ---------- */
+  .editor{ flex:1; min-height:0; display:flex; background:var(--paper); }
+  .gutter{
+    flex:none; width:52px; position:relative; overflow:hidden;
+    border-right:1px solid var(--paper-3); background:var(--paper);
+  }
+  .gutter-in{
+    position:absolute; top:0; left:0; width:100%; padding:14px 12px 0 0;
+    text-align:right; font-size:10.5px; line-height:21px; color:var(--ink-40);
+    will-change:transform;
+  }
+  .gutter-in span{ display:block; }
+  .gutter-in span.cur{ color:var(--red); font-weight:700; }
+  .stack{ position:relative; flex:1; min-width:0; }
+
+  .hl, #src{
+    margin:0; border:0; padding:14px 18px 160px 18px;
+    font:500 13.5px/21px 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    letter-spacing:0; tab-size:2; white-space:pre; overflow-wrap:normal; word-break:normal;
+  }
+  .hl{ position:absolute; inset:0; overflow:hidden; pointer-events:none; color:var(--ink); z-index:2; }
+  .hl code{ font:inherit; display:block; }
+  .ovl{ position:absolute; inset:0; overflow:hidden; z-index:1; }
+  .active-line{ position:absolute; left:0; right:0; top:0; height:21px; background:rgba(35,29,20,.055); }
+  #src{
+    position:absolute; inset:0; width:100%; height:100%;
+    resize:none; outline:none; z-index:3; overflow:auto; overflow-anchor:none;
+    background:transparent; color:transparent; caret-color:var(--red);
+  }
+  #src::selection{ background:rgba(179,55,26,.22); color:transparent; }
+  #src::-webkit-scrollbar{ width:11px; height:11px; }
+  #src::-webkit-scrollbar-track{ background:var(--paper); }
+  #src::-webkit-scrollbar-thumb{ background:var(--ink-40); border:3px solid var(--paper); border-radius:6px; }
+  #src{ scrollbar-width:thin; scrollbar-color:var(--ink-40) var(--paper); }
+
+  .t-tag{ color:var(--t-tag); font-weight:600; }
+  .t-attr{ color:var(--t-attr); }
+  .t-str{ color:var(--t-str); }
+  .t-com{ color:var(--t-com); font-style:italic; }
+  .t-doc{ color:var(--t-doc); font-weight:600; }
+  .t-pun{ color:var(--t-pun); }
+  .t-ent{ color:var(--t-ent); }
+  .t-num{ color:var(--t-num); }
+  .t-kw{ color:var(--t-kw); font-weight:600; }
+
+  /* ---------- proof desk ---------- */
+  .desk{ flex:1; min-height:0; overflow:auto; padding:22px; display:flex; }
+  .sheet{
+    width:100%; flex:0 1 auto; margin:0 auto;
+    background:var(--sheet); border:1px solid var(--paper-3);
+    box-shadow:10px 12px 0 rgba(35,29,20,.14);
+    display:flex; transition:max-width .35s cubic-bezier(.25,.8,.3,1);
+  }
+  .sheet iframe{ flex:1; border:0; width:100%; display:block; background:#fff; }
+
+  /* ---------- status bar ---------- */
+  .statusbar{
+    flex:none; background:var(--ink); color:var(--paper);
+    display:flex; align-items:center; gap:10px; padding:7px 16px;
+    font-size:9.5px; font-weight:600; letter-spacing:1.3px; text-transform:uppercase;
+  }
+  .statusbar span{ white-space:nowrap; }
+  .statusbar b{ font-weight:700; }
+  .statusbar .sep{ color:rgba(245,239,227,.35); }
+  .sb-dim{ color:rgba(245,239,227,.55); }
+  .sb-mark{ color:#E0703F; letter-spacing:1.6px; }
+  .hint{ color:rgba(245,239,227,.4); }
+
+  /* ---------- stamped toasts ---------- */
+  .toasts{
+    position:fixed; right:16px; bottom:46px; z-index:60;
+    display:flex; flex-direction:column; gap:10px; align-items:flex-end; pointer-events:none;
+  }
+  .toast{
+    pointer-events:auto; background:var(--paper); border:1.5px solid var(--ink);
+    box-shadow:5px 5px 0 var(--ink); padding:10px 14px 12px;
+    min-width:230px; max-width:340px;
+    display:flex; flex-direction:column; gap:8px;
+    animation:tin .3s cubic-bezier(.2,.9,.25,1.2);
+  }
+  .toast.out{ animation:tout .22s ease forwards; }
+  .tstamp{
+    align-self:flex-start; transform:rotate(-3deg);
+    border:2px solid var(--red); color:var(--red); border-radius:2px;
+    padding:2px 9px 3px; font-size:10px; font-weight:700;
+    letter-spacing:2.4px; text-transform:uppercase; opacity:.92;
+  }
+  .tmsg{ font-size:12px; line-height:1.55; color:var(--ink); cursor:pointer; }
+  .toast .act{
+    align-self:flex-start; background:none; border:none; padding:0; cursor:pointer;
+    font:700 10px 'IBM Plex Mono', monospace; letter-spacing:1.8px; text-transform:uppercase;
+    color:var(--red); text-decoration:underline; text-underline-offset:3px;
+  }
+  @keyframes tin{ from{ opacity:0; transform:translateY(12px); } }
+  @keyframes tout{ to{ opacity:0; transform:translateY(8px); } }
+
+  @media (max-width:920px){
+    main{ flex-direction:column; }
+    .divider{ display:none; }
+    .pane-src{ flex:0 0 55%; }
+    .pane-proof{ border-top:2px solid var(--ink); }
+    .hint,.brand-sub{ display:none; }
+  }
+  @media (max-width:620px){
+    .masthead{ padding:10px 14px; }
+    .brand h1{ font-size:26px; }
+    #fileName{ width:118px; }
+    .ph-sub{ display:none; }
+    .sb-dim,.sb-mark{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- hand-drawn stroke icons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3.5v11"/><path d="m7 10 5 5 5-5"/><path d="M4.5 20.5h15"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11.5" height="11.5" rx="1.5"/><path d="M15 6.5V5A1.5 1.5 0 0 0 13.5 3.5H5A1.5 1.5 0 0 0 3.5 5v8.5A1.5 1.5 0 0 0 5 15h1.5"/></symbol>
+    <symbol id="i-open" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 11 13"/><path d="M19 14.5v5A1.5 1.5 0 0 1 17.5 21h-12A1.5 1.5 0 0 1 4 19.5v-12A1.5 1.5 0 0 1 5.5 6h5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.5-5.8"/><path d="M20 3.5V8h-4.5"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5V5.5Z"/><path d="M20 18H6.5"/><path d="M8.5 7.5h7"/><path d="M8.5 11h4.5"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M13.5 3.5H6.5A1.5 1.5 0 0 0 5 5v14a1.5 1.5 0 0 0 1.5 1.5h11A1.5 1.5 0 0 0 19 19V9l-5.5-5.5Z"/><path d="M13.5 3.5V9H19"/><path d="M12 12.5v5"/><path d="m9.5 15 2.5 2.5L14.5 15"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M12 3 20 7.5v9L12 21 4 16.5v-9L12 3Z"/><path d="M4 7.5 12 12l8-4.5"/><path d="M12 12v9"/></symbol>
+  </defs>
+</svg>
+
+<header class="masthead">
+  <div class="brand">
+    <h1>Hotmetal<span class="dot">.</span></h1>
+    <div class="brand-sub">The HTML Press<em>compose · proof · press · bind</em></div>
+  </div>
+  <div class="actions">
+    <div class="filewrap">
+      <label class="microlabel" for="fileName">File</label>
+      <input id="fileName" value="index.html" spellcheck="false" autocomplete="off">
+    </div>
+    <span class="vsep"></span>
+    <button class="obtn" id="btnCopy" title="Copy all source"><svg class="ic"><use href="#i-copy"/></svg>Copy</button>
+    <button class="obtn" id="btnOpen" title="Open the proof in a new tab"><svg class="ic"><use href="#i-open"/></svg>Open</button>
+    <button class="bbtn" id="btnBind" title="Bind into a .zip archive (Ctrl/⌘+Shift+S)"><svg class="ic"><use href="#i-box"/></svg>Bind</button>
+    <button class="pbtn" id="btnPress" title="Download as an HTML file (Ctrl/⌘+S)"><svg class="ic"><use href="#i-dl"/></svg>Press</button>
+  </div>
+</header>
+
+<main id="mainEl">
+  <section class="pane pane-src" id="srcPane">
+    <div class="pane-head">
+      <span class="ph-num">01</span>
+      <span class="ph-title">SOURCE</span>
+      <span class="ph-sub">· composing stick</span>
+      <span class="grow"></span>
+      <button class="tbtn" id="btnSample" title="Load the sample sheet"><svg class="ic"><use href="#i-book"/></svg>Sample</button>
+      <button class="tbtn" id="btnBlank" title="Clear to a blank sheet"><svg class="ic"><use href="#i-file"/></svg>Blank</button>
+    </div>
+    <div class="editor">
+      <div class="gutter"><div class="gutter-in" id="gutterIn"></div></div>
+      <div class="stack">
+        <div class="ovl"><div class="active-line" id="activeLine"></div></div>
+        <pre class="hl" id="hlPre" aria-hidden="true"><code id="hlCode"></code></pre>
+        <textarea id="src" wrap="off" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="HTML source"></textarea>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider" id="divider" role="separator" aria-orientation="vertical" title="Drag to resize"><span class="grip"></span></div>
+
+  <section class="pane pane-proof">
+    <div class="pane-head">
+      <span class="ph-num">02</span>
+      <span class="ph-title">PROOF</span>
+      <span class="ph-sub">· pull a live sheet</span>
+      <span class="grow"></span>
+      <span class="pstat" id="pstat"><i class="pdot"></i><span id="pstate">CASTING…</span></span>
+      <span class="vsep2"></span>
+      <button class="fbtn on" data-w="folio" title="Full width">Folio</button>
+      <button class="fbtn" data-w="quarto" title="768 px — tablet">Quarto</button>
+      <button class="fbtn" data-w="octavo" title="390 px — phone">Octavo</button>
+      <button class="ibtn" id="btnRefresh" title="Re-cast the proof (Ctrl/⌘+Enter)"><svg class="ic"><use href="#i-refresh"/></svg></button>
+    </div>
+    <div class="desk" id="desk">
+      <div class="sheet" id="sheet">
+        <iframe id="frame" title="Live proof of your HTML" sandbox="allow-scripts allow-forms allow-modals allow-popups"></iframe>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="statusbar">
+  <span>LN <b id="sbLn">1</b> · COL <b id="sbCol">1</b></span>
+  <span class="sep">—</span>
+  <span id="sbLines">1 LINE</span>
+  <span class="sep">—</span>
+  <span id="sbChars">0 CHARS</span>
+  <span class="grow"></span>
+  <span class="hint">CTRL/⌘+S PRESS · CTRL/⌘+SHIFT+S BIND · CTRL/⌘+ENTER RE-CAST</span>
+  <span class="grow"></span>
+  <span class="sb-dim" id="sbSize">≈ 0 B</span>
+  <span class="sep">—</span>
+  <span class="sb-dim">UTF-8 · TEXT/HTML</span>
+  <span class="sep">—</span>
+  <span class="sb-mark">HOTMETAL · Nº 002</span>
+</footer>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+var $ = function(id){ return document.getElementById(id); };
+var ta = $('src'), hlPre = $('hlPre'), hlCode = $('hlCode');
+var gutterIn = $('gutterIn'), activeLine = $('activeLine');
+var frame = $('frame'), desk = $('desk'), sheet = $('sheet');
+var pstat = $('pstat'), pstate = $('pstate');
+var mainEl = $('mainEl'), srcPane = $('srcPane'), divider = $('divider');
+var fileInput = $('fileName'), btnPress = $('btnPress'), btnBind = $('btnBind');
+var sbLn = $('sbLn'), sbCol = $('sbCol'), sbLines = $('sbLines'), sbChars = $('sbChars'), sbSize = $('sbSize');
+var toastsBox = $('toasts');
+
+var LH = 21, PADT = 14;
+var te = new TextEncoder();
+
+/* ---------------- the starter sheet ---------------- */
+var SAMPLE = `<!DOCTYPE html>
+<!-- This whole document is yours — edit anything, then press it to a file. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A Small Proof</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #F4EEE1;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #262019;
+    }
+    .card {
+      background: #FFFFFF;
+      border: 2px solid #262019;
+      box-shadow: 10px 10px 0 #B3371A;
+      padding: 3rem 3.25rem;
+      max-width: 26rem;
+      text-align: center;
+    }
+    .eyebrow {
+      font: bold 11px "Courier New", monospace;
+      letter-spacing: 3px;
+      color: #B3371A;
+      margin: 0 0 1.1rem;
+    }
+    h1 { font-style: italic; font-size: 2rem; line-height: 1.25; margin: 0 0 1rem; }
+    p { line-height: 1.6; margin: 0 0 1.6rem; }
+    button {
+      font: bold 12px "Courier New", monospace;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 24px;
+      background: #262019;
+      color: #F4EEE1;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #B3371A; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="eyebrow">PROOF N&ordm; 1</p>
+    <h1>Well-set type reads<br>before it is noticed.</h1>
+    <p>This proof re-casts itself while you edit the source on the left.
+       When it looks right, press it into a file.</p>
+    <button id="ink">Ink counter: <span id="n">0</span></button>
+  </main>
+  <script>
+    var n = 0;
+    document.getElementById("ink").addEventListener("click", function () {
+      n = n + 1;
+      document.getElementById("n").textContent = n;
+    });
+  <\/script>
+</body>
+</html>`;
+
+/* ---------------- tiny HTML syntax highlighter ---------------- */
+var ESCmap = { '&':'&amp;', '<':'&lt;', '>':'&gt;' };
+function ESC(s){ return s.replace(/[&<>]/g, function(c){ return ESCmap[c]; }); }
+function span(cls, t){ return '<span class="t-' + cls + '">' + ESC(t) + '</span>'; }
+
+function wrap(s, re, classify){
+  var out = '', last = 0, m;
+  re.lastIndex = 0;
+  while ((m = re.exec(s)) !== null){
+    if (m.index > last) out += ESC(s.slice(last, m.index));
+    var c = classify(m);
+    out += c ? span(c, m[0]) : ESC(m[0]);
+    last = m.index + m[0].length;
+    if (m[0].length === 0) re.lastIndex++;
+  }
+  return out + ESC(s.slice(last));
+}
+
+var attrRe = /("[^"]*"|'[^']*')|(\/)|(=)|([^\s"'=\/]+)|(\s+)/g;
+function hlAttrs(s){
+  return wrap(s, attrRe, function(m){
+    if (m[1]) return 'str';
+    if (m[2] || m[3]) return 'pun';
+    if (m[4]) return 'attr';
+    return null;
+  });
+}
+
+var entRe = /&(?:[a-zA-Z][a-zA-Z0-9]{1,30}|#\d{1,7}|#x[0-9a-fA-F]{1,6});/g;
+function hlText(s){ return wrap(s, entRe, function(){ return 'ent'; }); }
+
+var jsRe = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:\\.|[^"\\\n])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?(?:px|em|rem|%|vh|vw|ms|s|fr|ch|deg)?\b|#[0-9a-fA-F]{3,8}\b)|(\b(?:const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|class|extends|typeof|instanceof|try|catch|finally|throw|this|super|import|export|from|null|true|false|undefined|document|window|console|addEventListener|querySelector|getElementById)\b)/g;
+function hlJS(s){
+  return wrap(s, jsRe, function(m){
+    if (m[1]) return 'com';
+    if (m[2]) return 'str';
+    if (m[3]) return 'num';
+    if (m[4]) return 'kw';
+    return null;
+  });
+}
+
+var tagRe = /<(\/?)([a-zA-Z][\w:-]*)([^>]*)>/y;
+
+function highlight(src){
+  var out = '', i = 0, n = src.length;
+  var low = src.toLowerCase();
+  while (i < n){
+    if (src.startsWith('<!--', i)){
+      var ce = src.indexOf('-->', i + 4);
+      ce = ce === -1 ? n : ce + 3;
+      out += span('com', src.slice(i, ce)); i = ce; continue;
+    }
+    var c = src[i];
+    if (c === '<' && (src[i+1] === '!' || src[i+1] === '?')){
+      var de = src.indexOf('>', i);
+      de = de === -1 ? n : de + 1;
+      out += span('doc', src.slice(i, de)); i = de; continue;
+    }
+    if (c === '<'){
+      tagRe.lastIndex = i;
+      var m = tagRe.exec(src);
+      if (m){
+        out += span('pun', m[1] ? '</' : '<') + span('tag', m[2]) + hlAttrs(m[3]) + span('pun', '>');
+        i = tagRe.lastIndex;
+        var nm = m[2].toLowerCase();
+        if (!m[1] && (nm === 'script' || nm === 'style')){
+          var close = low.indexOf('</' + nm, i);
+          if (close !== -1){
+            out += hlJS(src.slice(i, close));
+            i = close;
+          }
+        }
+        continue;
+      }
+    }
+    var next = src.indexOf('<', i + 1);
+    if (next === -1) next = n;
+    out += hlText(src.slice(i, next));
+    i = next;
+  }
+  return out;
+}
+
+/* ---------------- editor state ---------------- */
+var caretLine = 0, lastCur = -1, lastLines = -1;
+var gutterSpans = [];
+var hlTimer = null, proofTimer = null;
+
+function buildGutter(lines){
+  var frag = document.createDocumentFragment();
+  gutterSpans = new Array(lines);
+  for (var k = 1; k <= lines; k++){
+    var s = document.createElement('span');
+    s.textContent = k;
+    frag.appendChild(s);
+    gutterSpans[k-1] = s;
+  }
+  gutterIn.textContent = '';
+  gutterIn.appendChild(frag);
+}
+
+function setCurLine(cur){
+  if (cur === lastCur) return;
+  if (gutterSpans[lastCur]) gutterSpans[lastCur].classList.remove('cur');
+  if (gutterSpans[cur]) gutterSpans[cur].classList.add('cur');
+  lastCur = cur;
+}
+
+function refreshHL(){
+  var v = ta.value;
+  hlCode.innerHTML = highlight(v) + '\n';
+  var lines = v.split('\n').length;
+  if (lines !== lastLines){
+    buildGutter(lines);
+    lastLines = lines;
+    lastCur = -1;
+  }
+  syncScroll();
+  updateStats();
+}
+
+function syncScroll(){
+  hlPre.scrollTop = ta.scrollTop;
+  hlPre.scrollLeft = ta.scrollLeft;
+  gutterIn.style.transform = 'translateY(' + (-ta.scrollTop) + 'px)';
+  positionActiveLine();
+}
+
+function positionActiveLine(){
+  activeLine.style.transform = 'translateY(' + (PADT + caretLine * LH - ta.scrollTop) + 'px)';
+}
+
+function updateCaret(){
+  var s = ta.selectionStart;
+  var before = ta.value.slice(0, s);
+  caretLine = (before.match(/\n/g) || []).length;
+  var col = s - before.lastIndexOf('\n') - 1;
+  sbLn.textContent = caretLine + 1;
+  sbCol.textContent = col + 1;
+  setCurLine(caretLine);
+  positionActiveLine();
+}
+
+function fmtBytes(b){
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+
+function updateStats(){
+  var v = ta.value;
+  var lines = v.split('\n').length;
+  sbLines.textContent = lines + (lines === 1 ? ' LINE' : ' LINES');
+  sbChars.textContent = v.length.toLocaleString() + ' CHARS';
+  sbSize.textContent = '≈ ' + fmtBytes(te.encode(v).length);
+}
+
+/* ---------------- live proof ---------------- */
+function nowTime(){
+  var d = new Date(), p = function(x){ return String(x).padStart(2, '0'); };
+  return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+}
+function markDirty(){
+  pstat.classList.add('dirty');
+  pstate.textContent = 'DIRTY';
+}
+function applyProof(){
+  clearTimeout(proofTimer);
+  pstat.classList.add('dirty');
+  pstate.textContent = 'CASTING…';
+  frame.srcdoc = ta.value;
+}
+frame.addEventListener('load', function(){
+  pstat.classList.remove('dirty');
+  pstate.textContent = 'PROOFED ' + nowTime();
+});
+
+/* ---------------- input wiring ---------------- */
+ta.addEventListener('input', function(){
+  updateCaret();
+  markDirty();
+  clearTimeout(hlTimer); hlTimer = setTimeout(refreshHL, 90);
+  clearTimeout(proofTimer); proofTimer = setTimeout(applyProof, 500);
+});
+ta.addEventListener('scroll', syncScroll);
+['keyup','click','select','focus'].forEach(function(ev){
+  ta.addEventListener(ev, updateCaret);
+});
+
+/* insertText keeps the browser's native undo stack intact */
+function insertText(txt){
+  if (!document.execCommand('insertText', false, txt)){
+    ta.setRangeText(txt, ta.selectionStart, ta.selectionEnd, 'end');
+    ta.dispatchEvent(new Event('input', { bubbles:true }));
+  }
+}
+
+ta.addEventListener('keydown', function(e){
+  if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey){
+    e.preventDefault();
+    insertText('  ');
+    return;
+  }
+  if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey){
+    e.preventDefault();
+    var s = ta.selectionStart;
+    var ls = ta.value.lastIndexOf('\n', s - 1) + 1;
+    var indent = /^[ \t]*/.exec(ta.value.slice(ls, s))[0];
+    insertText('\n' + indent);
+  }
+});
+
+window.addEventListener('keydown', function(e){
+  var mod = e.ctrlKey || e.metaKey;
+  if (mod && (e.key === 's' || e.key === 'S')){
+    e.preventDefault();
+    if (e.shiftKey) bindZip(); else press();
+  }
+  else if (mod && e.key === 'Enter'){ e.preventDefault(); applyProof(); }
+});
+
+fileInput.addEventListener('keydown', function(e){
+  if (e.key === 'Enter'){ e.preventDefault(); press(); }
+});
+
+/* ---------------- stamped toasts ---------------- */
+function toast(stampTitle, msg, opts){
+  opts = opts || {};
+  var el = document.createElement('div');
+  el.className = 'toast';
+  var st = document.createElement('div');
+  st.className = 'tstamp'; st.textContent = stampTitle;
+  var m = document.createElement('div');
+  m.className = 'tmsg'; m.textContent = msg;
+  el.appendChild(st); el.appendChild(m);
+  var alive = true;
+  function kill(){
+    if (!alive) return;
+    alive = false;
+    el.classList.add('out');
+    setTimeout(function(){ el.remove(); }, 230);
+  }
+  if (opts.action){
+    var b = document.createElement('button');
+    b.className = 'act'; b.type = 'button'; b.textContent = opts.action;
+    b.addEventListener('click', function(){ if (opts.fn) opts.fn(); kill(); });
+    el.appendChild(b);
+  }
+  m.addEventListener('click', kill);
+  toastsBox.appendChild(el);
+  while (toastsBox.children.length > 4) toastsBox.firstChild.remove();
+  setTimeout(kill, opts.action ? 7000 : 4000);
+}
+
+/* ---------------- press (download HTML) ---------------- */
+function fileName(){
+  var n = (fileInput.value || '').trim() || 'index.html';
+  n = n.replace(/[\\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ');
+  if (!/\.html?$/i.test(n)) n += '.html';
+  fileInput.value = n;
+  return n;
+}
+
+function press(){
+  var src = ta.value;
+  if (!src.trim()){
+    toast('EMPTY', 'The composing stick is blank — there is nothing to press.');
+    ta.focus();
+    return;
+  }
+  var name = fileName();
+  var blob = new Blob([src], { type: 'text/html;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  btnPress.classList.add('hit');
+  setTimeout(function(){ btnPress.classList.remove('hit'); }, 260);
+  toast('PRESSED', name + ' · ' + fmtBytes(blob.size) + ' pulled from the press.');
+}
+btnPress.addEventListener('click', press);
+
+/* ---------------- bind (download ZIP) ----------------
+   A complete ZIP writer, no library: local file header + stored
+   (uncompressed) data + central directory + EOCD, with CRC-32,
+   UTF-8 filename flag and DOS timestamps. Standard enough for
+   Windows Explorer, macOS Archive Utility, unzip, 7-Zip… */
+var CRC_TABLE = (function(){
+  var t = new Uint32Array(256);
+  for (var n = 0; n < 256; n++){
+    var c = n;
+    for (var k = 0; k < 8; k++){
+      c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    }
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(u8){
+  var c = 0xFFFFFFFF;
+  for (var i = 0; i < u8.length; i++){
+    c = (c >>> 8) ^ CRC_TABLE[(c ^ u8[i]) & 0xFF];
+  }
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+function u16le(a, o, v){ a[o] = v & 255; a[o + 1] = (v >>> 8) & 255; }
+function u32le(a, o, v){ a[o] = v & 255; a[o + 1] = (v >>> 8) & 255; a[o + 2] = (v >>> 16) & 255; a[o + 3] = (v >>> 24) & 255; }
+
+function buildZip(entries){
+  var now = new Date();
+  var yr = Math.max(now.getFullYear(), 1980);
+  var dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  var dosDate = ((yr - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  var locals = [], centrals = [];
+  var offset = 0, centralSize = 0;
+
+  entries.forEach(function(e){
+    var name = te.encode(e.name);
+    var data = e.data;
+    var crc = crc32(data);
+
+    var lh = new Uint8Array(30 + name.length);
+    u32le(lh, 0, 0x04034b50);        // local file header signature
+    u16le(lh, 4, 20);                // version needed
+    u16le(lh, 6, 0x0800);            // general flag: UTF-8 filename
+    u16le(lh, 8, 0);                 // method: stored (no compression)
+    u16le(lh, 10, dosTime);
+    u16le(lh, 12, dosDate);
+    u32le(lh, 14, crc);              // CRC-32 of the data
+    u32le(lh, 18, data.length);      // compressed size
+    u32le(lh, 22, data.length);      // uncompressed size
+    u16le(lh, 26, name.length);
+    u16le(lh, 28, 0);                // extra field length
+    lh.set(name, 30);
+    locals.push(lh, data);
+
+    var ch = new Uint8Array(46 + name.length);
+    u32le(ch, 0, 0x02014b50);        // central directory signature
+    u16le(ch, 4, 20);                // version made by
+    u16le(ch, 6, 20);                // version needed
+    u16le(ch, 8, 0x0800);
+    u16le(ch, 10, 0);                // stored
+    u16le(ch, 12, dosTime);
+    u16le(ch, 14, dosDate);
+    u32le(ch, 16, crc);
+    u32le(ch, 20, data.length);
+    u32le(ch, 24, data.length);
+    u16le(ch, 28, name.length);
+    u16le(ch, 30, 0); u16le(ch, 32, 0);  // extra, comment lengths
+    u16le(ch, 34, 0); u16le(ch, 36, 0);  // disk start, internal attrs
+    u32le(ch, 38, 0);                    // external attrs
+    u32le(ch, 42, offset);               // offset of local header
+    ch.set(name, 46);
+    centrals.push(ch);
+
+    centralSize += ch.length;
+    offset += lh.length + data.length;
+  });
+
+  var eocd = new Uint8Array(22);
+  u32le(eocd, 0, 0x06054b50);        // end of central directory
+  u16le(eocd, 4, 0); u16le(eocd, 6, 0);  // disk numbers
+  u16le(eocd, 8, entries.length);
+  u16le(eocd, 10, entries.length);
+  u32le(eocd, 12, centralSize);
+  u32le(eocd, 16, offset);
+  u16le(eocd, 20, 0);                // comment length
+
+  var all = locals.concat(centrals);
+  all.push(eocd);
+  var out = new Uint8Array(offset + centralSize + 22), pos = 0;
+  for (var j = 0; j < all.length; j++){
+    out.set(all[j], pos);
+    pos += all[j].length;
+  }
+  return new Blob([out], { type: 'application/zip' });
+}
+
+function bindZip(){
+  var src = ta.value;
+  if (!src.trim()){
+    toast('EMPTY', 'The composing stick is blank — there is nothing to bind.');
+    ta.focus();
+    return;
+  }
+  var name = fileName();
+  var base = name.replace(/\.html?$/i, '') || 'index';
+  var zipName = base + '.zip';
+  var blob = buildZip([{ name: name, data: te.encode(src) }]);
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = zipName;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 5000);
+  btnBind.classList.add('hit');
+  setTimeout(function(){ btnBind.classList.remove('hit'); }, 260);
+  toast('BOUND', zipName + ' · ' + fmtBytes(blob.size) + ' — ' + name + ' bound inside.');
+}
+btnBind.addEventListener('click', bindZip);
+
+/* ---------------- copy & open ---------------- */
+ $('btnCopy').addEventListener('click', function(){
+  var v = ta.value;
+  if (!v.trim()){ toast('EMPTY', 'Nothing to copy — the stick is blank.'); return; }
+  var done = function(){ toast('COPIED', 'Full source is on your clipboard.'); };
+  var fallback = function(){
+    var t = document.createElement('textarea');
+    t.value = v;
+    t.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+    document.body.appendChild(t); t.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (err) {}
+    t.remove();
+    if (ok) done();
+    else toast('FAILED', 'Could not reach the clipboard — copy manually from the source.');
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(v).then(done, fallback);
+  } else fallback();
+});
+
+ $('btnOpen').addEventListener('click', function(){
+  if (!ta.value.trim()){ toast('EMPTY', 'Nothing to open — cast something first.'); return; }
+  var blob = new Blob([ta.value], { type: 'text/html' });
+  var url = URL.createObjectURL(blob);
+  var w = window.open(url, '_blank');
+  if (!w) toast('BLOCKED', 'The browser blocked the new tab — allow pop-ups for this page.');
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 30000);
+});
+
+ $('btnRefresh').addEventListener('click', applyProof);
+
+/* ---------------- sheets ---------------- */
+function loadSheet(v, stampTitle, msg){
+  var prev = ta.value;
+  ta.value = v;
+  lastLines = -1;
+  refreshHL(); updateCaret(); applyProof();
+  ta.focus();
+  toast(stampTitle, msg, { action: 'UNDO', fn: function(){
+    ta.value = prev;
+    lastLines = -1;
+    refreshHL(); updateCaret(); applyProof();
+  }});
+}
+
+ $('btnSample').addEventListener('click', function(){
+  if (ta.value === SAMPLE){ toast('ALREADY SET', 'The sample sheet is already on the stick.'); return; }
+  loadSheet(SAMPLE, 'LOADED', 'Sample sheet set on the composing stick.');
+});
+
+ $('btnBlank').addEventListener('click', function(){
+  if (!ta.value.trim()){ toast('ALREADY BLANK', 'The stick is already empty.'); return; }
+  loadSheet('', 'CLEARED', 'Blank sheet loaded — UNDO restores your work.');
+});
+
+/* ---------------- proof formats ---------------- */
+var fmt = 'folio';
+var F = { folio: 0, quarto: 768, octavo: 390 };
+function sheetMax(){
+  return fmt === 'folio' ? Math.max(320, desk.clientWidth - 44) : F[fmt];
+}
+function setFormat(k){
+  fmt = k;
+  sheet.style.maxWidth = sheetMax() + 'px';
+  document.querySelectorAll('.fbtn').forEach(function(b){
+    b.classList.toggle('on', b.dataset.w === k);
+  });
+}
+document.querySelectorAll('.fbtn').forEach(function(b){
+  b.addEventListener('click', function(){ setFormat(b.dataset.w); });
+});
+
+window.addEventListener('resize', function(){
+  if (fmt === 'folio') sheet.style.maxWidth = sheetMax() + 'px';
+  positionActiveLine();
+});
+
+/* ---------------- split divider ---------------- */
+var dragging = false;
+divider.addEventListener('pointerdown', function(e){
+  dragging = true;
+  divider.setPointerCapture(e.pointerId);
+  document.body.classList.add('dragging');
+});
+divider.addEventListener('pointermove', function(e){
+  if (!dragging) return;
+  var r = mainEl.getBoundingClientRect();
+  var w = Math.max(260, Math.min(r.width - 300, e.clientX - r.left));
+  srcPane.style.flex = '0 0 ' + w + 'px';
+  if (fmt === 'folio') sheet.style.maxWidth = sheetMax() + 'px';
+});
+function stopDrag(){
+  if (dragging){ dragging = false; document.body.classList.remove('dragging'); }
+}
+divider.addEventListener('pointerup', stopDrag);
+divider.addEventListener('pointercancel', stopDrag);
+
+/* clear inline width when the layout stacks on narrow screens */
+var mq = window.matchMedia('(max-width: 920px)');
+function clearFlex(){ if (mq.matches) srcPane.style.flex = ''; }
+if (mq.addEventListener) mq.addEventListener('change', clearFlex);
+else if (mq.addListener) mq.addListener(clearFlex);
+clearFlex();
+
+/* ---------------- init ---------------- */
+ta.value = SAMPLE;
+refreshHL();
+updateCaret();
+setFormat('folio');
+applyProof();
+ta.focus();
+if (document.fonts && document.fonts.ready){
+  document.fonts.ready.then(function(){ refreshHL(); });
+}
+
+})();
+</script>
+</body>
+</html>
