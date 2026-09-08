@@ -100,5 +100,11 @@
     "type": "html",
     "path": "games/MC.html",
     "thumbnail": "default-thumbnail.jpg"
-  }   
+  },
+  {
+    "name": "HTML Downloader",
+    "type": "html",
+    "path": "games/HD.html",
+    "thumbnail": "default-thumbnail.jpg"
+  }
 ]
