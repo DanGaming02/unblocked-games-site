@@ -106,5 +106,11 @@
     "type": "html",
     "path": "games/HD.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Doors RNG",
+    "type": "html",
+    "path": "games/DoorsRNG.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
