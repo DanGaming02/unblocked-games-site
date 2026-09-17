@@ -240,7 +240,7 @@ body:not(.touch) .controls.tc{display:none}
   <div id="scoreboard">
     <div class="team blue"><span class="tname">YOU</span><span class="tscore" id="scoreYou">0</span></div>
     <div id="clockWrap"><div id="clock">3:00</div><div id="clockTag">TIME</div></div>
-    <div class="team orange"><span class="tscore" id="scoreCpu">0</span><span class="tname">CPU</span></div>
+    <div class="team orange"><span class="tscore" id="scoreCpu">0</span><span class="tname" id="tnameCpu">CPU</span></div>
   </div>
 
   <div id="boostBox">
@@ -994,7 +994,7 @@ function onGuestState(p){
   }
 }
 /* guest receives the world */
-let netPrevOt=false;
+let netPrevOt=false,netPrevGd=0,netLastDemo=0;
 function onWorld(p){
   if(!p||mode!=='mpg')return;
   NET.lastPkt=performance.now();
@@ -1006,7 +1006,21 @@ function onWorld(p){
   if(overtime&&!netPrevOt){showMsg('OVERTIME','ot','NEXT GOAL WINS',2600);sfxCount();}
   netPrevOt=overtime;
   applyPadMask(p.pm);
-  if(p.gd>0&&player.demoT<=0)demolishSelf(p.gx||0,p.gz||24);
+  /* ------------------------------------------------------------
+     DEMOLITION SYNC (guest side of my own car):
+     I get demolished ONLY on the host's rising edge (gd: 0 -> >0),
+     exactly once per demolition — the old code re-triggered a full
+     3s demolition off every stale packet, which made demolished
+     cars stay invisible forever. The remaining-time mirror happens
+     every frame in the main loop (see tick()).
+     ------------------------------------------------------------ */
+  const gdNow=p.gd||0,nowMs=performance.now();
+  if(gdNow>0&&netPrevGd<=0&&nowMs-netLastDemo>1500&&
+     ['countdown','play','goal'].includes(state)){
+    netLastDemo=nowMs;
+    demolishSelf(p.gx||0,p.gz||24);
+  }
+  netPrevGd=gdNow;
   if(p.ph==='countdown'){
     if(state!=='countdown'||curKickIdx!==p.k)resetKickoff(p.k);
     countT=p.phT||3;
@@ -1072,17 +1086,28 @@ function padPickFx(p){
     spawnP(p.x+rand(-0.6,0.6),0.3,p.z+rand(-0.6,0.6),
       rand(-1,1),rand(2,5),rand(-1,1),rand(0.4,0.7),rand(0.5,0.9),1,0.72,0.3,-2);
 }
-/* drives the remote (opponent) car object from network snapshots */
-function netRemoteApply(car,c,fl,flags,dm,recvT,dtR){
-  if(dm>0){
-    if(car.demoT<=0){
+/* ------------------------------------------------------------
+   Drives the remote (opponent) car object from network snapshots.
+   demoFromNet=true  (GUEST watching the host's car):
+     the opponent's demolition timer comes from packets — mirror it
+     every frame so the car reappears exactly when the host says so.
+   demoFromNet=false (HOST watching the guest's car):
+     OUR sim owns that car's demo timer (set by demolish()) and it
+     counts down locally. Packet data must NEVER re-arm it — that
+     echo between host and guest caused an infinite demolition loop
+     (explode -> invisible -> explode -> …) that never ended.
+   ------------------------------------------------------------ */
+function netRemoteApply(car,c,fl,flags,dm,recvT,dtR,demoFromNet){
+  if(demoFromNet&&dm>0){
+    if(car.demoT<=0){                    /* rising edge: explode + hide once */
       explosion(car.pos,car.team==='you'?[0.16,0.83,1]:[1,0.54,0.16]);
       sfxBoom();shake=Math.max(shake,0.9);
-      car.demoT=dm;car.group.visible=false;
+      car.group.visible=false;
     }
+    car.demoT=dm;                        /* mirror the remaining time */
     return;
   }
-  if(car.demoT>0)return;
+  if(car.demoT>0)return;                 /* demolished by our own sim — frozen */
   if(!Array.isArray(c)||c.length<8)return;
   const age=clamp((performance.now()-recvT)/1000,0,0.15);
   TMPa.set(c[0]+c[3]*age,c[1]+c[4]*age,c[2]+c[5]*age);
@@ -1465,7 +1490,9 @@ function startMatch(m,kIdx){
   scoreYou=0;scoreCpu=0;
   $('scoreYou').textContent=0;$('scoreCpu').textContent=0;
   matchTime=settings.len;overtime=false;otTime=0;netPrevOt=false;
+  netPrevGd=0;netLastDemo=0;
   stats={pads:0,bigHit:0,shots:0,saves:0,demos:0};
+  $('tnameCpu').textContent=(mode==='solo')?'CPU':'RIVAL';
   if(mode==='solo'){
     const cfg=AI_LEVELS[settings.diff];
     cpu.accMul=cfg.accMul;cpu.capBoost=cfg.cap;
@@ -2135,7 +2162,8 @@ function tick(){
   lastPIn=pIn;
 
   if(active){
-    /* demo timers for both cars */
+    /* demo timers for both cars (host/solo: authoritative; guest: mirrors
+       get re-pinned from packets below, so they can never run long) */
     for(const c of [player,cpu]){
       if(c.demoT>0){
         c.demoT-=dt;
@@ -2147,11 +2175,18 @@ function tick(){
     }
     if(player.demoT<=0)updateCar(player,pIn,dt,true);
     if(mode==='solo'&&cpu.demoT<=0)updateCar(cpu,aiInput(dt),dt,false);
-    if(isMP&&cpu.demoT<=0){
+    if(isMP){
+      /* HOST: our sim owns the opponent car's demo timer — packets must
+         never re-arm it (demoFromNet=false). GUEST: the opponent car's
+         demo state comes from the host's packets (demoFromNet=true).
+         (The old guest call passed a timestamp where the demo value
+         belongs — the opponent exploded at kickoff and never respawned.) */
       if(mode==='mph'&&NET.guest)
-        netRemoteApply(cpu,NET.guest.c,NET.guest.fl,{b:NET.guest.b,dp:NET.guest.dp},NET.guest.dm,NET.guest.recvT,dtR);
+        netRemoteApply(cpu,NET.guest.c,NET.guest.fl,{b:NET.guest.b,dp:NET.guest.dp},
+                       NET.guest.dm,NET.guest.recvT,dtR,false);
       else if(mode==='mpg'&&NET.world)
-        netRemoteApply(cpu,NET.world.p.hc,NET.world.p.hf&&NET.world.p.hf.fl,NET.world.p.hd,NET.world.recvT,dtR);
+        netRemoteApply(cpu,NET.world.p.hc,NET.world.p.hf&&NET.world.p.hf.fl,NET.world.p.hf,
+                       NET.world.p.hd,NET.world.recvT,dtR,true);
       remoteCarVisuals(cpu,dt);
     }
     if(state==='play'){
@@ -2186,6 +2221,13 @@ function tick(){
     if(state==='countdown')netCountdownTick(dtR);
     if(state==='goal')netGoalHold(dtR);
     netBallBlend(dtR);
+    /* my own demo timer mirrors the host's remaining time every frame —
+       the local countdown can never drift past the host's, so I ALWAYS
+       reappear 3s after the demolition, on both screens */
+    if(NET.world&&(NET.world.p.gd||0)>0&&['countdown','play','goal'].includes(state)){
+      player.demoT=NET.world.p.gd;
+      player.group.visible=false;
+    }
   }
 
   /* network send loop + connection watchdog */
