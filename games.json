@@ -112,5 +112,11 @@
     "type": "html",
     "path": "games/DoorsRNG.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Portal Farm",
+    "type": "html",
+    "path": "games/PF.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
