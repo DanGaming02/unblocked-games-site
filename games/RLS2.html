@@ -191,6 +191,7 @@ const W=1600, H=950, TAU=Math.PI*2, STEP=1/120;
 const AR={L:100,R:1500,F:880,C:90,TR:250,GH:280,GD:150}; AR.GT=AR.F-AR.GH;
 const G=2400, BALLG=1850;
 const HW=58, HH=19, CR=26, BR=64;
+const PL=AR.F-150;                       // pitch band top (the "touchline")
 const AIR_ACC=4000, AIR_ACC_BOOST=4800, AIR_CAP=1200, AIR_CAP_BOOST=1700, AIR_TURN=9;
 const teamColor=t=>t==='blue'?'#3fc1ff':'#ff7a1a';
 
@@ -213,32 +214,17 @@ const genCode=()=>Array.from({length:4},()=>CODECH[Math.random()*CODECH.length|0
 
 /* ============================== CANVAS ============================== */
 const canvas=$('game'), ctx=canvas.getContext('2d');
-let cw=0, ch=0, dpr=1, baseScale=1, hudU=1, vig=null, nebs=[];
-let perfAvg=16.7, lowQ=false, perfT=0;
-const stars=[];
-for(let i=0;i<150;i++){
-  const far=i<95;
-  stars.push({x:Math.random(),y:Math.random(),layer:far?0:1,
-    s:far?rand(.6,1.3):rand(1.3,2.3),a:far?rand(.14,.5):rand(.25,.8),
-    tw:rand(.4,2.4),ph:rand(0,TAU)});
-}
+let cw=0, ch=0, dpr=1, baseScale=1, hudU=1, vig=null;
+const twinkles=Array.from({length:14},()=>({x:Math.random(),y:Math.random(),tw:rand(.8,2.2),ph:rand(0,TAU)}));
 const nebulae=[
   {x:.16,y:.20,r:.55,c0:'rgba(44,80,148,0.065)',par:.030},
   {x:.86,y:.78,r:.62,c0:'rgba(126,62,52,0.055)',par:.035},
   {x:.58,y:.12,r:.42,c0:'rgba(38,112,112,0.050)',par:.026}
 ];
-// nebula blobs are pre-rendered once (full-screen gradient fills every frame are expensive)
-function buildNebs(){
-  nebs=nebulae.map(n=>{
-    const r=Math.ceil(n.r*Math.min(cw,ch))+40;
-    const c=document.createElement('canvas'); c.width=c.height=r*2;
-    const x=c.getContext('2d');
-    const g=x.createRadialGradient(r,r,0,r,r,r);
-    g.addColorStop(0,n.c0); g.addColorStop(1,'rgba(0,0,0,0)');
-    x.fillStyle=g; x.fillRect(0,0,r*2,r*2);
-    return {c,r,par:n.par,fx:n.x,fy:n.y};
-  });
-}
+let starLayers=null, arenaCv=null, arenaSX=1;
+const AW_X=AR.L-AR.GD-30, AW_Y=AR.C-40, AW_W=(AR.R-AR.L)+2*AR.GD+60, AW_H=(AR.F+130)-AW_Y;
+let ballGrad=null, canopyGrad=null;
+
 function resize(){
   cw=innerWidth; ch=innerHeight; dpr=Math.min(2,devicePixelRatio||1);
   canvas.width=Math.round(cw*dpr); canvas.height=Math.round(ch*dpr);
@@ -250,9 +236,135 @@ function resize(){
   const g=v.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.44, cw/2,ch/2,Math.hypot(cw,ch)*.60);
   g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.42)');
   v.fillStyle=g; v.fillRect(0,0,cw,ch);
-  buildNebs();
 }
-addEventListener('resize',resize); resize();
+addEventListener('resize',()=>{ resize(); rebuildCaches(); });
+
+/* ---- prerendered layers: this is the big performance win ---- */
+function buildStarLayers(){
+  const w=clamp(Math.ceil(cw/2),360,1024), h=clamp(Math.ceil(ch/2),240,700);
+  starLayers=[{par:.03},{par:.08}].map((L,i)=>{
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const g=c.getContext('2d');
+    const count=i===0?90:40, far=i===0;
+    for(let j=0;j<count;j++){
+      const s=far?rand(.6,1.3):rand(1.3,2.3), a=far?rand(.14,.5):rand(.25,.8);
+      g.fillStyle=`rgba(190,205,230,${a})`;
+      g.beginPath(); g.arc(Math.random()*w,Math.random()*h,s*.6,0,TAU); g.fill();
+    }
+    return {c,w,h,par:L.par};
+  });
+}
+function buildNebulae(){
+  for(const n of nebulae){
+    const cv=document.createElement('canvas'); cv.width=cv.height=256;
+    const g=cv.getContext('2d');
+    const rg=g.createRadialGradient(128,128,0,128,128,128);
+    rg.addColorStop(0,n.c0); rg.addColorStop(1,'rgba(0,0,0,0)');
+    g.fillStyle=rg; g.fillRect(0,0,256,256);
+    n.cv=cv;
+  }
+}
+function buildGrads(){
+  ballGrad=ctx.createRadialGradient(-24,-26,8,0,0,BR+2);
+  ballGrad.addColorStop(0,'#ffffff'); ballGrad.addColorStop(.45,'#eef2f6'); ballGrad.addColorStop(1,'#a9b4c0');
+  canopyGrad=ctx.createLinearGradient(0,-17,0,0);
+  canopyGrad.addColorStop(0,'#2c3d52'); canopyGrad.addColorStop(1,'#0d141d');
+}
+function arenaPath(c){
+  const {L,R,F,C,TR,GT,GD}=AR;
+  c.beginPath();
+  c.moveTo(L-GD,F);
+  c.lineTo(R+GD,F);
+  c.lineTo(R+GD,GT);
+  c.lineTo(R,GT);
+  c.lineTo(R,C+TR);
+  c.arc(R-TR,C+TR,TR,0,-Math.PI/2,true);
+  c.lineTo(L+TR,C);
+  c.arc(L+TR,C+TR,TR,-Math.PI/2,Math.PI,true);
+  c.lineTo(L,GT);
+  c.lineTo(L-GD,GT);
+  c.closePath();
+}
+function goalPaint(c,s,col,tint){
+  const {L,R,F,GT,GD}=AR;
+  const x0=s<0?L-GD:R;
+  c.fillStyle='#0a0e15'; c.fillRect(x0,GT,GD,F-GT);
+  c.globalAlpha=.7; c.fillStyle=tint; c.fillRect(x0,GT,GD,F-GT);
+  c.save(); c.beginPath(); c.rect(x0,GT,GD,F-GT); c.clip();
+  c.strokeStyle=col; c.globalAlpha=.12; c.lineWidth=2;
+  c.beginPath();
+  for(let x=x0;x<x0+GD+50;x+=16){ c.moveTo(x,GT); c.lineTo(x-46,F); }
+  c.stroke(); c.restore();
+  c.globalAlpha=.85; c.strokeStyle=col; c.lineWidth=5;
+  c.beginPath();
+  if(s<0){ c.moveTo(L-GD,F); c.lineTo(L-GD,GT); c.lineTo(L-2,GT); }
+  else{ c.moveTo(R+GD,F); c.lineTo(R+GD,GT); c.lineTo(R+2,GT); }
+  c.stroke();
+  c.setLineDash([14,10]); c.lineWidth=3; c.globalAlpha=.45;
+  c.beginPath(); c.moveTo(x0,F-2); c.lineTo(x0+GD,F-2); c.stroke();
+  c.globalAlpha=1; c.setLineDash([]);
+}
+function buildArena(){
+  arenaSX=clamp(Math.round(baseScale*Math.min(dpr,2)*1.5),1,2);
+  arenaCv=document.createElement('canvas');
+  arenaCv.width=Math.ceil(AW_W*arenaSX); arenaCv.height=Math.ceil(AW_H*arenaSX);
+  const c=arenaCv.getContext('2d');
+  c.scale(arenaSX,arenaSX); c.translate(-AW_X,-AW_Y);
+  c.lineJoin='round';
+  // floating shadows
+  c.fillStyle='rgba(0,0,0,0.50)';
+  c.beginPath(); c.ellipse(800,AR.F+58,800,40,0,0,TAU); c.fill();
+  c.fillStyle='rgba(0,0,0,0.25)';
+  c.beginPath(); c.ellipse(800,AR.F+96,640,26,0,0,TAU); c.fill();
+  // hull
+  arenaPath(c);
+  c.lineWidth=26; c.strokeStyle='#0d1219'; c.stroke();
+  c.lineWidth=14; c.strokeStyle='#28344a'; c.stroke();
+  arenaPath(c); c.fillStyle='#0b120e'; c.fill();
+  c.lineWidth=3.5; c.strokeStyle='#4a5f83'; c.stroke();
+  // interior
+  c.save(); arenaPath(c); c.clip();
+  // faint depth lines above the pitch
+  c.strokeStyle='rgba(255,255,255,0.028)'; c.lineWidth=2;
+  for(let y=PL-140;y>AR.C+70;y-=140){
+    c.beginPath(); c.moveTo(AR.L,y); c.lineTo(AR.R,y); c.stroke();
+  }
+  // ---- the green Rocket League pitch ----
+  c.fillStyle='#1f8a44';
+  c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL+6);
+  c.fillStyle='rgba(255,255,255,0.055)';       // mow stripes
+  for(let x=AR.L,i=0;x<AR.R;x+=180,i++)
+    if(i%2===0) c.fillRect(x,PL,180,AR.F-PL);
+  const gl=c.createLinearGradient(0,PL,0,AR.F);
+  gl.addColorStop(0,'rgba(255,255,255,0.10)'); gl.addColorStop(1,'rgba(0,0,0,0.16)');
+  c.fillStyle=gl; c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL);
+  c.strokeStyle='rgba(240,255,240,0.55)'; c.lineWidth=4;   // touchline
+  c.beginPath(); c.moveTo(AR.L,PL); c.lineTo(AR.R,PL); c.stroke();
+  c.strokeStyle='rgba(74,95,131,0.6)'; c.lineWidth=2;
+  c.beginPath(); c.moveTo(AR.L-AR.GD,AR.F); c.lineTo(AR.R+AR.GD,AR.F); c.stroke();
+  // ---- white field markings (perspective) ----
+  const midY=(PL+AR.F)/2;
+  c.strokeStyle='rgba(240,252,240,0.06)'; c.lineWidth=4;
+  c.beginPath(); c.moveTo(800,AR.C+70); c.lineTo(800,PL); c.stroke();       // faint center guide above
+  c.strokeStyle='rgba(240,252,240,0.55)'; c.lineWidth=5;
+  c.beginPath(); c.moveTo(800,PL); c.lineTo(800,AR.F); c.stroke();          // halfway line
+  c.beginPath(); c.ellipse(800,midY,175,58,0,0,TAU); c.stroke();            // center circle
+  c.fillStyle='rgba(240,252,240,0.6)';
+  c.beginPath(); c.arc(800,midY,7,0,TAU); c.fill();                         // kickoff spot
+  c.strokeStyle='rgba(240,252,240,0.35)'; c.lineWidth=4;                    // goal boxes
+  c.beginPath(); c.ellipse(AR.L+72,midY,120,52,0,-Math.PI/2,Math.PI/2); c.stroke();
+  c.beginPath(); c.ellipse(AR.R-72,midY,120,52,0,Math.PI/2,Math.PI*1.5); c.stroke();
+  goalPaint(c,-1,'#3fc1ff','rgba(63,193,255,0.08)');
+  goalPaint(c,1,'#ff7a1a','rgba(255,122,26,0.08)');
+  c.restore();
+  // posts
+  c.fillStyle='#3fc1ff'; c.beginPath(); c.arc(AR.L,AR.GT,9,0,TAU); c.fill();
+  c.fillStyle='#ff7a1a'; c.beginPath(); c.arc(AR.R,AR.GT,9,0,TAU); c.fill();
+  c.fillStyle='#e9eef6';
+  c.beginPath(); c.arc(AR.L,AR.GT,3.5,0,TAU); c.fill();
+  c.beginPath(); c.arc(AR.R,AR.GT,3.5,0,TAU); c.fill();
+}
+function rebuildCaches(){ buildStarLayers(); buildArena(); }
 
 /* ============================== AUDIO ============================== */
 const AC={
@@ -336,7 +448,7 @@ let state='menu', paused=false, timeScale=1, hitStopT=0, acc=0, lastT=0, timeS=0
 let score={blue:0,orange:0}, timeLeft=120, overtime=false, otTime=0;
 let goalT=0, goalTeam='blue', camPunch=null, endT=0, endShown=false, winner=null, endSub='FULL TIME';
 let cd={n:3,t:0}, banner=null, lastToucher=null, matchStartT=0;
-let flashT=0, flashCol='#ffffff', toast=null, fsActive=false;
+let flashT=0, flashCol='#ffffff', toast=null, fsActive=false, frameN=0;
 const onT={left:false,right:false};
 let stats;
 function freshStats(){ stats={blue:{shots:0,saves:0,pads:0},orange:{shots:0,saves:0,pads:0},topSpeed:0}; }
@@ -350,10 +462,6 @@ function saveSettings(){ try{localStorage.setItem('ss2',JSON.stringify(settings)
 function toastMsg(text,dur=2){ toast={text,t:0,dur}; }
 
 /* ============================== NETWORK ============================== */
-/* Netcode notes: Supabase Realtime rate-limits each client (~10 msg/s default).
-   Everything here stays under it: host snapshots 10 Hz during live play only,
-   client inputs fire on meaningful change (jumps are urgent), remote inputs are
-   smoothed locally, and clients run full prediction between snapshots. */
 const NET={
   on:false, mode:null, isHost:false,
   sb:null, ch:null, key:null,
@@ -366,8 +474,7 @@ const NET={
   name:'PLAYER', code:null,
   roster:[], hostId:null, ping:0,
   spec:false, playersMeta:{}, lastStart:null,
-  stateT:0, pingT:1, hiT:null, renderT:0,
-  lastS:0, lastSy:0, lastB:0, lastJc:0, lastSendT:0
+  sendT:0, stateT:0, pingT:1, hiT:null, lastSS:0
 };
 const send=o=>{ if(!NET.ch) return;
   try{ const p=NET.ch.send({type:'broadcast',event:'m',payload:o}); if(p&&p.catch)p.catch(()=>{}); }catch(e){} };
@@ -383,7 +490,7 @@ async function initSB(){
   if(NET.sb) return NET.sb;
   if(!window.supabase||!window.supabase.createClient) throw new Error('nolib');
   if(!NET.key) NET.key=await probeKey();
-  NET.sb=window.supabase.createClient(NET.url,NET.key,{realtime:{params:{eventsPerSecond:20}}});
+  NET.sb=window.supabase.createClient(NET.url,NET.key,{realtime:{params:{eventsPerSecond:60}}});
   return NET.sb;
 }
 async function openChannel(create){
@@ -532,10 +639,12 @@ function makeSnapshot(){
       c.input.boost?1:0,c.jc]),
     p:pads.map(p=>p.on?1:0),pt:pads.map(p=>Math.round(p.t*4)/4)};
 }
-function recObj(o,x,y,vx,vy,k){
+/* smooth reconciliation: accumulate position error, decay it over time */
+function recErr(o,x,y,vx,vy){
   const dx=x-o.x, dy=y-o.y, d=Math.hypot(dx,dy);
-  if(d>320){ o.x=x; o.y=y; o.vx=vx; o.vy=vy; return; }
-  o.x+=dx*k; o.y+=dy*k; o.vx+=(vx-o.vx)*k; o.vy+=(vy-o.vy)*k;
+  if(d>240){ o.x=x; o.y=y; o.vx=vx; o.vy=vy; o.ex=0; o.ey=0; return; }
+  o.ex=(o.ex||0)+dx; o.ey=(o.ey||0)+dy;
+  o.vx+=(vx-o.vx)*.25; o.vy+=(vy-o.vy)*.25;
 }
 function makeNetCar(slot){
   const meta=(NET.playersMeta||{})[slot]||{};
@@ -564,8 +673,8 @@ function applySnapshot(m){
   score.blue=m.sc[0]; score.orange=m.sc[1];
   timeLeft=m.tl; otTime=m.otT; overtime=!!m.ot; cd.n=m.cd;
   winner=m.win||winner;
-  if(m.b){ recObj(ball,m.b[0],m.b[1],m.b[2],m.b[3],.22); ball.rot=m.b[4]; ball.hidden=false; }
-  else ball.hidden=true;
+  if(m.b){ recErr(ball,m.b[0],m.b[1],m.b[2],m.b[3]); ball.rot=m.b[4]; ball.hidden=false; }
+  else{ ball.hidden=true; ball.ex=0; ball.ey=0; }
   const slots=m.c.map(a=>a[0]);
   for(let i=CARS.length-1;i>=0;i--) if(!slots.includes(CARS[i].slot)) CARS.splice(i,1);
   for(const a of m.c){
@@ -573,15 +682,14 @@ function applySnapshot(m){
     if(!c){ c=makeNetCar(a[0]); CARS.push(c); }
     if(!c.dead){
       const own=(c.id===NET.id);
-      const dd=Math.hypot(a[1]-c.x,a[2]-c.y);
-      const k=own?(dd>140?.25:.05):(dd>120?.5:.28);   // gentle for your prediction, firmer for others
-      recObj(c,a[1],a[2],a[4],a[5],k);
+      recErr(c,a[1],a[2],a[4],a[5]);
       c.a=a[3]; c.w=a[6]; c.facing=a[7];
+      if(!own){ c.faceTween=c.facing; c.faceT=c.facing; }
       c.boost=a[8]; c.grounded=!!a[9];
     }
     c.dead=!!a[10]; c.respawn=a[11];
     if(c.id!==NET.id){
-      c.inTS=a[12]; c.inSyS=a[13]; c.inBS=!!a[14];    // targets; smoothed in step()
+      c.input.stick=a[12]; c.input.sy=a[13]; c.input.boost=!!a[14];
       if(a[15]>c.jc){ c.input.jump=true; c.jc=a[15]; }
     }
   }
@@ -596,23 +704,11 @@ function applyRemoteInput(m){
   c.input.stick=m.s||0; c.input.sy=m.sy||0; c.input.boost=!!m.b;
   if(m.jc>(c.jc||0)) c.input.jump=true;
 }
-// called every frame on clients; throttles itself to stay under the rate limit
 function sendInput(){
   const c=me(); if(!c) return;
   if(!['play','goal','countdown'].includes(state)) return;
-  const now=performance.now();
-  const jc=c.jc||0;
-  const s=Math.round(input.stick*100)/100;
-  const sy=Math.round((input.sy||0)*100)/100;
-  const b=input.boost?1:0;
-  const jumpEdge=(jc!==NET.lastJc);
-  const changed=jumpEdge||b!==NET.lastB||
-    Math.abs(s-NET.lastS)>.12||Math.abs(sy-NET.lastSy)>.12;
-  const gap=jumpEdge?90:130;      // jump presses are urgent
-  if((changed&&now-NET.lastSendT>gap)||now-NET.lastSendT>200){
-    NET.lastSendT=now; NET.lastJc=jc; NET.lastS=s; NET.lastSy=sy; NET.lastB=b;
-    send({k:'in',slot:c.slot,s,sy,b,jc});
-  }
+  send({k:'in',slot:c.slot,s:Math.round(input.stick*100)/100,
+    sy:Math.round((input.sy||0)*100)/100,b:input.boost?1:0,jc:c.jc});
 }
 function getPlayerName(){
   const v=($('nameIn').value||'PLAYER').replace(/[^\w \-\.]/g,'').slice(0,10)||'PLAYER';
@@ -640,16 +736,14 @@ function enterLobby(){
   NET.spec=false;
   ['menu','end','pause'].forEach(id=>$(id).classList.add('hidden'));
   $('lobby').classList.remove('hidden');
-  updateLobbyUI();
+  lobbySig=''; updateLobbyUI();
 }
-let lobSig='', lobT=0;
+let lobbySig='';
 function updateLobbyUI(){
   if(!NET.on) return;
-  const sig=NET.code+'|'+(NET.hostId||'')+'|'+NET.isHost+'|'+
-    NET.roster.map(r=>r.id+':'+r.name).join(',');
-  const now=performance.now();
-  if(sig===lobSig&&now-lobT<1000) return;   // presence storms can't thrash the DOM
-  lobSig=sig; lobT=now;
+  const sig=NET.code+'|'+NET.mode+'|'+NET.roster.map(r=>r.id+r.name+r.order).join(',');
+  if(sig===lobbySig) return;               // only rebuild the DOM when something changed
+  lobbySig=sig;
   $('roomCode').textContent=NET.code||'----';
   const list=$('playerList'); list.innerHTML='';
   const rs=[...NET.roster].sort((a,b)=>a.order-b.order);
@@ -667,10 +761,9 @@ function updateLobbyUI(){
   $('hostRow1').style.display=host?'flex':'none';
   $('hostRow2').style.display=host?'flex':'none';
   $('startBtn2').style.display=host?'block':'none';
-  if(!$('lobbyStat').textContent||$('lobbyStat').textContent.indexOf('COPIED')<0)
-    $('lobbyStat').textContent=host
-      ?('CONNECTED — '+Math.min(rs.length,4)+'/4 PLAYERS'+(rs.length>4?' (+'+(rs.length-4)+' SPEC)':''))
-      :'CONNECTED — WAITING FOR HOST TO START';
+  $('lobbyStat').textContent=host
+    ?('CONNECTED — '+Math.min(rs.length,4)+'/4 PLAYERS'+(rs.length>4?' (+'+(rs.length-4)+' SPEC)':''))
+    :'CONNECTED — WAITING FOR HOST TO START';
 }
 function netFail(msg){
   setNetStat(msg);
@@ -698,16 +791,15 @@ function makeCar(team,slot,extra){
   extra=extra||{};
   const sp=spawnFor(slot);
   return {team,slot,id:extra.id||('car'+slot),name:extra.name||'',bot:!!extra.bot,
-    x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,
+    x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,
     facing:sp.f,faceT:sp.f,faceTween:sp.f,grounded:true,air:0,has2:false,flipT:0,flipDir:1,
     coyote:0,jc:0,ride:false,boost:33,boosting:false,dead:false,respawn:0,squash:0,wheel:0,recT:0,
-    inTS:0,inSyS:0,inBS:false,
     emitT:0,ssT:0,spdMul:1,brain:extra.brain||null,
     input:{stick:0,sy:0,jump:false,boost:false}};
 }
 let CARS=[];
 const me=()=>NET.on?CARS.find(c=>c.id===NET.id):CARS[0];
-const ball={x:800,y:300,vx:0,vy:0,w:0,rot:0,hidden:false,touchT:0,trail:[]};
+const ball={x:800,y:300,vx:0,vy:0,w:0,rot:0,hidden:false,touchT:0,trail:[],ex:0,ey:0};
 const pads=[{x:210,big:true},{x:1390,big:true},{x:430},{x:680},{x:920},{x:1170}]
   .map(p=>({x:p.x,big:!!p.big,on:true,t:0,full:p.big?8:5,amt:p.big?100:12}));
 const parts=[];
@@ -1010,7 +1102,7 @@ function updateCar(c,dt){
 }
 function respawnCar(c){
   const sp=spawnFor(c.slot);
-  Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,grounded:true,boost:33,ride:false,
+  Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,grounded:true,boost:33,ride:false,
     facing:sp.f,faceT:sp.f,faceTween:sp.f,has2:false,flipT:0,air:0});
 }
 function carCar(){
@@ -1105,8 +1197,8 @@ function carBall(car){
 
 /* ============================== AI ============================== */
 function makeBrain(diffKey){
-  return {d:DIFFS[diffKey],think:0,tx:800,mode:'attack',noise:0,flipSeq:null,aerial:false,
-    jumpCd:0,stuck:0,useBoost:false};
+  return {d:DIFFS[diffKey],think:0,tx:800,noise:0,flipSeq:null,aerial:false,
+    jumpCd:0,stuck:0};
 }
 function aiDrive(car,brain,dt){
   const inp=car.input, b=ball, d=brain.d;
@@ -1125,11 +1217,11 @@ function aiDrive(car,brain,dt){
     brain.think=d.react*rand(.75,1.25);
     brain.noise=rand(-1,1)*d.err;
     const bx=clamp(b.x+b.vx*.3,AR.L+60,AR.R-60);
-    let mode='attack', tx;
+    let tx;
     const threat=b.x>1080&&b.vx>120;
-    if(threat){ tx=clamp(bx+190,AR.L+120,AR.R-60); mode='defend'; }
+    if(threat){ tx=clamp(bx+190,AR.L+120,AR.R-60); }
     else if(car.x<b.x+50){
-      tx=bx+230; mode='around';
+      tx=bx+230;
       if(Math.abs(car.x-b.x)<150&&car.grounded&&brain.jumpCd<=0&&Math.random()<.5){
         inp.jump=true; brain.jumpCd=.9;
       }
@@ -1137,9 +1229,8 @@ function aiDrive(car,brain,dt){
     if(car.boost<26&&!threat&&Math.abs(b.x-car.x)>560){
       let best=null,bd=1e9;
       for(const p of pads) if(p.on&&p.x>620){ const dd=Math.abs(p.x-car.x); if(dd<bd){bd=dd;best=p;} }
-      if(best){ tx=best.x+40; mode='pad'; }
+      if(best) tx=best.x+40;
     }
-    brain.useBoost=(Math.abs(tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP)||mode==='pad';
     if(car.grounded&&brain.jumpCd<=0){
       const dx2=Math.abs(b.x-car.x);
       if(dx2<230&&b.y<car.y-150&&b.y>170){
@@ -1147,11 +1238,11 @@ function aiDrive(car,brain,dt){
         brain.aerial=d.aerial&&car.boost>25&&Math.random()<.85;
       }
     }
-    if(car.grounded&&mode==='attack'&&Math.random()<d.flipP){
+    if(car.grounded&&Math.random()<d.flipP){
       const dist=(b.x+90)-car.x;
       if(dist>-40&&dist<120&&car.vx<-520) brain.flipSeq={t:0,dir:-1,j1:false,j2:false};
     }
-    brain.tx=tx; brain.mode=mode;
+    brain.tx=tx;
   }
   if(!car.grounded){
     if(brain.aerial&&!b.hidden&&car.air<2.2){
@@ -1173,7 +1264,7 @@ function aiDrive(car,brain,dt){
     const err=(brain.tx-car.x)+brain.noise;
     inp.stick=clamp(err*.02,-1,1);
     if(Math.abs(inp.stick)<.06) inp.stick=0;
-    inp.boost=!!brain.useBoost;
+    if(Math.abs(brain.tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP) inp.boost=true;
     if(Math.abs(car.vx)<70&&Math.abs(brain.tx-car.x)>200){
       brain.stuck+=dt;
       if(brain.stuck>.8){ inp.jump=true; brain.stuck=0; }
@@ -1184,21 +1275,20 @@ function aiDrive(car,brain,dt){
 /* ============================== MATCH FLOW ============================== */
 function resetPositions(){
   ball.x=800; ball.y=300; ball.vx=0; ball.vy=0; ball.w=0; ball.rot=0;
-  ball.hidden=false; ball.trail.length=0; ball.touchT=0;
+  ball.hidden=false; ball.trail.length=0; ball.touchT=0; ball.ex=0; ball.ey=0;
   for(const c of CARS){
     const sp=spawnFor(c.slot);
-    Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,grounded:true,air:0,has2:false,
+    Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,grounded:true,air:0,has2:false,
       flipT:0,coyote:0,ride:false,boost:33,dead:false,facing:sp.f,faceT:sp.f,faceTween:sp.f,squash:0,recT:0});
   }
   for(const p of pads){ p.on=true; p.t=0; }
   lastToucher=null; onT.left=onT.right=false;
 }
-function resetKickdownSilent(){ resetKickoff(true); }
 function resetKickoff(silent){
   resetPositions();
   state='countdown'; cd={n:3,t:0}; banner=null; camPunch=null; timeScale=1;
   if(!silent) sfx.count(3);
-  if(NET.mode==='host'){ send({k:'ev',e:'kick'}); send({k:'ev',e:'count',n:3}); NET.stateT=0; }
+  if(NET.mode==='host'){ send({k:'ev',e:'kick'}); send({k:'ev',e:'count',n:3}); }
 }
 function beginMatch(players,len){
   CARS=players.map(p=>{
@@ -1249,7 +1339,7 @@ function doGoal(team){
   timeScale=.22; camPunch={x:ball.x,y:ball.y};
   flashT=.28; flashCol=teamColor(team);
   sfx.horn(); vib(60);
-  if(NET.mode==='host'){ send({k:'ev',e:'goal',team,sc:[score.blue,score.orange]}); NET.stateT=0; }
+  if(NET.mode==='host') send({k:'ev',e:'goal',team,sc:[score.blue,score.orange]});
 }
 function updateGoalSeq(rdt){
   goalT+=rdt;
@@ -1317,25 +1407,33 @@ function pollPlayerInput(){
   const pi=c.input;
   pi.stick=input.stick; pi.sy=input.sy; pi.boost=input.boost;
   pi.jump=pendingJump; pendingJump=false;
+  // flush inputs to the host immediately on jumps and direction changes
+  if(NET.mode==='client'&&(pi.jump||Math.sign(pi.stick)!==NET.lastSS)) NET.sendT=0;
+  NET.lastSS=Math.sign(pi.stick);
 }
 function step(dt){
   if(state==='countdown'||state==='end'||state==='lobby') return;
   if(state!=='menu') pollPlayerInput();
-  if(NET.mode==='client'){
-    // smooth remote players' received inputs so 10 Hz snapshots look continuous
-    for(const c of CARS){
-      if(c.id===NET.id) continue;
-      c.input.stick+=((c.inTS||0)-c.input.stick)*Math.min(1,10*dt);
-      c.input.sy+=((c.inSyS||0)-c.input.sy)*Math.min(1,10*dt);
-      c.input.boost=!!c.inBS;
-    }
-  }
   for(const c of CARS) if(c.brain) aiDrive(c,c.brain,dt);
   for(const c of CARS) updateCar(c,dt);
   carCar();
   updateBall(dt);
   for(const c of CARS) carBall(c);
   padsUpdate(dt);
+  // smooth network correction (client): apply stored error gradually
+  if(NET.mode==='client'){
+    const k=Math.min(1,4*dt);
+    for(const c of CARS){
+      if(c.dead) continue;
+      const kk=(c.id===NET.id)?k*.6:k;
+      c.x+=(c.ex||0)*kk; c.y+=(c.ey||0)*kk;
+      c.ex=(c.ex||0)*(1-kk); c.ey=(c.ey||0)*(1-kk);
+    }
+    if(!ball.hidden){
+      ball.x+=(ball.ex||0)*k; ball.y+=(ball.ey||0)*k;
+      ball.ex=(ball.ex||0)*(1-k); ball.ey=(ball.ey||0)*(1-k);
+    }
+  }
   if(state==='menu'&&!ball.hidden){
     if(ball.x+BR<AR.L||ball.x-BR>AR.R){
       spawnBurst(ball.x,ball.y,teamColor(ball.x+BR<AR.L?'orange':'blue'),26);
@@ -1559,14 +1657,15 @@ function buildBackdrop(){
       c.fillStyle=r%2?'#0d1219':'#0b1016';
       c.fillRect(x0+26,y,w-52,16);
     }
-  // crowd — includes blue and orange fans, like a real match
-  const cols=['#39425a','#4a4148','#33414d','#54503e','#443a52','#3e4a3a','#4e576b','#2c5878','#7a4526'];
+  // brighter, more colorful crowd (team shirts mixed in)
+  const cols=['#39425a','#4a4148','#33414d','#54503e','#443a52','#3e4a3a','#4e576b',
+    '#3a6a9a','#9a5a2a','#5577aa'];
   for(const [sy,rows] of tiers)
     for(let r=0;r<rows;r++){
       const y=sy+r*22+8;
       for(let x=x0+40;x<x0+w-36;x+=12+Math.random()*7){
-        if(Math.random()<.06) continue;
-        c.globalAlpha=.3+Math.random()*.5;
+        if(Math.random()<.05) continue;
+        c.globalAlpha=.3+Math.random()*.55;
         c.fillStyle=cols[(Math.random()*cols.length)|0];
         c.beginPath(); c.arc(x+rand(-3,3),y+rand(-3,3),2.5,0,TAU); c.fill();
       }
@@ -1579,7 +1678,7 @@ function buildBackdrop(){
     const x=bx0+i*bwd;
     c.fillStyle=i%2?'#131a25':'#10161f'; c.fillRect(x,AR.C-38,bwd-6,30);
     c.strokeStyle='#242f44'; c.lineWidth=2; c.strokeRect(x,AR.C-38,bwd-6,30);
-    c.fillStyle='#5d6c88'; c.font="600 17px 'Chakra Petch',sans-serif";
+    c.fillStyle='#4d5b74'; c.font="600 17px 'Chakra Petch',sans-serif";
     c.textAlign='center'; c.textBaseline='middle';
     c.fillText(texts[i],x+(bwd-6)/2,AR.C-23);
   }
@@ -1594,7 +1693,7 @@ function buildBackdrop(){
 }
 const flashes=[];
 function updateFlashes(rdt){
-  if(Math.random()<rdt*(lowQ?3:7)) flashes.push({x:rand(90,1510),y:rand(-300,60),life:.3});
+  if(Math.random()<rdt*7) flashes.push({x:rand(90,1510),y:rand(-300,60),life:.3});
   for(let i=flashes.length-1;i>=0;i--){ flashes[i].life-=rdt; if(flashes[i].life<=0) flashes.splice(i,1); }
 }
 function drawFlashes(){
@@ -1614,34 +1713,26 @@ function drawLightCones(){
   ctx.moveTo(1470,-300); ctx.lineTo(1510,-300); ctx.lineTo(830,760); ctx.lineTo(770,760);
   ctx.closePath(); ctx.fill();
 }
-function arenaPath(c){
-  const {L,R,F,C,TR,GT,GD}=AR;
-  c.beginPath();
-  c.moveTo(L-GD,F);
-  c.lineTo(R+GD,F);
-  c.lineTo(R+GD,GT);
-  c.lineTo(R,GT);
-  c.lineTo(R,C+TR);
-  c.arc(R-TR,C+TR,TR,0,-Math.PI/2,true);
-  c.lineTo(L+TR,C);
-  c.arc(L+TR,C+TR,TR,-Math.PI/2,Math.PI,true);
-  c.lineTo(L,GT);
-  c.lineTo(L-GD,GT);
-  c.closePath();
-}
 function drawSky(t){
   ctx.fillStyle='#06090f'; ctx.fillRect(0,0,cw,ch);
-  if(!lowQ) for(const n of nebs){
-    ctx.drawImage(n.c,n.fx*cw-cam.x*n.par*baseScale-n.r,n.fy*ch-cam.y*n.par*baseScale-n.r);
+  for(const n of nebulae){
+    const x=n.x*cw-cam.x*n.par*baseScale, y=n.y*ch-cam.y*n.par*baseScale;
+    const r=n.r*Math.min(cw,ch);
+    if(n.cv) ctx.drawImage(n.cv,x-r,y-r,r*2,r*2);
   }
-  for(const st of stars){
-    if(lowQ&&st.layer) continue;
-    const par=st.layer?0.08:0.03;
-    let x=(st.x*cw-cam.x*par*baseScale)%cw; if(x<0)x+=cw;
-    let y=(st.y*ch-cam.y*par*baseScale)%ch; if(y<0)y+=ch;
-    const a=st.a*(.6+.4*Math.sin(t*st.tw+st.ph));
-    ctx.fillStyle=`rgba(190,205,230,${a})`;
-    ctx.beginPath(); ctx.arc(x,y,st.s*.6,0,TAU); ctx.fill();
+  if(starLayers) for(const L of starLayers){
+    let sx=-((cam.x*L.par*baseScale)%L.w); if(sx>0)sx-=L.w;
+    let sy=-((cam.y*L.par*baseScale)%L.h); if(sy>0)sy-=L.h;
+    for(let x=sx;x<cw;x+=L.w)
+      for(let y=sy;y<ch;y+=L.h)
+        ctx.drawImage(L.c,x,y);
+  }
+  for(const tw of twinkles){
+    let x=(tw.x*cw-cam.x*.05*baseScale)%cw; if(x<0)x+=cw;
+    let y=(tw.y*ch-cam.y*.05*baseScale)%ch; if(y<0)y+=ch;
+    const a=Math.max(0,.35+.3*Math.sin(t*tw.tw+tw.ph));
+    ctx.fillStyle=`rgba(210,225,245,${a})`;
+    ctx.beginPath(); ctx.arc(x,y,1.8,0,TAU); ctx.fill();
   }
   const ox=cw*.5-cam.x*.02*baseScale, oy=ch*.55-cam.y*.02*baseScale;
   ctx.strokeStyle='rgba(120,140,180,0.05)'; ctx.lineWidth=1.5;
@@ -1649,79 +1740,22 @@ function drawSky(t){
   ctx.strokeStyle='rgba(120,140,180,0.03)';
   ctx.beginPath(); ctx.arc(ox,oy,ch*.62,0,TAU); ctx.stroke();
 }
-function goalPaint(s,col,tint){
-  const {L,R,F,GT,GD}=AR;
-  const x0=s<0?L-GD:R;
-  let pulse=0;
-  if(!ball.hidden){
-    const gx=s<0?L-40:R+40;
-    pulse=clamp(1-Math.abs(ball.x-gx)/460,0,1)*.4;
+function drawGoalPulse(){
+  if(ball.hidden) return;
+  for(const s of [-1,1]){
+    const x0=s<0?AR.L-AR.GD:AR.R;
+    const gx=s<0?AR.L-40:AR.R+40;
+    const pulse=clamp(1-Math.abs(ball.x-gx)/460,0,1);
+    if(pulse<=0.02) continue;
+    const col=s<0?'rgba(63,193,255,':'rgba(255,122,26,';
+    ctx.fillStyle=col+(pulse*.16)+')';
+    ctx.fillRect(x0,AR.GT,AR.GD,AR.F-AR.GT);
+    ctx.strokeStyle=col+(pulse*.6)+')'; ctx.lineWidth=5;
+    ctx.beginPath();
+    if(s<0){ ctx.moveTo(AR.L-AR.GD,AR.F); ctx.lineTo(AR.L-AR.GD,AR.GT); ctx.lineTo(AR.L-2,AR.GT); }
+    else{ ctx.moveTo(AR.R+AR.GD,AR.F); ctx.lineTo(AR.R+AR.GD,AR.GT); ctx.lineTo(AR.R+2,AR.GT); }
+    ctx.stroke();
   }
-  ctx.fillStyle='#0a0e15'; ctx.fillRect(x0,GT,GD,F-GT);
-  ctx.globalAlpha=.7+pulse; ctx.fillStyle=tint; ctx.fillRect(x0,GT,GD,F-GT);
-  ctx.save(); ctx.beginPath(); ctx.rect(x0,GT,GD,F-GT); ctx.clip();
-  ctx.strokeStyle=col; ctx.globalAlpha=.10+pulse*.25; ctx.lineWidth=2;
-  ctx.beginPath();
-  for(let x=x0;x<x0+GD+50;x+=16){ ctx.moveTo(x,GT); ctx.lineTo(x-46,F); }
-  ctx.stroke(); ctx.restore();
-  ctx.globalAlpha=.9+pulse*.1; ctx.strokeStyle=col; ctx.lineWidth=5;
-  ctx.beginPath();
-  if(s<0){ ctx.moveTo(L-GD,F); ctx.lineTo(L-GD,GT); ctx.lineTo(L-2,GT); }
-  else{ ctx.moveTo(R+GD,F); ctx.lineTo(R+GD,GT); ctx.lineTo(R+2,GT); }
-  ctx.stroke();
-  ctx.setLineDash([14,10]); ctx.lineWidth=3; ctx.globalAlpha=.5;
-  ctx.beginPath(); ctx.moveTo(x0,F-2); ctx.lineTo(x0+GD,F-2); ctx.stroke();
-  ctx.globalAlpha=1; ctx.setLineDash([]);
-}
-function drawArena(){
-  ctx.fillStyle='rgba(0,0,0,0.50)';
-  ctx.beginPath(); ctx.ellipse(800,AR.F+58,800,40,0,0,TAU); ctx.fill();
-  ctx.fillStyle='rgba(0,0,0,0.25)';
-  ctx.beginPath(); ctx.ellipse(800,AR.F+96,640,26,0,0,TAU); ctx.fill();
-  arenaPath(ctx); ctx.lineJoin='round';
-  ctx.lineWidth=26; ctx.strokeStyle='#0d1219'; ctx.stroke();
-  ctx.lineWidth=14; ctx.strokeStyle='#28344a'; ctx.stroke();
-  // green pitch
-  arenaPath(ctx); ctx.fillStyle='#0d2b1a'; ctx.fill();
-  ctx.lineWidth=3.5; ctx.strokeStyle='#4a5f83'; ctx.stroke();
-  ctx.save(); arenaPath(ctx); ctx.clip();
-  const span=(AR.R-AR.L)+2*AR.GD;
-  // mow stripes
-  for(let x=AR.L,i=0;x<AR.R;x+=125,i++){
-    if(i%2){ ctx.fillStyle='rgba(255,255,255,0.022)';
-      ctx.fillRect(x,AR.C-20,125,AR.F-AR.C+40); }
-  }
-  // floor band + gloss
-  ctx.fillStyle='#143c25'; ctx.fillRect(AR.L-AR.GD,AR.F-34,span,40);
-  const gl=ctx.createLinearGradient(0,AR.F-34,0,AR.F);
-  gl.addColorStop(0,'rgba(255,255,255,0.06)'); gl.addColorStop(1,'rgba(255,255,255,0)');
-  ctx.fillStyle=gl; ctx.fillRect(AR.L-AR.GD,AR.F-34,span,34);
-  ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(AR.L-AR.GD,AR.F); ctx.lineTo(AR.R+AR.GD,AR.F); ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,0.030)'; ctx.lineWidth=2;
-  for(let y=AR.F-150;y>AR.C+80;y-=150){
-    ctx.beginPath(); ctx.moveTo(AR.L,y); ctx.lineTo(AR.R,y); ctx.stroke();
-  }
-  // bright white markings (RL style)
-  ctx.strokeStyle='rgba(255,255,255,0.30)'; ctx.lineWidth=5;
-  ctx.beginPath(); ctx.moveTo(800,AR.F-4); ctx.lineTo(800,AR.C+70); ctx.stroke();
-  ctx.beginPath(); ctx.arc(800,AR.F-172,168,0,TAU); ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=3;
-  ctx.beginPath(); ctx.arc(800,AR.F-172,12,0,TAU); ctx.stroke();
-  ctx.fillStyle='rgba(255,255,255,0.35)';
-  ctx.beginPath(); ctx.arc(800,AR.F-10,6,0,TAU); ctx.fill();
-  // goal boxes
-  ctx.lineWidth=4; ctx.strokeStyle='rgba(255,255,255,0.16)';
-  ctx.beginPath(); ctx.arc(AR.L,(AR.GT+AR.F)/2,340,-1.05,1.05); ctx.stroke();
-  ctx.beginPath(); ctx.arc(AR.R,(AR.GT+AR.F)/2,340,Math.PI-1.05,Math.PI+1.05); ctx.stroke();
-  goalPaint(-1,'#3fc1ff','rgba(63,193,255,0.08)');
-  goalPaint(1,'#ff7a1a','rgba(255,122,26,0.08)');
-  ctx.restore();
-  ctx.fillStyle='#3fc1ff'; ctx.beginPath(); ctx.arc(AR.L,AR.GT,9,0,TAU); ctx.fill();
-  ctx.fillStyle='#ff7a1a'; ctx.beginPath(); ctx.arc(AR.R,AR.GT,9,0,TAU); ctx.fill();
-  ctx.fillStyle='#e9eef6';
-  ctx.beginPath(); ctx.arc(AR.L,AR.GT,3.5,0,TAU); ctx.fill();
-  ctx.beginPath(); ctx.arc(AR.R,AR.GT,3.5,0,TAU); ctx.fill();
 }
 function drawPads(t){
   for(const p of pads){
@@ -1771,11 +1805,15 @@ function drawBall(){
     ctx.fillStyle=`rgba(210,225,245,${.08*(1-hgt/300)})`;
     ctx.beginPath(); ctx.ellipse(b.x,AR.F+6,BR*.8,10,0,0,TAU); ctx.fill();
   }
+  // soft energy glow (like the reference ball)
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  ctx.fillStyle='rgba(190,215,240,0.05)';
+  ctx.beginPath(); ctx.arc(b.x,by,BR*1.35,0,TAU); ctx.fill();
+  ctx.restore();
   const pu=1+b.touchT*.5;
   ctx.save(); ctx.translate(b.x,by); ctx.scale(pu,pu); ctx.rotate(b.rot);
-  const g=ctx.createRadialGradient(-24,-26,8,0,0,BR+2);
-  g.addColorStop(0,'#ffffff'); g.addColorStop(.45,'#e9edf2'); g.addColorStop(1,'#aeb8c4');
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,BR,0,TAU); ctx.fill();
+  if(ballGrad) ctx.fillStyle=ballGrad;
+  ctx.beginPath(); ctx.arc(0,0,BR,0,TAU); ctx.fill();
   ctx.save(); ctx.beginPath(); ctx.arc(0,0,BR-2,0,TAU); ctx.clip();
   ctx.strokeStyle='#262e3a'; ctx.lineWidth=11;
   ctx.beginPath(); ctx.arc(0,-96,80,0,TAU); ctx.stroke();
@@ -1844,9 +1882,7 @@ function drawCar(c){
   ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(-27,-17.5); ctx.lineTo(2,-17.5);
   ctx.quadraticCurveTo(20,-17.5,31,-12); ctx.stroke();
-  const cg=ctx.createLinearGradient(0,-17,0,0);
-  cg.addColorStop(0,'#2c3d52'); cg.addColorStop(1,'#0d141d');
-  ctx.fillStyle=cg;
+  if(canopyGrad) ctx.fillStyle=canopyGrad;
   ctx.beginPath(); ctx.moveTo(-2,-16); ctx.lineTo(19,-9);
   ctx.quadraticCurveTo(21,-3,19,1); ctx.lineTo(1,1); ctx.closePath(); ctx.fill();
   ctx.strokeStyle='rgba(160,200,255,0.35)'; ctx.lineWidth=1.2;
@@ -1904,7 +1940,7 @@ function drawHUD(){
   ctx.fillStyle='rgba(63,193,255,0.30)'; ctx.fillRect(-tw/2-bw,-bh/2,6*u,bh);
   ctx.fillStyle='rgba(255,122,26,0.30)'; ctx.fillRect(tw/2+bw-6*u,-bh/2,6*u,bh);
   ctx.fillStyle='rgba(63,193,255,0.10)'; ctx.fillRect(-tw/2-bw+6*u,-bh/2,bw-6*u,bh);
-  ctx.fillStyle='rgba(255,122,26,0.10)'); ctx.fillRect(tw/2,-bh/2,bw-6*u,bh);
+  ctx.fillStyle='rgba(255,122,26,0.10)'; ctx.fillRect(tw/2,-bh/2,bw-6*u,bh);
   ctx.font=`600 ${8.5*u}px 'Chakra Petch',sans-serif`;
   ctx.fillStyle='#7d8899';
   ctx.fillText('BLUE',-tw/2-bw/2,-bh/2+9*u);
@@ -2080,7 +2116,8 @@ function render(t){
   if(backdrop) ctx.drawImage(backdrop,40,-330);
   drawLightCones();
   drawFlashes();
-  drawArena();
+  if(arenaCv) ctx.drawImage(arenaCv,AW_X,AW_Y,AW_W,AW_H);
+  drawGoalPulse();
   drawPads(t);
   for(const c of CARS) if(!c.dead)
     drawShadow(c.x,c.grounded?0:AR.F-(c.y+CR),54);
@@ -2090,7 +2127,7 @@ function render(t){
   drawTags();
   drawParticles();
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  if(vig&&!lowQ) ctx.drawImage(vig,0,0);
+  if(vig) ctx.drawImage(vig,0,0);
   if(flashT>0){
     ctx.globalAlpha=Math.min(.3,flashT*1.1);
     ctx.fillStyle=flashCol; ctx.fillRect(0,0,cw,ch);
@@ -2106,16 +2143,8 @@ function render(t){
 function frame(tms){
   requestAnimationFrame(frame);
   const t=tms/1000;
-  const rawDt=(t-lastT);
-  const rdt=Math.min(.05,rawDt||.016);
-  lastT=t; timeS+=t;
-  // adaptive quality: drop heavy effects on slow devices
-  perfAvg=perfAvg*.93+((rawDt||.016)*1000)*.07;
-  perfT-=rdt;
-  if(perfT<=0){ perfT=1.5;
-    if(perfAvg>26) lowQ=true;
-    else if(perfAvg<17) lowQ=false;
-  }
+  const rdt=Math.min(.05,(t-lastT)||.016);
+  lastT=t; timeS+=t; frameN++;
   pollGamepad();
   mergeInputs();
   const frozen=paused&&!NET.on;
@@ -2135,10 +2164,11 @@ function frame(tms){
     if(hitStopT>0){ hitStopT-=rdt; ts=.05; }
     acc+=rdt*ts;
     let n=0;
-    while(acc>=STEP&&n++<8){ step(STEP); acc-=STEP; }
+    while(acc>=STEP&&n<5){ step(STEP); acc-=STEP; n++; }
+    if(acc>STEP*3) acc=STEP*3;    // never let the sim spiral behind the framerate
     updateParticles(rdt*ts);
     updateCam(rdt);
-    if(state!=='lobby') updateFlashes(rdt);
+    updateFlashes(rdt);
     if(banner){ banner.t+=rdt; if(banner.t>banner.dur) banner=null; }
     if(toast){ toast.t+=rdt; if(toast.t>toast.dur) toast=null; }
     flashT=Math.max(0,flashT-rdt*1.1);
@@ -2149,29 +2179,24 @@ function frame(tms){
     AC.engine(mc?clamp(Math.hypot(mc.vx,mc.vy)/1700,0,1):0,!!mc&&mc.boosting&&!mc.dead,active);
     AC.crowd(active?0.012:0);
     if(NET.on){
-      if(NET.mode==='host'&&['play','goal'].includes(state)){
+      if(NET.mode==='host'&&['countdown','play','goal','end'].includes(state)){
         NET.stateT-=rdt;
-        if(NET.stateT<=0){ NET.stateT=.1; send(makeSnapshot()); }
+        if(NET.stateT<=0){ NET.stateT=.05; send(makeSnapshot()); }
       } else if(NET.mode==='client'){
-        sendInput();
+        NET.sendT-=rdt;
+        if(NET.sendT<=0){ NET.sendT=.06; sendInput(); }
         NET.pingT-=rdt;
         if(NET.pingT<=0){ NET.pingT=2; send({k:'ping',id:NET.id,t:performance.now()}); }
       }
     }
   }
-  // the lobby is a frozen scene: render it at 10 Hz to save battery and CPU
-  let skipRender=false;
-  if(state==='lobby'){
-    NET.renderT=(NET.renderT||0)-rdt;
-    if(NET.renderT>0) skipRender=true; else NET.renderT=.1;
-  }
-  if(!skipRender){
-    if(!ball.hidden&&Math.hypot(ball.vx,ball.vy)>900){
-      ball.trail.push({x:ball.x,y:ball.y});
-      if(ball.trail.length>9) ball.trail.shift();
-    } else ball.trail.length=0;
-    render(t);
-  }
+  if(!ball.hidden&&Math.hypot(ball.vx,ball.vy)>900){
+    ball.trail.push({x:ball.x,y:ball.y});
+    if(ball.trail.length>9) ball.trail.shift();
+  } else ball.trail.length=0;
+  // render at half rate behind menus/lobby overlays — big battery + lag saver
+  const idle=(state==='menu'||state==='lobby'||paused);
+  if(!(idle&&(frameN&1))) render(t);
 }
 
 /* ============================== UI WIRING ============================== */
@@ -2290,8 +2315,13 @@ function showEnd(){
 }
 
 /* ============================== BOOT ============================== */
+resize();
+buildNebulae();
+buildGrads();
 buildBackdrop();
-if(document.fonts&&document.fonts.ready) document.fonts.ready.then(buildBackdrop);
+rebuildCaches();
+if(document.fonts&&document.fonts.ready)
+  document.fonts.ready.then(()=>{ buildBackdrop(); rebuildCaches(); });
 quitToMenu();
 requestAnimationFrame(t=>{ lastT=t/1000; requestAnimationFrame(frame); });
 </script>
