@@ -1,3 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05070c">
+<title>Sideswipe 2 — 2D Car Soccer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,400;0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#3fc1ff; --orange:#ff7a1a; --bg:#05070c; --panel:#0d1320;
+    --line:#222d3f; --txt:#e9eef6; --dim:#7d8899; --amber:#ffd23d;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:var(--bg);
+    color:var(--txt);font-family:'Chakra Petch',sans-serif;touch-action:none;overscroll-behavior:none;
+    user-select:none;-webkit-user-select:none}
+  canvas{position:fixed;inset:0;display:block}
+  #ui{position:fixed;inset:0;pointer-events:none;z-index:10}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(5,8,13,.76);pointer-events:auto;overflow:auto;padding:10px}
+  .hidden{display:none!important}
+  .panel{width:min(540px,94vw);background:var(--panel);border:1px solid var(--line);
+    box-shadow:0 18px 60px rgba(0,0,0,.55);
+    padding:clamp(12px,3.2vh,26px) clamp(16px,4vw,32px)}
+  #menu .panel,#pause .panel,#end .panel,#lobby .panel{animation:pop .45s cubic-bezier(.2,.9,.25,1.15) both}
+  @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+  .kicker{font-size:clamp(10px,1.7vh,13px);letter-spacing:.5em;color:var(--dim);text-indent:.5em}
+  h1{font-style:italic;font-weight:700;font-size:clamp(32px,7vh,54px);line-height:1.02;margin:2px 0 4px}
+  h1 .two{color:var(--orange)}
+  .rule{height:2px;background:var(--line);margin:10px 0 14px;position:relative}
+  .rule::before{content:"";position:absolute;left:0;top:0;width:34%;height:2px;background:var(--blue)}
+  .rule::after{content:"";position:absolute;right:0;top:0;width:34%;height:2px;background:var(--orange)}
+  .row{display:flex;align-items:center;gap:12px;margin:9px 0}
+  .row label{width:86px;flex:none;font-size:11px;letter-spacing:.22em;color:var(--dim)}
+  .seg{display:flex;flex:1;border:1px solid var(--line)}
+  .seg button{flex:1;background:none;border:none;border-right:1px solid var(--line);color:var(--dim);
+    font:600 12px 'Chakra Petch',sans-serif;letter-spacing:.08em;padding:9px 0;cursor:pointer}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:rgba(255,122,26,.16);color:var(--orange)}
+  .cta{display:block;width:100%;margin-top:16px;background:var(--orange);color:#170d03;border:none;
+    font:italic 700 20px 'Chakra Petch',sans-serif;letter-spacing:.16em;padding:13px;cursor:pointer;
+    transform:skewX(-6deg)}
+  .cta span{display:inline-block;transform:skewX(6deg)}
+  .cta:active{transform:skewX(-6deg) scale(.97)}
+  .btn2{background:none;border:1px solid var(--line);color:var(--txt);
+    font:600 14px 'Chakra Petch',sans-serif;letter-spacing:.12em;padding:11px 8px;cursor:pointer;flex:1}
+  .btn2:active{background:#1a2436}
+  .inp{background:#0a0f16;border:1px solid var(--line);color:var(--txt);
+    font:600 13px 'Chakra Petch',sans-serif;letter-spacing:.1em;padding:8px;text-align:center;width:120px}
+  .inp.code{width:78px;text-transform:uppercase}
+  .inp:focus{outline:none;border-color:var(--amber)}
+  #netStat{font-size:10px;color:var(--dim);letter-spacing:.14em;margin-top:8px;min-height:13px}
+  .hints{margin-top:14px;font-size:11px;color:var(--dim);line-height:1.85;letter-spacing:.06em}
+  .hints b{color:var(--txt);font-weight:600}
+  .hints .fly{color:var(--amber)}
+  .foot{margin-top:12px;font-size:10px;color:#525c6b;letter-spacing:.08em}
+  .kbd{display:none}
+  @media (min-width:900px) and (pointer:fine){.kbd{display:block}}
+  #pause .panel,#end .panel{text-align:center}
+  .btnrow{display:flex;gap:10px;margin-top:14px}
+  #lobby .panel{text-align:left}
+  .lob-h{font-style:italic;font-weight:700;font-size:clamp(26px,5vh,36px);margin:2px 0}
+  #roomCode{color:var(--amber);letter-spacing:.18em;cursor:pointer}
+  .hint2{font-size:10px;color:var(--dim);letter-spacing:.14em;margin:4px 0 10px;min-height:12px}
+  #playerList{margin:6px 0 12px}
+  #playerList .pl{display:flex;align-items:center;gap:10px;padding:7px 2px;
+    border-bottom:1px solid var(--line);font-size:13px;font-weight:600}
+  #playerList .dot{width:10px;height:10px;border-radius:50%;flex:none}
+  #playerList .tag{font-size:9px;color:var(--dim);letter-spacing:.14em;margin-left:auto}
   #endTitle{font-style:italic;font-weight:700;font-size:clamp(34px,8vh,58px);line-height:1}
   #endScore{font-style:italic;font-weight:700;font-size:clamp(24px,5vh,38px);margin:6px 0 2px}
   #endScore .b{color:var(--blue)} #endScore .o{color:var(--orange)}
@@ -118,10 +191,38 @@ const W=1600, H=950, TAU=Math.PI*2, STEP=1/120;
 const AR={L:100,R:1500,F:880,C:90,TR:250,GH:280,GD:150}; AR.GT=AR.F-AR.GH;
 const G=2400, BALLG=1850;
 const HW=58, HH=19, CR=26, BR=64;
-const PL=AR.F-150;                       // pitch band top (the "touchline")
-const DEPTH=26;                          // 2.5D far-wall extrusion offset
-const AIR_ACC_BOOST=4800, AIR_CAP_BOOST=1700, AIR_TURN=9;  // air movement is boost-only
+const AIR_ACC_BOOST=4800, AIR_CAP_BOOST=1700, AIR_TURN=9;
 const teamColor=t=>t==='blue'?'#3fc1ff':'#ff7a1a';
+
+/* ---- 2.5D camera: play plane at z=0, arena extruded in depth ---- */
+const CAMZ=1750, ZFAR=-600, ZNEAR=300, GW=150;   // GW = goal mouth half-width in depth
+const REF={x:800,y:505};                          // projection reference (camera aim point)
+const mOf=z=>CAMZ/(CAMZ-z);                       // depth magnification about REF
+function pz(x,y,z){ const m=mOf(z); return [REF.x+(x-REF.x)*m, REF.y+(y-REF.y)*m]; }
+function quad(c,a,b,d,e){
+  c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
+  c.lineTo(d[0],d[1]); c.lineTo(e[0],e[1]); c.closePath();
+}
+function farWallPath(c){
+  const {L,R,F,C,TR}=AR;
+  c.beginPath();
+  c.moveTo(L,C+TR);
+  c.arc(L+TR,C+TR,TR,Math.PI,Math.PI*1.5);
+  c.lineTo(R-TR,C);
+  c.arc(R-TR,C+TR,TR,Math.PI*1.5,TAU);
+  c.lineTo(R,F);
+  c.lineTo(L,F);
+  c.closePath();
+}
+function goalFramePath(c,fx){
+  const {GT,F}=AR;
+  let a=pz(fx,GT,-GW), b=pz(fx,GT,GW);
+  c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
+  a=pz(fx,GT,GW); b=pz(fx,F,GW);
+  c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
+  a=pz(fx,GT,-GW); b=pz(fx,F,-GW);
+  c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
+}
 
 const DIFFS={
   rookie:{react:.20,speed:.84,boostP:.40,flipP:.35,aerial:false,err:130},
@@ -149,8 +250,8 @@ const nebulae=[
   {x:.86,y:.78,r:.62,c0:'rgba(126,62,52,0.055)',par:.035},
   {x:.58,y:.12,r:.42,c0:'rgba(38,112,112,0.050)',par:.026}
 ];
-let starLayers=null, arenaCv=null, arenaSX=1;
-const AW_X=AR.L-AR.GD-30, AW_Y=AR.C-40-DEPTH, AW_W=(AR.R-AR.L)+2*AR.GD+60, AW_H=(AR.F+130)-AW_Y;
+let starLayers=null, arenaCv=null, arenaSX=1, backdrop=null;
+const AB_X=-170, AB_Y=-40, AB_W=1940, AB_H=1120;
 let ballGrad=null, canopyGrad=null;
 
 function resize(){
@@ -198,21 +299,6 @@ function buildGrads(){
   canopyGrad=ctx.createLinearGradient(0,-17,0,0);
   canopyGrad.addColorStop(0,'#2c3d52'); canopyGrad.addColorStop(1,'#0d141d');
 }
-function arenaPath(c){
-  const {L,R,F,C,TR,GT,GD}=AR;
-  c.beginPath();
-  c.moveTo(L-GD,F);
-  c.lineTo(R+GD,F);
-  c.lineTo(R+GD,GT);
-  c.lineTo(R,GT);
-  c.lineTo(R,C+TR);
-  c.arc(R-TR,C+TR,TR,0,-Math.PI/2,true);
-  c.lineTo(L+TR,C);
-  c.arc(L+TR,C+TR,TR,-Math.PI/2,Math.PI,true);
-  c.lineTo(L,GT);
-  c.lineTo(L-GD,GT);
-  c.closePath();
-}
 function traceBody(g){
   g.beginPath();
   g.moveTo(-52,-11); g.lineTo(-28,-19); g.lineTo(2,-19);
@@ -223,114 +309,192 @@ function traceBody(g){
   g.quadraticCurveTo(-54,14,-52,-11);
   g.closePath();
 }
-function goalPaint(c,s,col,tint){
-  const {L,R,F,GT,GD}=AR;
-  const x0=s<0?L-GD:R;
-  // recessed far frame (2.5D depth)
-  c.save(); c.translate(0,-7);
-  c.strokeStyle=col; c.globalAlpha=.30; c.lineWidth=5;
-  c.beginPath();
-  if(s<0){ c.moveTo(L-GD,F); c.lineTo(L-GD,GT); c.lineTo(L-2,GT); }
-  else{ c.moveTo(R+GD,F); c.lineTo(R+GD,GT); c.lineTo(R+2,GT); }
-  c.stroke();
-  c.restore();
-  c.fillStyle='#0a0e15'; c.fillRect(x0,GT,GD,F-GT);
-  c.globalAlpha=.7; c.fillStyle=tint; c.fillRect(x0,GT,GD,F-GT);
-  c.save(); c.beginPath(); c.rect(x0,GT,GD,F-GT); c.clip();
-  c.strokeStyle=col; c.globalAlpha=.12; c.lineWidth=2;
-  c.beginPath();
-  for(let x=x0;x<x0+GD+50;x+=16){ c.moveTo(x,GT); c.lineTo(x-46,F); }
-  c.stroke(); c.restore();
-  c.globalAlpha=.85; c.strokeStyle=col; c.lineWidth=5;
-  c.beginPath();
-  if(s<0){ c.moveTo(L-GD,F); c.lineTo(L-GD,GT); c.lineTo(L-2,GT); }
-  else{ c.moveTo(R+GD,F); c.lineTo(R+GD,GT); c.lineTo(R+2,GT); }
-  c.stroke();
-  c.setLineDash([14,10]); c.lineWidth=3; c.globalAlpha=.45;
-  c.beginPath(); c.moveTo(x0,F-2); c.lineTo(x0+GD,F-2); c.stroke();
-  c.globalAlpha=1; c.setLineDash([]);
-}
-function buildArena(){
-  arenaSX=clamp(Math.round(baseScale*Math.min(dpr,2)*1.5),1,2);
+
+/* ==================== THE 2.5D ARENA BAKE ==================== */
+/* The 2D arena profile is extruded along z. Every 3D point (x,y,z) projects
+   into play-plane coords via pz(); everything is baked ONCE into a cache, so
+   the runtime cost is a single drawImage. The play plane (z=0) maps 1:1, so
+   all gameplay rendering stays pixel-exact. */
+function bakeArena(){
+  arenaSX=clamp(baseScale*Math.min(dpr,2),1,1.6);
+  const area=AB_W*AB_H*arenaSX*arenaSX;
+  if(area>3.6e6) arenaSX=Math.sqrt(3.6e6/(AB_W*AB_H));
   arenaCv=document.createElement('canvas');
-  arenaCv.width=Math.ceil(AW_W*arenaSX); arenaCv.height=Math.ceil(AW_H*arenaSX);
+  arenaCv.width=Math.ceil(AB_W*arenaSX); arenaCv.height=Math.ceil(AB_H*arenaSX);
   const c=arenaCv.getContext('2d');
-  c.scale(arenaSX,arenaSX); c.translate(-AW_X,-AW_Y);
+  c.scale(arenaSX,arenaSX); c.translate(-AB_X,-AB_Y);
   c.lineJoin='round';
-  // ---- 2.5D: the far wall of the arena, extruded behind the play plane ----
-  c.save(); c.translate(0,-DEPTH);
-  arenaPath(c);
-  c.fillStyle='#070c11'; c.fill();
-  c.lineWidth=9; c.strokeStyle='#131c28'; c.stroke();
+  const mF=mOf(ZFAR);
+  // 1) crowd stands, far beyond the arena
+  if(backdrop){
+    c.save();
+    c.translate(REF.x,REF.y); c.scale(.72,.72); c.translate(-REF.x,-REF.y);
+    c.drawImage(backdrop,40,-330);
+    c.restore();
+  }
+  // 2) far wall (the arena's back cross-section)
+  c.save();
+  c.translate(REF.x,REF.y); c.scale(mF,mF); c.translate(-REF.x,-REF.y);
+  farWallPath(c);
+  const fg=c.createLinearGradient(0,AR.C,0,AR.F);
+  fg.addColorStop(0,'#0f1722'); fg.addColorStop(1,'#0a0f16');
+  c.fillStyle=fg; c.fill();
+  c.lineWidth=10; c.strokeStyle='#1c2836'; c.stroke();
+  c.fillStyle='rgba(190,215,245,0.05)';
+  c.fillRect(AR.L+80,AR.C+150,(AR.R-AR.L)-160,24);
+  c.fillRect(AR.L+80,AR.C+330,(AR.R-AR.L)-160,24);
   c.restore();
-  // floating shadows
-  c.fillStyle='rgba(0,0,0,0.50)';
-  c.beginPath(); c.ellipse(800,AR.F+58,800,40,0,0,TAU); c.fill();
-  c.fillStyle='rgba(0,0,0,0.25)';
-  c.beginPath(); c.ellipse(800,AR.F+96,640,26,0,0,TAU); c.fill();
-  // hull
-  arenaPath(c);
-  c.lineWidth=26; c.strokeStyle='#0d1219'; c.stroke();
-  c.lineWidth=14; c.strokeStyle='#28344a'; c.stroke();
-  // interior: shaded back wall (far) fading toward the floor (near)
-  arenaPath(c);
-  const ig=c.createLinearGradient(0,AR.C,0,AR.F);
-  ig.addColorStop(0,'#101a14'); ig.addColorStop(1,'#0a110d');
-  c.fillStyle=ig; c.fill();
-  c.lineWidth=3.5; c.strokeStyle='#4a5f83'; c.stroke();
-  c.lineWidth=1.5; c.strokeStyle='rgba(255,255,255,0.09)'; c.stroke();   // bevel highlight
-  c.save(); arenaPath(c); c.clip();
-  // back-wall panel seams
-  c.strokeStyle='rgba(255,255,255,0.028)'; c.lineWidth=2;
-  for(let x=200;x<=1400;x+=200){
-    c.beginPath(); c.moveTo(x,AR.C+8); c.lineTo(x,PL); c.stroke();
+  // 3) ceiling plane (with roof light bars)
+  quad(c,pz(AR.L+AR.TR,AR.C,ZFAR),pz(AR.R-AR.TR,AR.C,ZFAR),
+        pz(AR.R-AR.TR,AR.C,ZNEAR),pz(AR.L+AR.TR,AR.C,ZNEAR));
+  c.fillStyle='#131a25'; c.fill();
+  c.lineWidth=16; c.strokeStyle='rgba(200,220,255,0.09)';
+  for(const lx of [420,650,950,1180]){
+    const a=pz(lx,AR.C,ZFAR), b=pz(lx,AR.C,ZNEAR);
+    c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
   }
-  // faint horizontal depth lines above the pitch
-  for(let y=PL-140;y>AR.C+70;y-=140){
-    c.beginPath(); c.moveTo(AR.L,y); c.lineTo(AR.R,y); c.stroke();
+  // 4) rounded corner bands (ceiling-to-wall cylinders)
+  for(const s of [-1,1]){
+    const ocx=s<0?AR.L+AR.TR:AR.R-AR.TR, ocy=AR.C+AR.TR;
+    const th0=s<0?Math.PI:1.5*Math.PI, th1=s<0?1.5*Math.PI:TAU;
+    const N=12;
+    c.beginPath();
+    for(let i=0;i<=N;i++){
+      const th=th0+(th1-th0)*i/N;
+      const p=pz(ocx+Math.cos(th)*AR.TR,ocy+Math.sin(th)*AR.TR,ZNEAR);
+      i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);
+    }
+    for(let i=N;i>=0;i--){
+      const th=th0+(th1-th0)*i/N;
+      const p=pz(ocx+Math.cos(th)*AR.TR,ocy+Math.sin(th)*AR.TR,ZFAR);
+      c.lineTo(p[0],p[1]);
+    }
+    c.closePath();
+    c.fillStyle='#18202e'; c.fill();
   }
-  // ---- the green Rocket League pitch (perspective floor) ----
-  c.fillStyle='#1f8a44';
-  c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL+6);
-  c.fillStyle='rgba(255,255,255,0.055)';       // mow stripes
-  for(let x=AR.L,i=0;x<AR.R;x+=180,i++)
-    if(i%2===0) c.fillRect(x,PL,180,AR.F-PL);
-  const gl=c.createLinearGradient(0,PL,0,AR.F);
-  gl.addColorStop(0,'rgba(255,255,255,0.10)'); gl.addColorStop(1,'rgba(0,0,0,0.16)');
-  c.fillStyle=gl; c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL);
-  // perspective depth lines (bunching toward the far touchline)
-  c.strokeStyle='rgba(240,252,240,0.07)'; c.lineWidth=2;
-  for(const t of [.16,.36,.58,.80]){
-    const y=PL+(AR.F-PL)*t;
-    c.beginPath(); c.moveTo(AR.L,y); c.lineTo(AR.R,y); c.stroke();
+  // 5) side walls (with the goal mouth gap at |z|<GW, y>GT)
+  for(const s of [-1,1]){
+    const wx=s<0?AR.L:AR.R;
+    const wc=s<0?'#1a2433':'#18212f';
+    quad(c,pz(wx,AR.C+AR.TR,ZFAR),pz(wx,AR.C+AR.TR,ZNEAR),
+          pz(wx,AR.GT,ZNEAR),pz(wx,AR.GT,ZFAR));
+    c.fillStyle=wc; c.fill();
+    for(const zz of [[ZFAR,-GW],[GW,ZNEAR]]){
+      quad(c,pz(wx,AR.GT,zz[0]),pz(wx,AR.GT,zz[1]),
+            pz(wx,AR.F,zz[1]),pz(wx,AR.F,zz[0]));
+      c.fillStyle=wc; c.fill();
+    }
+    // panel seams + crossbar trim line
+    c.strokeStyle='rgba(255,255,255,0.04)'; c.lineWidth=3;
+    for(const z of [-450,-300,150]){
+      const a=pz(wx,AR.C+AR.TR,z), b=pz(wx,AR.F,z);
+      c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+    }
+    let a=pz(wx,AR.GT,ZFAR), b=pz(wx,AR.GT,ZNEAR);
+    c.strokeStyle='rgba(255,255,255,0.05)'; c.lineWidth=4;
+    c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
   }
-  c.strokeStyle='rgba(240,255,240,0.55)'; c.lineWidth=4;   // touchline
-  c.beginPath(); c.moveTo(AR.L,PL); c.lineTo(AR.R,PL); c.stroke();
-  c.strokeStyle='rgba(74,95,131,0.6)'; c.lineWidth=2;
-  c.beginPath(); c.moveTo(AR.L-AR.GD,AR.F); c.lineTo(AR.R+AR.GD,AR.F); c.stroke();
-  // white field markings (perspective)
-  const midY=(PL+AR.F)/2;
-  c.strokeStyle='rgba(240,252,240,0.06)'; c.lineWidth=4;
-  c.beginPath(); c.moveTo(800,AR.C+70); c.lineTo(800,PL); c.stroke();
-  c.strokeStyle='rgba(240,252,240,0.55)'; c.lineWidth=5;
-  c.beginPath(); c.moveTo(800,PL); c.lineTo(800,AR.F); c.stroke();
-  c.beginPath(); c.ellipse(800,midY,175,58,0,0,TAU); c.stroke();
-  c.fillStyle='rgba(240,252,240,0.6)';
-  c.beginPath(); c.arc(800,midY,7,0,TAU); c.fill();
-  c.strokeStyle='rgba(240,252,240,0.35)'; c.lineWidth=4;
-  c.beginPath(); c.ellipse(AR.L+72,midY,120,52,0,-Math.PI/2,Math.PI/2); c.stroke();
-  c.beginPath(); c.ellipse(AR.R-72,midY,120,52,0,Math.PI/2,Math.PI*1.5); c.stroke();
-  goalPaint(c,-1,'#3fc1ff','rgba(63,193,255,0.08)');
-  goalPaint(c,1,'#ff7a1a','rgba(255,122,26,0.08)');
+  // 6) the floor plane: green pitch in perspective
+  const Fp0=pz(AR.L,AR.F,ZFAR), Fp1=pz(AR.R,AR.F,ZFAR),
+        Fp2=pz(AR.R,AR.F,520),  Fp3=pz(AR.L,AR.F,520);
+  quad(c,Fp0,Fp1,Fp2,Fp3);
+  const pg=c.createLinearGradient(0,Fp0[1],0,Fp2[1]);
+  pg.addColorStop(0,'#157a3a'); pg.addColorStop(.42,'#1f8a44');
+  pg.addColorStop(.78,'#0b2415'); pg.addColorStop(1,'#06090f');
+  c.fillStyle=pg; c.fill();
+  c.save(); quad(c,Fp0,Fp1,Fp2,Fp3); c.clip();
+  c.fillStyle='rgba(255,255,255,0.05)';            // mow stripes
+  for(let x=AR.L,i=0;x<AR.R;x+=180,i++) if(i%2===0){
+    quad(c,pz(x,AR.F,ZFAR),pz(Math.min(x+180,AR.R),AR.F,ZFAR),
+          pz(Math.min(x+180,AR.R),AR.F,520),pz(x,AR.F,520));
+    c.fill();
+  }
+  c.strokeStyle='rgba(240,252,240,0.10)'; c.lineWidth=3;   // depth lines
+  for(const z of [-450,-300,-150,0,150]){
+    const a=pz(AR.L,AR.F,z), b=pz(AR.R,AR.F,z);
+    c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+  }
+  let a=pz(800,AR.F,ZFAR), b=pz(800,AR.F,ZNEAR);           // halfway line
+  c.strokeStyle='rgba(240,252,240,0.5)'; c.lineWidth=5;
+  c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+  a=pz(AR.L,AR.F,ZFAR); b=pz(AR.R,AR.F,ZFAR);              // far touchline
+  c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+  a=pz(AR.L,AR.F,350); b=pz(AR.R,AR.F,350);                // near edge hint
+  c.strokeStyle='rgba(240,255,240,0.25)';
+  c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+  c.strokeStyle='rgba(240,252,240,0.5)';                   // center circle
+  c.beginPath();
+  for(let i=0;i<=28;i++){
+    const ph=i/28*TAU;
+    const p=pz(800+170*Math.cos(ph),AR.F,170*Math.sin(ph));
+    i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);
+  }
+  c.closePath(); c.stroke();
+  const cd=pz(800,AR.F,0);                                 // kickoff spot
+  c.fillStyle='rgba(240,252,240,0.5)';
+  c.beginPath(); c.ellipse(cd[0],cd[1],8,4,0,0,TAU); c.fill();
+  c.strokeStyle='rgba(240,252,240,0.30)'; c.lineWidth=4;   // goal boxes
+  for(const s of [-1,1]){
+    const gx=s<0?AR.L+130:AR.R-130, dir=s<0?1:-1;
+    c.beginPath();
+    for(let i=0;i<=14;i++){
+      const ph=-Math.PI/2+Math.PI*i/14;
+      const p=pz(gx+dir*130*Math.cos(ph),AR.F,130*Math.sin(ph));
+      i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);
+    }
+    c.stroke();
+  }
   c.restore();
-  // posts
-  c.fillStyle='#3fc1ff'; c.beginPath(); c.arc(AR.L,AR.GT,9,0,TAU); c.fill();
-  c.fillStyle='#ff7a1a'; c.beginPath(); c.arc(AR.R,AR.GT,9,0,TAU); c.fill();
-  c.fillStyle='#e9eef6';
-  c.beginPath(); c.arc(AR.L,AR.GT,3.5,0,TAU); c.fill();
-  c.beginPath(); c.arc(AR.R,AR.GT,3.5,0,TAU); c.fill();
+  // 7) 3D goal pockets: floor, ceiling, side faces, netted back, frames
+  for(const s of [-1,1]){
+    const wx=s<0?AR.L:AR.R;
+    const bx=s<0?AR.L-AR.GD:AR.R+AR.GD;
+    const col=teamColor(s<0?'blue':'orange');
+    quad(c,pz(bx,AR.F,-GW),pz(bx,AR.F,GW),pz(wx,AR.F,GW),pz(wx,AR.F,-GW));
+    c.fillStyle='#0d2818'; c.fill();                        // pocket floor
+    quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(wx,AR.GT,GW),pz(wx,AR.GT,-GW));
+    c.fillStyle='#0d1219'; c.fill();                        // pocket ceiling
+    for(const zz of [-GW,GW]){
+      quad(c,pz(bx,AR.GT,zz),pz(bx,AR.F,zz),pz(wx,AR.F,zz),pz(wx,AR.GT,zz));
+      c.fillStyle='#0a0f16'; c.fill();                      // pocket sides
+    }
+    quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(bx,AR.F,GW),pz(bx,AR.F,-GW));
+    c.fillStyle='#070b10'; c.fill();                        // net back
+    c.save();
+    quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(bx,AR.F,GW),pz(bx,AR.F,-GW));
+    c.clip();
+    c.strokeStyle='rgba(150,170,200,0.10)'; c.lineWidth=2;
+    for(let k=1;k<8;k++){
+      const y=AR.GT+k*(AR.F-AR.GT)/8;
+      const p1=pz(bx,y,-GW), p2=pz(bx,y,GW);
+      c.beginPath(); c.moveTo(p1[0],p1[1]); c.lineTo(p2[0],p2[1]); c.stroke();
+    }
+    for(let j=0;j<=6;j++){
+      const zz=-GW+j*2*GW/6;
+      const p1=pz(bx,AR.GT,zz), p2=pz(bx,AR.F,zz);
+      c.beginPath(); c.moveTo(p1[0],p1[1]); c.lineTo(p2[0],p2[1]); c.stroke();
+    }
+    c.restore();
+    c.setLineDash([16,12]); c.strokeStyle=col; c.globalAlpha=.5; c.lineWidth=4;
+    a=pz(wx,AR.F,-GW); b=pz(wx,AR.F,GW);                    // goal line
+    c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
+    c.setLineDash([]); c.globalAlpha=1;
+    c.beginPath(); goalFramePath(c,wx+s*30);                // recessed frame
+    c.strokeStyle=col; c.globalAlpha=.30; c.lineWidth=6; c.stroke();
+    c.beginPath(); goalFramePath(c,wx);                     // main frame
+    c.globalAlpha=.9; c.lineWidth=7; c.stroke();
+    c.globalAlpha=1;
+    c.fillStyle=col;                                        // crossbar posts
+    for(const zz of [-GW,GW]){
+      const p=pz(wx,AR.GT,zz);
+      c.beginPath(); c.arc(p[0],p[1],9,0,TAU); c.fill();
+      c.fillStyle='#e9eef6';
+      c.beginPath(); c.arc(p[0],p[1],3.5,0,TAU); c.fill();
+      c.fillStyle=col;
+    }
+  }
 }
-function rebuildCaches(){ buildStarLayers(); buildArena(); }
+function rebuildCaches(){ buildStarLayers(); bakeArena(); }
 
 /* ============================== AUDIO ============================== */
 const AC={
@@ -807,7 +971,7 @@ function drawParticles(){
   ctx.restore(); ctx.globalAlpha=1;
 }
 
-/* ============================== ARENA COLLISION ============================== */
+/* ============================== ARENA COLLISION (2D play plane, unchanged) ============================== */
 function arenaCollide(b,r,e,tang){
   const {L,R,F,C,TR,GT,GD}=AR;
   const out={floor:0,wall:0,post:0};
@@ -971,14 +1135,12 @@ function updateCar(c,dt){
       const mag=Math.hypot(st,sy);
       if(mag>0.12){
         const dx=st/mag, dy=sy/mag;
-        // aiming the nose along the stick is always free
         if(Math.abs(dx)>0.35){ c.faceT=dx>0?1:-1; c.facing=c.faceT; }
         const f=c.facing;
         const tdes=Math.atan2(f*dy,f*dx);
         const da=wrapA(tdes-c.a);
         c.w=clamp(da*9,-11,11);
         c.a=wrapA(c.a+clamp(da,-AIR_TURN*dt,AIR_TURN*dt));
-        // ...but MOVING in the air only happens with boost
         if(boosting){
           c.vx+=dx*AIR_ACC_BOOST*dt;
           c.vy+=dy*AIR_ACC_BOOST*dt;
@@ -987,7 +1149,6 @@ function updateCar(c,dt){
           if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
         }
       } else if(boosting){
-        // neutral stick + boost: thrust along the current nose
         const cs=Math.cos(c.a), sn=Math.sin(c.a), f=c.facing;
         c.vx+=f*cs*3800*dt; c.vy+=f*sn*3800*dt;
         const sp=Math.hypot(c.vx,c.vy), mx=AIR_CAP_BOOST*c.spdMul;
@@ -1612,7 +1773,6 @@ function updateCam(rdt){
 }
 
 /* ============================== RENDERING ============================== */
-let backdrop=null;
 function buildBackdrop(){
   const x0=40,y0=-330,w=W-80,h=430;
   backdrop=document.createElement('canvas'); backdrop.width=w; backdrop.height=h;
@@ -1639,7 +1799,6 @@ function buildBackdrop(){
     }
   c.globalAlpha=1;
   c.fillStyle='#151d2a'; c.fillRect(x0+26,y0+128,w-52,6);
-  // sponsor boards sit high on the stadium wall, above the arena's far wall
   const bx0=AR.L+AR.TR-40, bwd=(AR.R-AR.TR-(AR.L+AR.TR)+80)/6;
   const texts=['SIDESWIPE 2','OCTANE','TURBO FUEL','Z.AI','NEON GP','SUPERSONIC'];
   for(let i=0;i<6;i++){
@@ -1661,7 +1820,7 @@ function buildBackdrop(){
 }
 const flashes=[];
 function updateFlashes(rdt){
-  if(Math.random()<rdt*7) flashes.push({x:rand(90,1510),y:rand(-300,60),life:.3});
+  if(Math.random()<rdt*7) flashes.push({x:rand(260,1340),y:rand(-90,10),life:.3});
   for(let i=flashes.length-1;i>=0;i--){ flashes[i].life-=rdt; if(flashes[i].life<=0) flashes.splice(i,1); }
 }
 function drawFlashes(){
@@ -1671,15 +1830,6 @@ function drawFlashes(){
     ctx.fillStyle=`rgba(255,255,255,${a*.25})`;
     ctx.beginPath(); ctx.arc(f.x,f.y,9,0,TAU); ctx.fill();
   }
-}
-function drawLightCones(){
-  ctx.fillStyle='rgba(180,200,240,0.030)';
-  ctx.beginPath();
-  ctx.moveTo(90,-300); ctx.lineTo(130,-300); ctx.lineTo(830,760); ctx.lineTo(770,760);
-  ctx.closePath(); ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(1470,-300); ctx.lineTo(1510,-300); ctx.lineTo(830,760); ctx.lineTo(770,760);
-  ctx.closePath(); ctx.fill();
 }
 function drawSky(t){
   ctx.fillStyle='#06090f'; ctx.fillRect(0,0,cw,ch);
@@ -1711,50 +1861,51 @@ function drawSky(t){
 function drawGoalPulse(){
   if(ball.hidden) return;
   for(const s of [-1,1]){
-    const x0=s<0?AR.L-AR.GD:AR.R;
     const gx=s<0?AR.L-40:AR.R+40;
     const pulse=clamp(1-Math.abs(ball.x-gx)/460,0,1);
     if(pulse<=0.02) continue;
-    const col=s<0?'rgba(63,193,255,':'rgba(255,122,26,';
-    ctx.fillStyle=col+(pulse*.16)+')';
-    ctx.fillRect(x0,AR.GT,AR.GD,AR.F-AR.GT);
-    ctx.strokeStyle=col+(pulse*.6)+')'; ctx.lineWidth=5;
-    ctx.beginPath();
-    if(s<0){ ctx.moveTo(AR.L-AR.GD,AR.F); ctx.lineTo(AR.L-AR.GD,AR.GT); ctx.lineTo(AR.L-2,AR.GT); }
-    else{ ctx.moveTo(AR.R+AR.GD,AR.F); ctx.lineTo(AR.R+AR.GD,AR.GT); ctx.lineTo(AR.R+2,AR.GT); }
-    ctx.stroke();
+    const wx=s<0?AR.L:AR.R;
+    const bx=s<0?AR.L-AR.GD:AR.R+AR.GD;
+    const col=teamColor(s<0?'blue':'orange');
+    ctx.globalAlpha=pulse*.30;
+    quad(ctx,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(bx,AR.F,GW),pz(bx,AR.F,-GW));
+    ctx.fillStyle=col; ctx.fill();
+    ctx.globalAlpha=.3+pulse*.6;
+    ctx.beginPath(); goalFramePath(ctx,wx);
+    ctx.strokeStyle=col; ctx.lineWidth=7; ctx.stroke();
+    ctx.globalAlpha=1;
   }
 }
 function drawPads(t){
   for(const p of pads){
-    ctx.fillStyle='rgba(0,0,0,0.4)';   // depth plate
-    ctx.beginPath(); ctx.ellipse(p.x,AR.F-13,30,8,0,0,TAU); ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,0.4)';   // depth plate on the floor plane
+    ctx.beginPath(); ctx.ellipse(p.x,AR.F-8,32,7,0,0,TAU); ctx.fill();
     ctx.fillStyle='#0a0f16';
-    ctx.beginPath(); ctx.ellipse(p.x,AR.F-6,34,9,0,0,TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(p.x,AR.F-4,34,8,0,0,TAU); ctx.fill();
     ctx.strokeStyle=p.big?'rgba(255,210,61,0.4)':'rgba(160,220,255,0.35)';
     ctx.lineWidth=2.5;
-    ctx.beginPath(); ctx.ellipse(p.x,AR.F-16,p.big?32:24,12,0,0,TAU); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(p.x,AR.F-14,p.big?32:24,10,0,0,TAU); ctx.stroke();
     if(p.on){
       const bob=Math.sin(t*3+p.x*.02)*3;
       const orb=p.big?15:9;
       ctx.fillStyle=p.big?'#ffd23d':'#bfe9ff';
-      ctx.beginPath(); ctx.arc(p.x,AR.F-26+bob,orb,0,TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x,AR.F-24+bob,orb,0,TAU); ctx.fill();
       ctx.fillStyle='rgba(255,255,255,0.7)';
-      ctx.beginPath(); ctx.arc(p.x-orb*.35,AR.F-26+bob-orb*.35,orb*.22,0,TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x-orb*.35,AR.F-24+bob-orb*.35,orb*.22,0,TAU); ctx.fill();
       ctx.strokeStyle=p.big?'rgba(255,210,61,0.25)':'rgba(160,220,255,0.25)';
       ctx.lineWidth=3;
-      ctx.beginPath(); ctx.arc(p.x,AR.F-26+bob,p.big?21:14,0,TAU); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x,AR.F-24+bob,p.big?21:14,0,TAU); ctx.stroke();
     } else {
       ctx.strokeStyle='rgba(255,255,255,0.15)'; ctx.lineWidth=3;
       const frac=1-p.t/p.full;
-      ctx.beginPath(); ctx.arc(p.x,AR.F-26,p.big?15:9,-Math.PI/2,-Math.PI/2+TAU*frac); ctx.stroke();
+      ctx.beginPath(); ctx.arc(p.x,AR.F-24,p.big?15:9,-Math.PI/2,-Math.PI/2+TAU*frac); ctx.stroke();
     }
   }
 }
 function drawShadow(x,h,r){
   const k=clamp(1-h/700,.15,1);
   ctx.fillStyle=`rgba(0,0,0,${.30*k})`;
-  ctx.beginPath(); ctx.ellipse(x,AR.F-4,r*(0.65+0.45*k),r*.18,0,0,TAU); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(x,AR.F-4,r*(0.65+0.45*k),r*.2,0,0,TAU); ctx.fill();
 }
 function drawBall(){
   const b=ball;
@@ -1811,14 +1962,16 @@ function drawCar(c){
   const dark=P?'#0f2130':'#2f180a';
   const sq=c.squash;
   let fs=c.faceTween; if(Math.abs(fs)<.12) fs=fs<0?-.12:.12;
-  // ---- 2.5D: far-side silhouette (depth extrusion toward the far wall) ----
+  // 2.5D: far-side silhouette, projected into depth (z=-60)
+  const mS=mOf(-60);
+  const fxp=REF.x+(c.x-REF.x)*mS, fyp=REF.y+(c.y-REF.y)*mS;
   ctx.save();
-  ctx.translate(c.x,c.y-9); ctx.rotate(c.a);
-  ctx.scale(fs*(1+sq*.10),1-sq*.24);
+  ctx.translate(fxp,fyp); ctx.rotate(c.a);
+  ctx.scale(fs*mS*(1+sq*.10),(1-sq*.24)*mS);
   traceBody(ctx);
   ctx.fillStyle=dark; ctx.fill();
   ctx.restore();
-  // ---- near-side sprite ----
+  // near-side sprite at the play plane (z=0)
   ctx.save();
   ctx.translate(c.x,c.y); ctx.rotate(c.a);
   ctx.scale(fs*(1+sq*.10),1-sq*.24);
@@ -2084,11 +2237,9 @@ function render(t){
   const s=baseScale*cam.z;
   const shx=(Math.random()-.5)*cam.shake*2, shy=(Math.random()-.5)*cam.shake*2;
   ctx.setTransform(dpr*s,0,0,dpr*s,dpr*((cw/2)-cam.x*s+shx),dpr*((ch/2)-cam.y*s+shy));
-  if(backdrop) ctx.drawImage(backdrop,40,-330);
-  drawLightCones();
-  drawFlashes();
-  if(arenaCv) ctx.drawImage(arenaCv,AW_X,AW_Y,AW_W,AW_H);
+  if(arenaCv) ctx.drawImage(arenaCv,AB_X,AB_Y,AB_W,AB_H);
   drawGoalPulse();
+  drawFlashes();
   drawPads(t);
   for(const c of CARS) if(!c.dead)
     drawShadow(c.x,c.grounded?0:AR.F-(c.y+CR),54);
@@ -2281,4 +2432,19 @@ function showEnd(){
     $('menuBtn2').classList.remove('hidden');
     $('endNote').textContent='';
   }
-  $('end'
+  $('end').classList.remove('hidden');
+}
+
+/* ============================== BOOT ============================== */
+resize();
+buildNebulae();
+buildGrads();
+buildBackdrop();
+rebuildCaches();
+if(document.fonts&&document.fonts.ready)
+  document.fonts.ready.then(()=>{ buildBackdrop(); rebuildCaches(); });
+quitToMenu();
+requestAnimationFrame(t=>{ lastT=t/1000; requestAnimationFrame(frame); });
+</script>
+</body>
+</html>
