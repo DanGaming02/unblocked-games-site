@@ -213,7 +213,8 @@ const genCode=()=>Array.from({length:4},()=>CODECH[Math.random()*CODECH.length|0
 
 /* ============================== CANVAS ============================== */
 const canvas=$('game'), ctx=canvas.getContext('2d');
-let cw=0, ch=0, dpr=1, baseScale=1, hudU=1, vig=null;
+let cw=0, ch=0, dpr=1, baseScale=1, hudU=1, vig=null, nebs=[];
+let perfAvg=16.7, lowQ=false, perfT=0;
 const stars=[];
 for(let i=0;i<150;i++){
   const far=i<95;
@@ -226,6 +227,18 @@ const nebulae=[
   {x:.86,y:.78,r:.62,c0:'rgba(126,62,52,0.055)',par:.035},
   {x:.58,y:.12,r:.42,c0:'rgba(38,112,112,0.050)',par:.026}
 ];
+// nebula blobs are pre-rendered once (full-screen gradient fills every frame are expensive)
+function buildNebs(){
+  nebs=nebulae.map(n=>{
+    const r=Math.ceil(n.r*Math.min(cw,ch))+40;
+    const c=document.createElement('canvas'); c.width=c.height=r*2;
+    const x=c.getContext('2d');
+    const g=x.createRadialGradient(r,r,0,r,r,r);
+    g.addColorStop(0,n.c0); g.addColorStop(1,'rgba(0,0,0,0)');
+    x.fillStyle=g; x.fillRect(0,0,r*2,r*2);
+    return {c,r,par:n.par,fx:n.x,fy:n.y};
+  });
+}
 function resize(){
   cw=innerWidth; ch=innerHeight; dpr=Math.min(2,devicePixelRatio||1);
   canvas.width=Math.round(cw*dpr); canvas.height=Math.round(ch*dpr);
@@ -237,6 +250,7 @@ function resize(){
   const g=v.createRadialGradient(cw/2,ch/2,Math.min(cw,ch)*.44, cw/2,ch/2,Math.hypot(cw,ch)*.60);
   g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.42)');
   v.fillStyle=g; v.fillRect(0,0,cw,ch);
+  buildNebs();
 }
 addEventListener('resize',resize); resize();
 
@@ -336,6 +350,10 @@ function saveSettings(){ try{localStorage.setItem('ss2',JSON.stringify(settings)
 function toastMsg(text,dur=2){ toast={text,t:0,dur}; }
 
 /* ============================== NETWORK ============================== */
+/* Netcode notes: Supabase Realtime rate-limits each client (~10 msg/s default).
+   Everything here stays under it: host snapshots 10 Hz during live play only,
+   client inputs fire on meaningful change (jumps are urgent), remote inputs are
+   smoothed locally, and clients run full prediction between snapshots. */
 const NET={
   on:false, mode:null, isHost:false,
   sb:null, ch:null, key:null,
@@ -348,7 +366,8 @@ const NET={
   name:'PLAYER', code:null,
   roster:[], hostId:null, ping:0,
   spec:false, playersMeta:{}, lastStart:null,
-  sendT:0, stateT:0, pingT:1, hiT:null
+  stateT:0, pingT:1, hiT:null, renderT:0,
+  lastS:0, lastSy:0, lastB:0, lastJc:0, lastSendT:0
 };
 const send=o=>{ if(!NET.ch) return;
   try{ const p=NET.ch.send({type:'broadcast',event:'m',payload:o}); if(p&&p.catch)p.catch(()=>{}); }catch(e){} };
@@ -364,7 +383,7 @@ async function initSB(){
   if(NET.sb) return NET.sb;
   if(!window.supabase||!window.supabase.createClient) throw new Error('nolib');
   if(!NET.key) NET.key=await probeKey();
-  NET.sb=window.supabase.createClient(NET.url,NET.key,{realtime:{params:{eventsPerSecond:60}}});
+  NET.sb=window.supabase.createClient(NET.url,NET.key,{realtime:{params:{eventsPerSecond:20}}});
   return NET.sb;
 }
 async function openChannel(create){
@@ -515,7 +534,7 @@ function makeSnapshot(){
 }
 function recObj(o,x,y,vx,vy,k){
   const dx=x-o.x, dy=y-o.y, d=Math.hypot(dx,dy);
-  if(d>240){ o.x=x; o.y=y; o.vx=vx; o.vy=vy; return; }
+  if(d>320){ o.x=x; o.y=y; o.vx=vx; o.vy=vy; return; }
   o.x+=dx*k; o.y+=dy*k; o.vx+=(vx-o.vx)*k; o.vy+=(vy-o.vy)*k;
 }
 function makeNetCar(slot){
@@ -545,7 +564,7 @@ function applySnapshot(m){
   score.blue=m.sc[0]; score.orange=m.sc[1];
   timeLeft=m.tl; otTime=m.otT; overtime=!!m.ot; cd.n=m.cd;
   winner=m.win||winner;
-  if(m.b){ recObj(ball,m.b[0],m.b[1],m.b[2],m.b[3],.2); ball.rot=m.b[4]; ball.hidden=false; }
+  if(m.b){ recObj(ball,m.b[0],m.b[1],m.b[2],m.b[3],.22); ball.rot=m.b[4]; ball.hidden=false; }
   else ball.hidden=true;
   const slots=m.c.map(a=>a[0]);
   for(let i=CARS.length-1;i>=0;i--) if(!slots.includes(CARS[i].slot)) CARS.splice(i,1);
@@ -554,14 +573,15 @@ function applySnapshot(m){
     if(!c){ c=makeNetCar(a[0]); CARS.push(c); }
     if(!c.dead){
       const own=(c.id===NET.id);
-      recObj(c,a[1],a[2],a[4],a[5],own?.07:.18);
+      const dd=Math.hypot(a[1]-c.x,a[2]-c.y);
+      const k=own?(dd>140?.25:.05):(dd>120?.5:.28);   // gentle for your prediction, firmer for others
+      recObj(c,a[1],a[2],a[4],a[5],k);
       c.a=a[3]; c.w=a[6]; c.facing=a[7];
-      if(!own){ c.faceTween=c.facing; c.faceT=c.facing; }
       c.boost=a[8]; c.grounded=!!a[9];
     }
     c.dead=!!a[10]; c.respawn=a[11];
     if(c.id!==NET.id){
-      c.input.stick=a[12]; c.input.sy=a[13]; c.input.boost=!!a[14];
+      c.inTS=a[12]; c.inSyS=a[13]; c.inBS=!!a[14];    // targets; smoothed in step()
       if(a[15]>c.jc){ c.input.jump=true; c.jc=a[15]; }
     }
   }
@@ -576,11 +596,23 @@ function applyRemoteInput(m){
   c.input.stick=m.s||0; c.input.sy=m.sy||0; c.input.boost=!!m.b;
   if(m.jc>(c.jc||0)) c.input.jump=true;
 }
+// called every frame on clients; throttles itself to stay under the rate limit
 function sendInput(){
   const c=me(); if(!c) return;
   if(!['play','goal','countdown'].includes(state)) return;
-  send({k:'in',slot:c.slot,s:Math.round(input.stick*100)/100,
-    sy:Math.round((input.sy||0)*100)/100,b:input.boost?1:0,jc:c.jc});
+  const now=performance.now();
+  const jc=c.jc||0;
+  const s=Math.round(input.stick*100)/100;
+  const sy=Math.round((input.sy||0)*100)/100;
+  const b=input.boost?1:0;
+  const jumpEdge=(jc!==NET.lastJc);
+  const changed=jumpEdge||b!==NET.lastB||
+    Math.abs(s-NET.lastS)>.12||Math.abs(sy-NET.lastSy)>.12;
+  const gap=jumpEdge?90:130;      // jump presses are urgent
+  if((changed&&now-NET.lastSendT>gap)||now-NET.lastSendT>200){
+    NET.lastSendT=now; NET.lastJc=jc; NET.lastS=s; NET.lastSy=sy; NET.lastB=b;
+    send({k:'in',slot:c.slot,s,sy,b,jc});
+  }
 }
 function getPlayerName(){
   const v=($('nameIn').value||'PLAYER').replace(/[^\w \-\.]/g,'').slice(0,10)||'PLAYER';
@@ -610,8 +642,14 @@ function enterLobby(){
   $('lobby').classList.remove('hidden');
   updateLobbyUI();
 }
+let lobSig='', lobT=0;
 function updateLobbyUI(){
   if(!NET.on) return;
+  const sig=NET.code+'|'+(NET.hostId||'')+'|'+NET.isHost+'|'+
+    NET.roster.map(r=>r.id+':'+r.name).join(',');
+  const now=performance.now();
+  if(sig===lobSig&&now-lobT<1000) return;   // presence storms can't thrash the DOM
+  lobSig=sig; lobT=now;
   $('roomCode').textContent=NET.code||'----';
   const list=$('playerList'); list.innerHTML='';
   const rs=[...NET.roster].sort((a,b)=>a.order-b.order);
@@ -663,6 +701,7 @@ function makeCar(team,slot,extra){
     x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,
     facing:sp.f,faceT:sp.f,faceTween:sp.f,grounded:true,air:0,has2:false,flipT:0,flipDir:1,
     coyote:0,jc:0,ride:false,boost:33,boosting:false,dead:false,respawn:0,squash:0,wheel:0,recT:0,
+    inTS:0,inSyS:0,inBS:false,
     emitT:0,ssT:0,spdMul:1,brain:extra.brain||null,
     input:{stick:0,sy:0,jump:false,boost:false}};
 }
@@ -756,10 +795,10 @@ function arenaCollide(b,r,e,tang){
   return out;
 }
 
-/* ============================== WALL RIDING (Sideswipe signature) ============================== */
+/* ============================== WALL RIDING ============================== */
 function findRideSurface(c){
   const {L,R,C,TR,GT}=AR, r=CR;
-  for(const s of [-1,1]){                       // rounded top corners
+  for(const s of [-1,1]){
     const ocx=s<0?L+TR:R-TR, ocy=C+TR;
     const inCorner=s<0?(c.x<ocx):(c.x>ocx);
     if(inCorner&&c.y<ocy){
@@ -773,11 +812,11 @@ function findRideSurface(c){
       return null;
     }
   }
-  if(c.y>C+TR&&c.y<GT-6){                       // side walls above the goal mouths
+  if(c.y>C+TR&&c.y<GT-6){
     if(c.x-L<r+10) return {nx:1,ny:0,pin(){c.x=L+r;}};
     if(R-c.x<r+10) return {nx:-1,ny:0,pin(){c.x=R-r;}};
   }
-  if(c.x>L+TR&&c.x<R-TR&&c.y<C+r+10)            // ceiling
+  if(c.x>L+TR&&c.x<R-TR&&c.y<C+r+10)
     return {nx:0,ny:1,pin(){c.y=C+r;}};
   return null;
 }
@@ -789,23 +828,20 @@ function tryWallRide(c,dt,jp){
     return false;
   }
   const svx=inp.stick, svy=inp.sy||0, smag=Math.hypot(svx,svy);
-  const sIn=smag>0.12?(svx*-surf.nx+svy*-surf.ny)/smag:0;   // stick component into the surface
-  const needHold=surf.ny>0.35;                               // overhead surfaces: keep holding in
+  const sIn=smag>0.12?(svx*-surf.nx+svy*-surf.ny)/smag:0;
+  const needHold=surf.ny>0.35;
   if(!c.ride){
-    if(c.flipT>0||sIn<0.25) return false;                    // press into the wall to attach
+    if(c.flipT>0||sIn<0.25) return false;
     c.ride=true;
   } else if(c.flipT>0||sIn<(needHold?0.15:-0.25)){
     c.ride=false; c.w=clamp(wrapA(-c.a)*3,-8,8);
     return false;
   }
   const nx=surf.nx, ny=surf.ny, boosting=c.boosting;
-  // cancel velocity along the surface normal
   const vn=c.vx*nx+c.vy*ny;
   c.vx-=vn*nx; c.vy-=vn*ny;
-  // gravity projected along the wall (pulls you back down toward the floor)
   c.vx+=G*(-ny*nx)*dt;
   c.vy+=G*(1-ny*ny)*dt;
-  // drive along the wall with the stick's tangential part
   const sn=svx*nx+svy*ny;
   const tx=svx-sn*nx, ty=svy-sn*ny, tl=Math.hypot(tx,ty);
   if(tl>0.05){
@@ -815,7 +851,6 @@ function tryWallRide(c,dt,jp){
   const cap=(boosting?1500:1200)*c.spdMul;
   const sp=Math.hypot(c.vx,c.vy);
   if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
-  // orientation: wheels on the wall, nose along travel
   const thW=Math.atan2(nx,-ny);
   c.a=wrapA(c.a+clamp(wrapA(thW-c.a),-10*dt,10*dt));
   c.w=0;
@@ -823,13 +858,13 @@ function tryWallRide(c,dt,jp){
   if(Math.abs(nd)>80){ const f=nd>0?1:-1; c.facing=f; c.faceT=f; }
   c.faceTween+=(c.faceT-c.faceTween)*Math.min(1,13*dt);
   c.wheel+=nd/13*dt;
-  c.has2=false;                          // touching a surface resets your flip
-  if(jp){                                // jump off the wall
+  c.has2=false;
+  if(jp){
     c.vx+=nx*780; c.vy+=ny*780;
     c.ride=false; c.air=.001; c.coyote=0;
     sfx.jump();
     spawnSparks(c.x-nx*26,c.y-ny*26,5,'rgba(200,215,235,0.8)');
-    return true;                         // velocity set; outer code integrates
+    return true;
   }
   c.x+=c.vx*dt; c.y+=c.vy*dt;
   surf.pin(c);
@@ -873,12 +908,11 @@ function updateCar(c,dt){
       c.a=wrapA(c.a+c.w*dt);
       c.ride=false;
     } else if(tryWallRide(c,dt,jp)){
-      if(!c.ride) wallJumped=true;      // jumped off the wall this tick
+      if(!c.ride) wallJumped=true;
     } else {
       const st=inp.stick, sy=inp.sy||0;
       const mag=Math.hypot(st,sy);
       if(mag>0.12){
-        // ---- direct flight: stick direction = car direction ----
         const dx=st/mag, dy=sy/mag;
         const acc=boosting?AIR_ACC_BOOST:AIR_ACC;
         c.vx+=dx*acc*dt; c.vy+=dy*acc*dt;
@@ -980,7 +1014,6 @@ function respawnCar(c){
     facing:sp.f,faceT:sp.f,faceTween:sp.f,has2:false,flipT:0,air:0});
 }
 function carCar(){
-  // Sideswipe-style: no demolitions, cars just bump each other
   for(let i=0;i<CARS.length;i++) for(let j=i+1;j<CARS.length;j++){
     const a=CARS[i], b=CARS[j];
     if(a.dead||b.dead) continue;
@@ -1073,7 +1106,7 @@ function carBall(car){
 /* ============================== AI ============================== */
 function makeBrain(diffKey){
   return {d:DIFFS[diffKey],think:0,tx:800,mode:'attack',noise:0,flipSeq:null,aerial:false,
-    jumpCd:0,stuck:0};
+    jumpCd:0,stuck:0,useBoost:false};
 }
 function aiDrive(car,brain,dt){
   const inp=car.input, b=ball, d=brain.d;
@@ -1106,6 +1139,7 @@ function aiDrive(car,brain,dt){
       for(const p of pads) if(p.on&&p.x>620){ const dd=Math.abs(p.x-car.x); if(dd<bd){bd=dd;best=p;} }
       if(best){ tx=best.x+40; mode='pad'; }
     }
+    brain.useBoost=(Math.abs(tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP)||mode==='pad';
     if(car.grounded&&brain.jumpCd<=0){
       const dx2=Math.abs(b.x-car.x);
       if(dx2<230&&b.y<car.y-150&&b.y>170){
@@ -1139,8 +1173,7 @@ function aiDrive(car,brain,dt){
     const err=(brain.tx-car.x)+brain.noise;
     inp.stick=clamp(err*.02,-1,1);
     if(Math.abs(inp.stick)<.06) inp.stick=0;
-    if((Math.abs(brain.tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP)||brain.mode==='demo')
-      inp.boost=(Math.abs(brain.tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP);
+    inp.boost=!!brain.useBoost;
     if(Math.abs(car.vx)<70&&Math.abs(brain.tx-car.x)>200){
       brain.stuck+=dt;
       if(brain.stuck>.8){ inp.jump=true; brain.stuck=0; }
@@ -1165,7 +1198,7 @@ function resetKickoff(silent){
   resetPositions();
   state='countdown'; cd={n:3,t:0}; banner=null; camPunch=null; timeScale=1;
   if(!silent) sfx.count(3);
-  if(NET.mode==='host'){ send({k:'ev',e:'kick'}); send({k:'ev',e:'count',n:3}); }
+  if(NET.mode==='host'){ send({k:'ev',e:'kick'}); send({k:'ev',e:'count',n:3}); NET.stateT=0; }
 }
 function beginMatch(players,len){
   CARS=players.map(p=>{
@@ -1216,7 +1249,7 @@ function doGoal(team){
   timeScale=.22; camPunch={x:ball.x,y:ball.y};
   flashT=.28; flashCol=teamColor(team);
   sfx.horn(); vib(60);
-  if(NET.mode==='host') send({k:'ev',e:'goal',team,sc:[score.blue,score.orange]});
+  if(NET.mode==='host'){ send({k:'ev',e:'goal',team,sc:[score.blue,score.orange]}); NET.stateT=0; }
 }
 function updateGoalSeq(rdt){
   goalT+=rdt;
@@ -1288,6 +1321,15 @@ function pollPlayerInput(){
 function step(dt){
   if(state==='countdown'||state==='end'||state==='lobby') return;
   if(state!=='menu') pollPlayerInput();
+  if(NET.mode==='client'){
+    // smooth remote players' received inputs so 10 Hz snapshots look continuous
+    for(const c of CARS){
+      if(c.id===NET.id) continue;
+      c.input.stick+=((c.inTS||0)-c.input.stick)*Math.min(1,10*dt);
+      c.input.sy+=((c.inSyS||0)-c.input.sy)*Math.min(1,10*dt);
+      c.input.boost=!!c.inBS;
+    }
+  }
   for(const c of CARS) if(c.brain) aiDrive(c,c.brain,dt);
   for(const c of CARS) updateCar(c,dt);
   carCar();
@@ -1517,7 +1559,8 @@ function buildBackdrop(){
       c.fillStyle=r%2?'#0d1219':'#0b1016';
       c.fillRect(x0+26,y,w-52,16);
     }
-  const cols=['#39425a','#4a4148','#33414d','#54503e','#443a52','#3e4a3a','#4e576b'];
+  // crowd — includes blue and orange fans, like a real match
+  const cols=['#39425a','#4a4148','#33414d','#54503e','#443a52','#3e4a3a','#4e576b','#2c5878','#7a4526'];
   for(const [sy,rows] of tiers)
     for(let r=0;r<rows;r++){
       const y=sy+r*22+8;
@@ -1536,7 +1579,7 @@ function buildBackdrop(){
     const x=bx0+i*bwd;
     c.fillStyle=i%2?'#131a25':'#10161f'; c.fillRect(x,AR.C-38,bwd-6,30);
     c.strokeStyle='#242f44'; c.lineWidth=2; c.strokeRect(x,AR.C-38,bwd-6,30);
-    c.fillStyle='#4d5b74'; c.font="600 17px 'Chakra Petch',sans-serif";
+    c.fillStyle='#5d6c88'; c.font="600 17px 'Chakra Petch',sans-serif";
     c.textAlign='center'; c.textBaseline='middle';
     c.fillText(texts[i],x+(bwd-6)/2,AR.C-23);
   }
@@ -1551,7 +1594,7 @@ function buildBackdrop(){
 }
 const flashes=[];
 function updateFlashes(rdt){
-  if(Math.random()<rdt*7) flashes.push({x:rand(90,1510),y:rand(-300,60),life:.3});
+  if(Math.random()<rdt*(lowQ?3:7)) flashes.push({x:rand(90,1510),y:rand(-300,60),life:.3});
   for(let i=flashes.length-1;i>=0;i--){ flashes[i].life-=rdt; if(flashes[i].life<=0) flashes.splice(i,1); }
 }
 function drawFlashes(){
@@ -1588,14 +1631,11 @@ function arenaPath(c){
 }
 function drawSky(t){
   ctx.fillStyle='#06090f'; ctx.fillRect(0,0,cw,ch);
-  for(const n of nebulae){
-    const x=n.x*cw-cam.x*n.par*baseScale, y=n.y*ch-cam.y*n.par*baseScale;
-    const r=n.r*Math.min(cw,ch);
-    const g=ctx.createRadialGradient(x,y,0,x,y,r);
-    g.addColorStop(0,n.c0); g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g; ctx.fillRect(x-r,y-r,r*2,r*2);
+  if(!lowQ) for(const n of nebs){
+    ctx.drawImage(n.c,n.fx*cw-cam.x*n.par*baseScale-n.r,n.fy*ch-cam.y*n.par*baseScale-n.r);
   }
   for(const st of stars){
+    if(lowQ&&st.layer) continue;
     const par=st.layer?0.08:0.03;
     let x=(st.x*cw-cam.x*par*baseScale)%cw; if(x<0)x+=cw;
     let y=(st.y*ch-cam.y*par*baseScale)%ch; if(y<0)y+=ch;
@@ -1641,31 +1681,38 @@ function drawArena(){
   arenaPath(ctx); ctx.lineJoin='round';
   ctx.lineWidth=26; ctx.strokeStyle='#0d1219'; ctx.stroke();
   ctx.lineWidth=14; ctx.strokeStyle='#28344a'; ctx.stroke();
-  arenaPath(ctx); ctx.fillStyle='#0f1712'; ctx.fill();
+  // green pitch
+  arenaPath(ctx); ctx.fillStyle='#0d2b1a'; ctx.fill();
   ctx.lineWidth=3.5; ctx.strokeStyle='#4a5f83'; ctx.stroke();
   ctx.save(); arenaPath(ctx); ctx.clip();
   const span=(AR.R-AR.L)+2*AR.GD;
-  ctx.fillStyle='#152619'; ctx.fillRect(AR.L-AR.GD,AR.F-34,span,40);
+  // mow stripes
+  for(let x=AR.L,i=0;x<AR.R;x+=125,i++){
+    if(i%2){ ctx.fillStyle='rgba(255,255,255,0.022)';
+      ctx.fillRect(x,AR.C-20,125,AR.F-AR.C+40); }
+  }
+  // floor band + gloss
+  ctx.fillStyle='#143c25'; ctx.fillRect(AR.L-AR.GD,AR.F-34,span,40);
   const gl=ctx.createLinearGradient(0,AR.F-34,0,AR.F);
-  gl.addColorStop(0,'rgba(255,255,255,0.05)'); gl.addColorStop(1,'rgba(255,255,255,0)');
+  gl.addColorStop(0,'rgba(255,255,255,0.06)'); gl.addColorStop(1,'rgba(255,255,255,0)');
   ctx.fillStyle=gl; ctx.fillRect(AR.L-AR.GD,AR.F-34,span,34);
-  ctx.strokeStyle='rgba(74,95,131,0.5)'; ctx.lineWidth=2;
+  ctx.strokeStyle='rgba(255,255,255,0.22)'; ctx.lineWidth=2;
   ctx.beginPath(); ctx.moveTo(AR.L-AR.GD,AR.F); ctx.lineTo(AR.R+AR.GD,AR.F); ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,0.028)'; ctx.lineWidth=2;
+  ctx.strokeStyle='rgba(255,255,255,0.030)'; ctx.lineWidth=2;
   for(let y=AR.F-150;y>AR.C+80;y-=150){
     ctx.beginPath(); ctx.moveTo(AR.L,y); ctx.lineTo(AR.R,y); ctx.stroke();
   }
-  ctx.strokeStyle='rgba(200,220,240,0.16)'; ctx.lineWidth=4;
+  // bright white markings (RL style)
+  ctx.strokeStyle='rgba(255,255,255,0.30)'; ctx.lineWidth=5;
   ctx.beginPath(); ctx.moveTo(800,AR.F-4); ctx.lineTo(800,AR.C+70); ctx.stroke();
   ctx.beginPath(); ctx.arc(800,AR.F-172,168,0,TAU); ctx.stroke();
-  ctx.strokeStyle='rgba(200,220,240,0.22)'; ctx.lineWidth=3;
+  ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=3;
   ctx.beginPath(); ctx.arc(800,AR.F-172,12,0,TAU); ctx.stroke();
-  ctx.fillStyle='rgba(200,220,240,0.22)';
-  ctx.beginPath(); ctx.arc(800,AR.F-10,5,0,TAU); ctx.fill();
-  ctx.lineWidth=4;
-  ctx.strokeStyle='rgba(63,193,255,0.13)';
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.arc(800,AR.F-10,6,0,TAU); ctx.fill();
+  // goal boxes
+  ctx.lineWidth=4; ctx.strokeStyle='rgba(255,255,255,0.16)';
   ctx.beginPath(); ctx.arc(AR.L,(AR.GT+AR.F)/2,340,-1.05,1.05); ctx.stroke();
-  ctx.strokeStyle='rgba(255,122,26,0.13)';
   ctx.beginPath(); ctx.arc(AR.R,(AR.GT+AR.F)/2,340,Math.PI-1.05,Math.PI+1.05); ctx.stroke();
   goalPaint(-1,'#3fc1ff','rgba(63,193,255,0.08)');
   goalPaint(1,'#ff7a1a','rgba(255,122,26,0.08)');
@@ -1857,7 +1904,7 @@ function drawHUD(){
   ctx.fillStyle='rgba(63,193,255,0.30)'; ctx.fillRect(-tw/2-bw,-bh/2,6*u,bh);
   ctx.fillStyle='rgba(255,122,26,0.30)'; ctx.fillRect(tw/2+bw-6*u,-bh/2,6*u,bh);
   ctx.fillStyle='rgba(63,193,255,0.10)'; ctx.fillRect(-tw/2-bw+6*u,-bh/2,bw-6*u,bh);
-  ctx.fillStyle='rgba(255,122,26,0.10)'; ctx.fillRect(tw/2,-bh/2,bw-6*u,bh);
+  ctx.fillStyle='rgba(255,122,26,0.10)'); ctx.fillRect(tw/2,-bh/2,bw-6*u,bh);
   ctx.font=`600 ${8.5*u}px 'Chakra Petch',sans-serif`;
   ctx.fillStyle='#7d8899';
   ctx.fillText('BLUE',-tw/2-bw/2,-bh/2+9*u);
@@ -2043,7 +2090,7 @@ function render(t){
   drawTags();
   drawParticles();
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  if(vig) ctx.drawImage(vig,0,0);
+  if(vig&&!lowQ) ctx.drawImage(vig,0,0);
   if(flashT>0){
     ctx.globalAlpha=Math.min(.3,flashT*1.1);
     ctx.fillStyle=flashCol; ctx.fillRect(0,0,cw,ch);
@@ -2059,8 +2106,16 @@ function render(t){
 function frame(tms){
   requestAnimationFrame(frame);
   const t=tms/1000;
-  const rdt=Math.min(.05,(t-lastT)||.016);
+  const rawDt=(t-lastT);
+  const rdt=Math.min(.05,rawDt||.016);
   lastT=t; timeS+=t;
+  // adaptive quality: drop heavy effects on slow devices
+  perfAvg=perfAvg*.93+((rawDt||.016)*1000)*.07;
+  perfT-=rdt;
+  if(perfT<=0){ perfT=1.5;
+    if(perfAvg>26) lowQ=true;
+    else if(perfAvg<17) lowQ=false;
+  }
   pollGamepad();
   mergeInputs();
   const frozen=paused&&!NET.on;
@@ -2083,7 +2138,7 @@ function frame(tms){
     while(acc>=STEP&&n++<8){ step(STEP); acc-=STEP; }
     updateParticles(rdt*ts);
     updateCam(rdt);
-    updateFlashes(rdt);
+    if(state!=='lobby') updateFlashes(rdt);
     if(banner){ banner.t+=rdt; if(banner.t>banner.dur) banner=null; }
     if(toast){ toast.t+=rdt; if(toast.t>toast.dur) toast=null; }
     flashT=Math.max(0,flashT-rdt*1.1);
@@ -2094,22 +2149,29 @@ function frame(tms){
     AC.engine(mc?clamp(Math.hypot(mc.vx,mc.vy)/1700,0,1):0,!!mc&&mc.boosting&&!mc.dead,active);
     AC.crowd(active?0.012:0);
     if(NET.on){
-      if(NET.mode==='host'&&['countdown','play','goal','end'].includes(state)){
+      if(NET.mode==='host'&&['play','goal'].includes(state)){
         NET.stateT-=rdt;
-        if(NET.stateT<=0){ NET.stateT=.05; send(makeSnapshot()); }
+        if(NET.stateT<=0){ NET.stateT=.1; send(makeSnapshot()); }
       } else if(NET.mode==='client'){
-        NET.sendT-=rdt;
-        if(NET.sendT<=0){ NET.sendT=.06; sendInput(); }
+        sendInput();
         NET.pingT-=rdt;
         if(NET.pingT<=0){ NET.pingT=2; send({k:'ping',id:NET.id,t:performance.now()}); }
       }
     }
   }
-  if(!ball.hidden&&Math.hypot(ball.vx,ball.vy)>900){
-    ball.trail.push({x:ball.x,y:ball.y});
-    if(ball.trail.length>9) ball.trail.shift();
-  } else ball.trail.length=0;
-  render(t);
+  // the lobby is a frozen scene: render it at 10 Hz to save battery and CPU
+  let skipRender=false;
+  if(state==='lobby'){
+    NET.renderT=(NET.renderT||0)-rdt;
+    if(NET.renderT>0) skipRender=true; else NET.renderT=.1;
+  }
+  if(!skipRender){
+    if(!ball.hidden&&Math.hypot(ball.vx,ball.vy)>900){
+      ball.trail.push({x:ball.x,y:ball.y});
+      if(ball.trail.length>9) ball.trail.shift();
+    } else ball.trail.length=0;
+    render(t);
+  }
 }
 
 /* ============================== UI WIRING ============================== */
