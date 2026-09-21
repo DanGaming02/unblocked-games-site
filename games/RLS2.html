@@ -122,12 +122,12 @@
       </div>
       <div id="netStat"></div>
       <div class="hints">
-        <b>LEFT SIDE</b> — drag to drive · <span class="fly">in the air the car follows your stick</span><br>
+        <b>LEFT SIDE</b> — drag to drive · in the air it <b>aims</b> your car<br>
+        <b>BOOST</b> — <span class="fly">the only way to move in the air</span>: aim with the stick, hold BOOST to fly<br>
         <b>JUMP</b> — tap to jump · again with a direction to <b>FLIP</b> (wall touches reset it)<br>
-        <b>WALLS</b> — hold the stick into a wall to <b>ride up it and across the ceiling</b><br>
-        <b>BOOST</b> — hold to fly faster · small pads +12 · big pads fill the tank<br>
+        <b>WALLS</b> — hold the stick into a wall to ride up it and across the ceiling<br>
         Online rooms fit 4 players (2v2) — share the room code, or fill empty slots with bots.
-        <div class="kbd"><br><b>KEYBOARD</b> — A/D drive · W/S fly up/down · SPACE jump · SHIFT boost · F fullscreen · P pause</div>
+        <div class="kbd"><br><b>KEYBOARD</b> — A/D drive · W/S aim up/down · SPACE jump · SHIFT boost · F fullscreen · P pause</div>
       </div>
       <div class="foot">Unofficial fan-made homage · runs locally in your browser</div>
     </div>
@@ -192,7 +192,8 @@ const AR={L:100,R:1500,F:880,C:90,TR:250,GH:280,GD:150}; AR.GT=AR.F-AR.GH;
 const G=2400, BALLG=1850;
 const HW=58, HH=19, CR=26, BR=64;
 const PL=AR.F-150;                       // pitch band top (the "touchline")
-const AIR_ACC=4000, AIR_ACC_BOOST=4800, AIR_CAP=1200, AIR_CAP_BOOST=1700, AIR_TURN=9;
+const DEPTH=26;                          // 2.5D far-wall extrusion offset
+const AIR_ACC_BOOST=4800, AIR_CAP_BOOST=1700, AIR_TURN=9;  // air movement is boost-only
 const teamColor=t=>t==='blue'?'#3fc1ff':'#ff7a1a';
 
 const DIFFS={
@@ -222,7 +223,7 @@ const nebulae=[
   {x:.58,y:.12,r:.42,c0:'rgba(38,112,112,0.050)',par:.026}
 ];
 let starLayers=null, arenaCv=null, arenaSX=1;
-const AW_X=AR.L-AR.GD-30, AW_Y=AR.C-40, AW_W=(AR.R-AR.L)+2*AR.GD+60, AW_H=(AR.F+130)-AW_Y;
+const AW_X=AR.L-AR.GD-30, AW_Y=AR.C-40-DEPTH, AW_W=(AR.R-AR.L)+2*AR.GD+60, AW_H=(AR.F+130)-AW_Y;
 let ballGrad=null, canopyGrad=null;
 
 function resize(){
@@ -239,7 +240,7 @@ function resize(){
 }
 addEventListener('resize',()=>{ resize(); rebuildCaches(); });
 
-/* ---- prerendered layers: this is the big performance win ---- */
+/* ---- prerendered layers (performance) ---- */
 function buildStarLayers(){
   const w=clamp(Math.ceil(cw/2),360,1024), h=clamp(Math.ceil(ch/2),240,700);
   starLayers=[{par:.03},{par:.08}].map((L,i)=>{
@@ -285,9 +286,27 @@ function arenaPath(c){
   c.lineTo(L-GD,GT);
   c.closePath();
 }
+function traceBody(g){
+  g.beginPath();
+  g.moveTo(-52,-11); g.lineTo(-28,-19); g.lineTo(2,-19);
+  g.quadraticCurveTo(22,-19,34,-12);
+  g.quadraticCurveTo(50,-6,57,1);
+  g.quadraticCurveTo(55,9,44,11);
+  g.lineTo(-38,13);
+  g.quadraticCurveTo(-54,14,-52,-11);
+  g.closePath();
+}
 function goalPaint(c,s,col,tint){
   const {L,R,F,GT,GD}=AR;
   const x0=s<0?L-GD:R;
+  // recessed far frame (2.5D depth)
+  c.save(); c.translate(0,-7);
+  c.strokeStyle=col; c.globalAlpha=.30; c.lineWidth=5;
+  c.beginPath();
+  if(s<0){ c.moveTo(L-GD,F); c.lineTo(L-GD,GT); c.lineTo(L-2,GT); }
+  else{ c.moveTo(R+GD,F); c.lineTo(R+GD,GT); c.lineTo(R+2,GT); }
+  c.stroke();
+  c.restore();
   c.fillStyle='#0a0e15'; c.fillRect(x0,GT,GD,F-GT);
   c.globalAlpha=.7; c.fillStyle=tint; c.fillRect(x0,GT,GD,F-GT);
   c.save(); c.beginPath(); c.rect(x0,GT,GD,F-GT); c.clip();
@@ -311,6 +330,12 @@ function buildArena(){
   const c=arenaCv.getContext('2d');
   c.scale(arenaSX,arenaSX); c.translate(-AW_X,-AW_Y);
   c.lineJoin='round';
+  // ---- 2.5D: the far wall of the arena, extruded behind the play plane ----
+  c.save(); c.translate(0,-DEPTH);
+  arenaPath(c);
+  c.fillStyle='#070c11'; c.fill();
+  c.lineWidth=9; c.strokeStyle='#131c28'; c.stroke();
+  c.restore();
   // floating shadows
   c.fillStyle='rgba(0,0,0,0.50)';
   c.beginPath(); c.ellipse(800,AR.F+58,800,40,0,0,TAU); c.fill();
@@ -320,16 +345,24 @@ function buildArena(){
   arenaPath(c);
   c.lineWidth=26; c.strokeStyle='#0d1219'; c.stroke();
   c.lineWidth=14; c.strokeStyle='#28344a'; c.stroke();
-  arenaPath(c); c.fillStyle='#0b120e'; c.fill();
+  // interior: shaded back wall (far) fading toward the floor (near)
+  arenaPath(c);
+  const ig=c.createLinearGradient(0,AR.C,0,AR.F);
+  ig.addColorStop(0,'#101a14'); ig.addColorStop(1,'#0a110d');
+  c.fillStyle=ig; c.fill();
   c.lineWidth=3.5; c.strokeStyle='#4a5f83'; c.stroke();
-  // interior
+  c.lineWidth=1.5; c.strokeStyle='rgba(255,255,255,0.09)'; c.stroke();   // bevel highlight
   c.save(); arenaPath(c); c.clip();
-  // faint depth lines above the pitch
+  // back-wall panel seams
   c.strokeStyle='rgba(255,255,255,0.028)'; c.lineWidth=2;
+  for(let x=200;x<=1400;x+=200){
+    c.beginPath(); c.moveTo(x,AR.C+8); c.lineTo(x,PL); c.stroke();
+  }
+  // faint horizontal depth lines above the pitch
   for(let y=PL-140;y>AR.C+70;y-=140){
     c.beginPath(); c.moveTo(AR.L,y); c.lineTo(AR.R,y); c.stroke();
   }
-  // ---- the green Rocket League pitch ----
+  // ---- the green Rocket League pitch (perspective floor) ----
   c.fillStyle='#1f8a44';
   c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL+6);
   c.fillStyle='rgba(255,255,255,0.055)';       // mow stripes
@@ -338,20 +371,26 @@ function buildArena(){
   const gl=c.createLinearGradient(0,PL,0,AR.F);
   gl.addColorStop(0,'rgba(255,255,255,0.10)'); gl.addColorStop(1,'rgba(0,0,0,0.16)');
   c.fillStyle=gl; c.fillRect(AR.L-AR.GD,PL,(AR.R-AR.L)+2*AR.GD,AR.F-PL);
+  // perspective depth lines (bunching toward the far touchline)
+  c.strokeStyle='rgba(240,252,240,0.07)'; c.lineWidth=2;
+  for(const t of [.16,.36,.58,.80]){
+    const y=PL+(AR.F-PL)*t;
+    c.beginPath(); c.moveTo(AR.L,y); c.lineTo(AR.R,y); c.stroke();
+  }
   c.strokeStyle='rgba(240,255,240,0.55)'; c.lineWidth=4;   // touchline
   c.beginPath(); c.moveTo(AR.L,PL); c.lineTo(AR.R,PL); c.stroke();
   c.strokeStyle='rgba(74,95,131,0.6)'; c.lineWidth=2;
   c.beginPath(); c.moveTo(AR.L-AR.GD,AR.F); c.lineTo(AR.R+AR.GD,AR.F); c.stroke();
-  // ---- white field markings (perspective) ----
+  // white field markings (perspective)
   const midY=(PL+AR.F)/2;
   c.strokeStyle='rgba(240,252,240,0.06)'; c.lineWidth=4;
-  c.beginPath(); c.moveTo(800,AR.C+70); c.lineTo(800,PL); c.stroke();       // faint center guide above
+  c.beginPath(); c.moveTo(800,AR.C+70); c.lineTo(800,PL); c.stroke();
   c.strokeStyle='rgba(240,252,240,0.55)'; c.lineWidth=5;
-  c.beginPath(); c.moveTo(800,PL); c.lineTo(800,AR.F); c.stroke();          // halfway line
-  c.beginPath(); c.ellipse(800,midY,175,58,0,0,TAU); c.stroke();            // center circle
+  c.beginPath(); c.moveTo(800,PL); c.lineTo(800,AR.F); c.stroke();
+  c.beginPath(); c.ellipse(800,midY,175,58,0,0,TAU); c.stroke();
   c.fillStyle='rgba(240,252,240,0.6)';
-  c.beginPath(); c.arc(800,midY,7,0,TAU); c.fill();                         // kickoff spot
-  c.strokeStyle='rgba(240,252,240,0.35)'; c.lineWidth=4;                    // goal boxes
+  c.beginPath(); c.arc(800,midY,7,0,TAU); c.fill();
+  c.strokeStyle='rgba(240,252,240,0.35)'; c.lineWidth=4;
   c.beginPath(); c.ellipse(AR.L+72,midY,120,52,0,-Math.PI/2,Math.PI/2); c.stroke();
   c.beginPath(); c.ellipse(AR.R-72,midY,120,52,0,Math.PI/2,Math.PI*1.5); c.stroke();
   goalPaint(c,-1,'#3fc1ff','rgba(63,193,255,0.08)');
@@ -639,7 +678,6 @@ function makeSnapshot(){
       c.input.boost?1:0,c.jc]),
     p:pads.map(p=>p.on?1:0),pt:pads.map(p=>Math.round(p.t*4)/4)};
 }
-/* smooth reconciliation: accumulate position error, decay it over time */
 function recErr(o,x,y,vx,vy){
   const dx=x-o.x, dy=y-o.y, d=Math.hypot(dx,dy);
   if(d>240){ o.x=x; o.y=y; o.vx=vx; o.vy=vy; o.ex=0; o.ey=0; return; }
@@ -742,7 +780,7 @@ let lobbySig='';
 function updateLobbyUI(){
   if(!NET.on) return;
   const sig=NET.code+'|'+NET.mode+'|'+NET.roster.map(r=>r.id+r.name+r.order).join(',');
-  if(sig===lobbySig) return;               // only rebuild the DOM when something changed
+  if(sig===lobbySig) return;
   lobbySig=sig;
   $('roomCode').textContent=NET.code||'----';
   const list=$('playerList'); list.innerHTML='';
@@ -1006,18 +1044,23 @@ function updateCar(c,dt){
       const mag=Math.hypot(st,sy);
       if(mag>0.12){
         const dx=st/mag, dy=sy/mag;
-        const acc=boosting?AIR_ACC_BOOST:AIR_ACC;
-        c.vx+=dx*acc*dt; c.vy+=dy*acc*dt;
-        const cap=(boosting?AIR_CAP_BOOST:AIR_CAP)*c.spdMul;
-        const sp=Math.hypot(c.vx,c.vy);
-        if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
+        // aiming the nose along the stick is always free
         if(Math.abs(dx)>0.35){ c.faceT=dx>0?1:-1; c.facing=c.faceT; }
         const f=c.facing;
         const tdes=Math.atan2(f*dy,f*dx);
         const da=wrapA(tdes-c.a);
         c.w=clamp(da*9,-11,11);
         c.a=wrapA(c.a+clamp(da,-AIR_TURN*dt,AIR_TURN*dt));
+        // ...but MOVING in the air only happens with boost
+        if(boosting){
+          c.vx+=dx*AIR_ACC_BOOST*dt;
+          c.vy+=dy*AIR_ACC_BOOST*dt;
+          const cap=AIR_CAP_BOOST*c.spdMul;
+          const sp=Math.hypot(c.vx,c.vy);
+          if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
+        }
       } else if(boosting){
+        // neutral stick + boost: thrust along the current nose
         const cs=Math.cos(c.a), sn=Math.sin(c.a), f=c.facing;
         c.vx+=f*cs*3800*dt; c.vy+=f*sn*3800*dt;
         const sp=Math.hypot(c.vx,c.vy), mx=AIR_CAP_BOOST*c.spdMul;
@@ -1407,7 +1450,6 @@ function pollPlayerInput(){
   const pi=c.input;
   pi.stick=input.stick; pi.sy=input.sy; pi.boost=input.boost;
   pi.jump=pendingJump; pendingJump=false;
-  // flush inputs to the host immediately on jumps and direction changes
   if(NET.mode==='client'&&(pi.jump||Math.sign(pi.stick)!==NET.lastSS)) NET.sendT=0;
   NET.lastSS=Math.sign(pi.stick);
 }
@@ -1420,7 +1462,6 @@ function step(dt){
   updateBall(dt);
   for(const c of CARS) carBall(c);
   padsUpdate(dt);
-  // smooth network correction (client): apply stored error gradually
   if(NET.mode==='client'){
     const k=Math.min(1,4*dt);
     for(const c of CARS){
@@ -1657,7 +1698,6 @@ function buildBackdrop(){
       c.fillStyle=r%2?'#0d1219':'#0b1016';
       c.fillRect(x0+26,y,w-52,16);
     }
-  // brighter, more colorful crowd (team shirts mixed in)
   const cols=['#39425a','#4a4148','#33414d','#54503e','#443a52','#3e4a3a','#4e576b',
     '#3a6a9a','#9a5a2a','#5577aa'];
   for(const [sy,rows] of tiers)
@@ -1672,15 +1712,16 @@ function buildBackdrop(){
     }
   c.globalAlpha=1;
   c.fillStyle='#151d2a'; c.fillRect(x0+26,y0+128,w-52,6);
+  // sponsor boards sit high on the stadium wall, above the arena's far wall
   const bx0=AR.L+AR.TR-40, bwd=(AR.R-AR.TR-(AR.L+AR.TR)+80)/6;
   const texts=['SIDESWIPE 2','OCTANE','TURBO FUEL','Z.AI','NEON GP','SUPERSONIC'];
   for(let i=0;i<6;i++){
     const x=bx0+i*bwd;
-    c.fillStyle=i%2?'#131a25':'#10161f'; c.fillRect(x,AR.C-38,bwd-6,30);
-    c.strokeStyle='#242f44'; c.lineWidth=2; c.strokeRect(x,AR.C-38,bwd-6,30);
+    c.fillStyle=i%2?'#131a25':'#10161f'; c.fillRect(x,AR.C-62,bwd-6,30);
+    c.strokeStyle='#242f44'; c.lineWidth=2; c.strokeRect(x,AR.C-62,bwd-6,30);
     c.fillStyle='#4d5b74'; c.font="600 17px 'Chakra Petch',sans-serif";
     c.textAlign='center'; c.textBaseline='middle';
-    c.fillText(texts[i],x+(bwd-6)/2,AR.C-23);
+    c.fillText(texts[i],x+(bwd-6)/2,AR.C-47);
   }
   for(const mx of [x0+70,x0+w-70]){
     c.fillStyle='#1a222e'; c.fillRect(mx-5,y0+30,10,150);
@@ -1759,6 +1800,8 @@ function drawGoalPulse(){
 }
 function drawPads(t){
   for(const p of pads){
+    ctx.fillStyle='rgba(0,0,0,0.4)';   // depth plate
+    ctx.beginPath(); ctx.ellipse(p.x,AR.F-13,30,8,0,0,TAU); ctx.fill();
     ctx.fillStyle='#0a0f16';
     ctx.beginPath(); ctx.ellipse(p.x,AR.F-6,34,9,0,0,TAU); ctx.fill();
     ctx.strokeStyle=p.big?'rgba(255,210,61,0.4)':'rgba(160,220,255,0.35)';
@@ -1805,7 +1848,6 @@ function drawBall(){
     ctx.fillStyle=`rgba(210,225,245,${.08*(1-hgt/300)})`;
     ctx.beginPath(); ctx.ellipse(b.x,AR.F+6,BR*.8,10,0,0,TAU); ctx.fill();
   }
-  // soft energy glow (like the reference ball)
   ctx.save(); ctx.globalCompositeOperation='lighter';
   ctx.fillStyle='rgba(190,215,240,0.05)';
   ctx.beginPath(); ctx.arc(b.x,by,BR*1.35,0,TAU); ctx.fill();
@@ -1839,10 +1881,19 @@ function drawCar(c){
   if(c.dead) return;
   const P=c.team==='blue';
   const acc=P?'#3fc1ff':'#ff7a1a', acc2=P?'#1d6d99':'#a3540c';
-  ctx.save();
-  ctx.translate(c.x,c.y); ctx.rotate(c.a);
+  const dark=P?'#0f2130':'#2f180a';
   const sq=c.squash;
   let fs=c.faceTween; if(Math.abs(fs)<.12) fs=fs<0?-.12:.12;
+  // ---- 2.5D: far-side silhouette (depth extrusion toward the far wall) ----
+  ctx.save();
+  ctx.translate(c.x,c.y-9); ctx.rotate(c.a);
+  ctx.scale(fs*(1+sq*.10),1-sq*.24);
+  traceBody(ctx);
+  ctx.fillStyle=dark; ctx.fill();
+  ctx.restore();
+  // ---- near-side sprite ----
+  ctx.save();
+  ctx.translate(c.x,c.y); ctx.rotate(c.a);
   ctx.scale(fs*(1+sq*.10),1-sq*.24);
   if(c.boosting){
     const L=34+Math.random()*26;
@@ -1869,14 +1920,7 @@ function drawCar(c){
   ctx.fillStyle='#101823';
   ctx.fillRect(-56,-25,14,5);
   ctx.fillRect(-49,-21,4,6);
-  ctx.beginPath();
-  ctx.moveTo(-52,-11); ctx.lineTo(-28,-19); ctx.lineTo(2,-19);
-  ctx.quadraticCurveTo(22,-19,34,-12);
-  ctx.quadraticCurveTo(50,-6,57,1);
-  ctx.quadraticCurveTo(55,9,44,11);
-  ctx.lineTo(-38,13);
-  ctx.quadraticCurveTo(-54,14,-52,-11);
-  ctx.closePath();
+  traceBody(ctx);
   ctx.fillStyle='#18222f'; ctx.fill();
   ctx.strokeStyle='#0a0f16'; ctx.lineWidth=2; ctx.stroke();
   ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=1.5;
@@ -2031,7 +2075,7 @@ function drawHUD(){
       ctx.beginPath(); ctx.arc(gx,gy,52,0,TAU); ctx.stroke();
       ctx.font=`600 ${10*u}px 'Chakra Petch',sans-serif`;
       ctx.fillStyle='rgba(233,238,246,0.28)'; ctx.textAlign='center';
-      ctx.fillText('DRAG TO DRIVE / FLY',gx,gy+78);
+      ctx.fillText('DRAG TO DRIVE / AIM',gx,gy+78);
     }
   } else if(NET.on){
     ctx.font=`600 ${11*u}px 'Chakra Petch',sans-serif`;
@@ -2042,7 +2086,7 @@ function drawHUD(){
     const a=clamp(8-(timeS-matchStartT),0,1);
     ctx.font=`600 ${12*u}px 'Chakra Petch',sans-serif`;
     ctx.fillStyle=`rgba(125,136,153,${a})`; ctx.textAlign='center';
-    ctx.fillText('HOLD INTO A WALL TO RIDE IT · DOUBLE-TAP JUMP TO FLIP',cw/2,ch-26*u);
+    ctx.fillText('AIM WITH THE STICK · HOLD BOOST TO FLY · TAP JUMP TWICE TO FLIP',cw/2,ch-26*u);
   }
 }
 function drawBanner(){
@@ -2165,7 +2209,7 @@ function frame(tms){
     acc+=rdt*ts;
     let n=0;
     while(acc>=STEP&&n<5){ step(STEP); acc-=STEP; n++; }
-    if(acc>STEP*3) acc=STEP*3;    // never let the sim spiral behind the framerate
+    if(acc>STEP*3) acc=STEP*3;
     updateParticles(rdt*ts);
     updateCam(rdt);
     updateFlashes(rdt);
@@ -2194,7 +2238,6 @@ function frame(tms){
     ball.trail.push({x:ball.x,y:ball.y});
     if(ball.trail.length>9) ball.trail.shift();
   } else ball.trail.length=0;
-  // render at half rate behind menus/lobby overlays — big battery + lag saver
   const idle=(state==='menu'||state==='lobby'||paused);
   if(!(idle&&(frameN&1))) render(t);
 }
