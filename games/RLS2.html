@@ -123,8 +123,9 @@
       <div id="netStat"></div>
       <div class="hints">
         <b>LEFT SIDE</b> — drag to drive · <span class="fly">in the air the car follows your stick</span><br>
-        <b>JUMP</b> — tap once to jump · tap again with a direction to <b>FLIP</b><br>
-        <b>BOOST</b> — hold to fly faster and higher · pads on the floor refill it<br>
+        <b>JUMP</b> — tap to jump · again with a direction to <b>FLIP</b> (wall touches reset it)<br>
+        <b>WALLS</b> — hold the stick into a wall to <b>ride up it and across the ceiling</b><br>
+        <b>BOOST</b> — hold to fly faster · small pads +12 · big pads fill the tank<br>
         Online rooms fit 4 players (2v2) — share the room code, or fill empty slots with bots.
         <div class="kbd"><br><b>KEYBOARD</b> — A/D drive · W/S fly up/down · SPACE jump · SHIFT boost · F fullscreen · P pause</div>
       </div>
@@ -194,9 +195,9 @@ const AIR_ACC=4000, AIR_ACC_BOOST=4800, AIR_CAP=1200, AIR_CAP_BOOST=1700, AIR_TU
 const teamColor=t=>t==='blue'?'#3fc1ff':'#ff7a1a';
 
 const DIFFS={
-  rookie:{react:.20,speed:.84,boostP:.40,flipP:.35,aerial:false,err:130,demo:false},
-  pro:   {react:.12,speed:.95,boostP:.80,flipP:.75,aerial:true, err:48, demo:false},
-  allstar:{react:.07,speed:1.0,boostP:1.0,flipP:.95,aerial:true, err:14, demo:true}
+  rookie:{react:.20,speed:.84,boostP:.40,flipP:.35,aerial:false,err:130},
+  pro:   {react:.12,speed:.95,boostP:.80,flipP:.75,aerial:true, err:48},
+  allstar:{react:.07,speed:1.0,boostP:1.0,flipP:.95,aerial:true, err:14}
 };
 
 /* ============================== UTILS ============================== */
@@ -302,7 +303,7 @@ const sfx={
   flip(){ AC.noiseHit(.15,1250,.2); },
   land(v){ AC.tone(95,.09,'sine',.25*v,50); },
   pad(big){ AC.tone(big?400:560,.13,'triangle',.16,big?520:720); },
-  demo(){ AC.noiseHit(.4,300,.5); AC.tone(70,.4,'sine',.4,28); },
+  bump(){ AC.noiseHit(.18,300,.14); AC.tone(90,.12,'sine',.2,50); },
   horn(){ if(!AC.ctx)return; const x=AC.ctx,t=x.currentTime;
     [220,330,440].forEach(f=>{ const o=x.createOscillator(),g=x.createGain(),fl=x.createBiquadFilter();
       o.type='sawtooth'; o.frequency.setValueAtTime(f*.92,t); o.frequency.linearRampToValueAtTime(f*1.04,t+.12);
@@ -324,7 +325,7 @@ let cd={n:3,t:0}, banner=null, lastToucher=null, matchStartT=0;
 let flashT=0, flashCol='#ffffff', toast=null, fsActive=false;
 const onT={left:false,right:false};
 let stats;
-function freshStats(){ stats={blue:{shots:0,saves:0,pads:0,demos:0},orange:{shots:0,saves:0,pads:0,demos:0},topSpeed:0}; }
+function freshStats(){ stats={blue:{shots:0,saves:0,pads:0},orange:{shots:0,saves:0,pads:0},topSpeed:0}; }
 freshStats();
 const settings={len:120,diff:'pro',muted:false,bots:0,name:''};
 try{ const s=JSON.parse(localStorage.getItem('ss2')||'{}');
@@ -661,15 +662,15 @@ function makeCar(team,slot,extra){
   return {team,slot,id:extra.id||('car'+slot),name:extra.name||'',bot:!!extra.bot,
     x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,
     facing:sp.f,faceT:sp.f,faceTween:sp.f,grounded:true,air:0,has2:false,flipT:0,flipDir:1,
-    coyote:0,jc:0,boost:34,boosting:false,dead:false,respawn:0,squash:0,wheel:0,recT:0,
+    coyote:0,jc:0,ride:false,boost:33,boosting:false,dead:false,respawn:0,squash:0,wheel:0,recT:0,
     emitT:0,ssT:0,spdMul:1,brain:extra.brain||null,
     input:{stick:0,sy:0,jump:false,boost:false}};
 }
 let CARS=[];
 const me=()=>NET.on?CARS.find(c=>c.id===NET.id):CARS[0];
-const ball={x:800,y:430,vx:0,vy:0,w:0,rot:0,hidden:false,touchT:0,trail:[]};
+const ball={x:800,y:300,vx:0,vy:0,w:0,rot:0,hidden:false,touchT:0,trail:[]};
 const pads=[{x:210,big:true},{x:1390,big:true},{x:430},{x:680},{x:920},{x:1170}]
-  .map(p=>({x:p.x,big:!!p.big,on:true,t:0,full:p.big?8:5,amt:p.big?100:30}));
+  .map(p=>({x:p.x,big:!!p.big,on:true,t:0,full:p.big?8:5,amt:p.big?100:12}));
 const parts=[];
 const cam={x:800,y:520,z:1,shake:0};
 
@@ -755,10 +756,87 @@ function arenaCollide(b,r,e,tang){
   return out;
 }
 
+/* ============================== WALL RIDING (Sideswipe signature) ============================== */
+function findRideSurface(c){
+  const {L,R,C,TR,GT}=AR, r=CR;
+  for(const s of [-1,1]){                       // rounded top corners
+    const ocx=s<0?L+TR:R-TR, ocy=C+TR;
+    const inCorner=s<0?(c.x<ocx):(c.x>ocx);
+    if(inCorner&&c.y<ocy){
+      const dx=c.x-ocx, dy=c.y-ocy, d=Math.hypot(dx,dy);
+      if(d>TR-r-10&&d>1){
+        const pr=TR-r;
+        return {nx:-dx/d, ny:-dy/d,
+          pin(){ const ddx=c.x-ocx, ddy=c.y-ocy, dd=Math.hypot(ddx,ddy)||1;
+            c.x=ocx+ddx/dd*pr; c.y=ocy+ddy/dd*pr; }};
+      }
+      return null;
+    }
+  }
+  if(c.y>C+TR&&c.y<GT-6){                       // side walls above the goal mouths
+    if(c.x-L<r+10) return {nx:1,ny:0,pin(){c.x=L+r;}};
+    if(R-c.x<r+10) return {nx:-1,ny:0,pin(){c.x=R-r;}};
+  }
+  if(c.x>L+TR&&c.x<R-TR&&c.y<C+r+10)            // ceiling
+    return {nx:0,ny:1,pin(){c.y=C+r;}};
+  return null;
+}
+function tryWallRide(c,dt,jp){
+  const inp=c.input;
+  const surf=findRideSurface(c);
+  if(!surf){
+    if(c.ride){ c.ride=false; c.w=clamp(wrapA(-c.a)*3,-8,8); }
+    return false;
+  }
+  const svx=inp.stick, svy=inp.sy||0, smag=Math.hypot(svx,svy);
+  const sIn=smag>0.12?(svx*-surf.nx+svy*-surf.ny)/smag:0;   // stick component into the surface
+  const needHold=surf.ny>0.35;                               // overhead surfaces: keep holding in
+  if(!c.ride){
+    if(c.flipT>0||sIn<0.25) return false;                    // press into the wall to attach
+    c.ride=true;
+  } else if(c.flipT>0||sIn<(needHold?0.15:-0.25)){
+    c.ride=false; c.w=clamp(wrapA(-c.a)*3,-8,8);
+    return false;
+  }
+  const nx=surf.nx, ny=surf.ny, boosting=c.boosting;
+  // cancel velocity along the surface normal
+  const vn=c.vx*nx+c.vy*ny;
+  c.vx-=vn*nx; c.vy-=vn*ny;
+  // gravity projected along the wall (pulls you back down toward the floor)
+  c.vx+=G*(-ny*nx)*dt;
+  c.vy+=G*(1-ny*ny)*dt;
+  // drive along the wall with the stick's tangential part
+  const sn=svx*nx+svy*ny;
+  const tx=svx-sn*nx, ty=svy-sn*ny, tl=Math.hypot(tx,ty);
+  if(tl>0.05){
+    const acc=boosting?4200:3600;
+    c.vx+=tx/tl*acc*dt; c.vy+=ty/tl*acc*dt;
+  }
+  const cap=(boosting?1500:1200)*c.spdMul;
+  const sp=Math.hypot(c.vx,c.vy);
+  if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
+  // orientation: wheels on the wall, nose along travel
+  const thW=Math.atan2(nx,-ny);
+  c.a=wrapA(c.a+clamp(wrapA(thW-c.a),-10*dt,10*dt));
+  c.w=0;
+  const nd=Math.cos(c.a)*c.vx+Math.sin(c.a)*c.vy;
+  if(Math.abs(nd)>80){ const f=nd>0?1:-1; c.facing=f; c.faceT=f; }
+  c.faceTween+=(c.faceT-c.faceTween)*Math.min(1,13*dt);
+  c.wheel+=nd/13*dt;
+  c.has2=false;                          // touching a surface resets your flip
+  if(jp){                                // jump off the wall
+    c.vx+=nx*780; c.vy+=ny*780;
+    c.ride=false; c.air=.001; c.coyote=0;
+    sfx.jump();
+    spawnSparks(c.x-nx*26,c.y-ny*26,5,'rgba(200,215,235,0.8)');
+    return true;                         // velocity set; outer code integrates
+  }
+  c.x+=c.vx*dt; c.y+=c.vy*dt;
+  surf.pin(c);
+  return true;
+}
+
 /* ============================== CAR PHYSICS ============================== */
-/* Air control is now a flight stick: push the stick anywhere and the car
-   accelerates in that exact world direction; the nose auto-turns to face
-   where it is going. Boost makes flight faster with a higher speed cap. */
 function updateCar(c,dt){
   if(c.dead){ c.respawn-=dt; if(c.respawn<=0) respawnCar(c); return; }
   const inp=c.input, jp=inp.jump; inp.jump=false;
@@ -774,7 +852,7 @@ function updateCar(c,dt){
     let dir=0,target=0;
     if(boosting&&a===0){ dir=c.facing; target=dir*cap; }
     else if(a!==0){ dir=Math.sign(a); target=dir*cap; }
-    if(dir!==0){ c.faceT=dir; c.facing=dir; }   // physics facing follows travel direction
+    if(dir!==0){ c.faceT=dir; c.facing=dir; }
     const same=target!==0&&Math.sign(c.vx)===dir&&Math.abs(c.vx)<Math.abs(target);
     const acc=same?3400:5800;
     c.vx+=clamp(target-c.vx,-acc*dt,acc*dt);
@@ -782,28 +860,31 @@ function updateCar(c,dt){
     c.a=wrapA(c.a)*Math.exp(-16*dt); c.w=0;
     c.faceTween+=(c.faceT-c.faceTween)*Math.min(1,13*dt);
     c.wheel+=(c.vx/13)*dt;
-    c.air=0; c.has2=false; c.flipT=0;
+    c.air=0; c.has2=false; c.flipT=0; c.ride=false;
     if(jp){ c.vy=-900; c.grounded=false; c.air=.001; c.coyote=0;
       sfx.jump(); spawnDust(c.x,AR.F,4); }
     c.x+=c.vx*dt;
     arenaCollide(c,CR,.1,1);
   } else {
     c.air+=dt; c.coyote=Math.max(0,c.coyote-dt);
-    if(c.flipT>0){                       // dodge spin overrides steering
+    let wallJumped=false;
+    if(c.flipT>0){
       c.flipT-=dt; c.w=c.flipDir*12.6; if(c.flipT<=0)c.w=0;
       c.a=wrapA(c.a+c.w*dt);
+      c.ride=false;
+    } else if(tryWallRide(c,dt,jp)){
+      if(!c.ride) wallJumped=true;      // jumped off the wall this tick
     } else {
       const st=inp.stick, sy=inp.sy||0;
       const mag=Math.hypot(st,sy);
       if(mag>0.12){
-        /* ---- DIRECT FLIGHT: stick top-right = car top-right ---- */
+        // ---- direct flight: stick direction = car direction ----
         const dx=st/mag, dy=sy/mag;
         const acc=boosting?AIR_ACC_BOOST:AIR_ACC;
         c.vx+=dx*acc*dt; c.vy+=dy*acc*dt;
         const cap=(boosting?AIR_CAP_BOOST:AIR_CAP)*c.spdMul;
         const sp=Math.hypot(c.vx,c.vy);
         if(sp>cap){ c.vx*=cap/sp; c.vy*=cap/sp; }
-        // nose follows the stick direction
         if(Math.abs(dx)>0.35){ c.faceT=dx>0?1:-1; c.facing=c.faceT; }
         const f=c.facing;
         const tdes=Math.atan2(f*dy,f*dx);
@@ -811,7 +892,6 @@ function updateCar(c,dt){
         c.w=clamp(da*9,-11,11);
         c.a=wrapA(c.a+clamp(da,-AIR_TURN*dt,AIR_TURN*dt));
       } else if(boosting){
-        // neutral stick + boost: keep thrusting along the current nose
         const cs=Math.cos(c.a), sn=Math.sin(c.a), f=c.facing;
         c.vx+=f*cs*3800*dt; c.vy+=f*sn*3800*dt;
         const sp=Math.hypot(c.vx,c.vy), mx=AIR_CAP_BOOST*c.spdMul;
@@ -819,16 +899,17 @@ function updateCar(c,dt){
         c.a=wrapA(c.a+c.w*dt);
         c.w*=Math.exp(-4*dt);
       } else {
-        // free fall: damp spin, gently auto-level for landing
         c.w*=Math.exp(-10*dt);
         if(c.vy>150) c.w+=(-wrapA(c.a))*2.2*dt;
         c.a=wrapA(c.a+c.w*dt);
       }
     }
-    c.vy+=G*(c.flipT>0?0.62:1)*dt;
-    if(c.vy>1900) c.vy=1900;
-    c.vx*=Math.exp(-0.08*dt); c.vy*=Math.exp(-0.015*dt);
-    if(jp){
+    if(!c.ride){
+      c.vy+=G*(c.flipT>0?0.62:1)*dt;
+      if(c.vy>1900)c.vy=1900;
+      c.vx*=Math.exp(-0.08*dt); c.vy*=Math.exp(-0.015*dt);
+    }
+    if(jp&&!c.ride&&!wallJumped){
       if(c.coyote>0){
         c.vy=-900; c.coyote=0; c.air=.001;
         sfx.jump(); spawnDust(c.x,AR.F,4);
@@ -851,29 +932,31 @@ function updateCar(c,dt){
         }
       }
     }
-    c.wheel+=(c.vx/13)*.5*dt;
-    c.x+=c.vx*dt; c.y+=c.vy*dt;
-    const hit=arenaCollide(c,CR,.25,1);
-    if(hit.floor){
-      if(Math.cos(c.a)>0.3){                 // relaxed so diagonal dives land cleanly
-        c.grounded=true; c.vy=0; c.squash=Math.min(1,hit.floor/900);
-        if(hit.floor>380){ sfx.land(hit.floor/900); spawnDust(c.x,AR.F,6); }
-      } else {
-        const near=Math.round(c.a/Math.PI)*Math.PI;
-        c.w=c.w*.4+(near-c.a)*9;
-        c.vx*=Math.exp(-2.4*dt);
-        if(Math.abs(near-c.a)<.14&&Math.abs(c.vy)<90&&Math.abs(c.w)<4){
-          c.recT+=dt;
-          if(c.recT>.38){
-            c.recT=0; c.vy=-430;
-            const nose=c.facing*Math.cos(c.a);
-            c.facing=nose>=0?1:-1; c.faceT=c.facing;
-            c.w=wrapA(0-c.a)*5; c.has2=true; sfx.jump();
-          }
-        } else c.recT=0;
+    if(!c.ride){
+      c.wheel+=(c.vx/13)*.5*dt;
+      c.x+=c.vx*dt; c.y+=c.vy*dt;
+      const hit=arenaCollide(c,CR,.25,1);
+      if(hit.floor){
+        if(Math.cos(c.a)>0.3){
+          c.grounded=true; c.vy=0; c.squash=Math.min(1,hit.floor/900);
+          if(hit.floor>380){ sfx.land(hit.floor/900); spawnDust(c.x,AR.F,6); }
+        } else {
+          const near=Math.round(c.a/Math.PI)*Math.PI;
+          c.w=c.w*.4+(near-c.a)*9;
+          c.vx*=Math.exp(-2.4*dt);
+          if(Math.abs(near-c.a)<.14&&Math.abs(c.vy)<90&&Math.abs(c.w)<4){
+            c.recT+=dt;
+            if(c.recT>.38){
+              c.recT=0; c.vy=-430;
+              const nose=c.facing*Math.cos(c.a);
+              c.facing=nose>=0?1:-1; c.faceT=c.facing;
+              c.w=wrapA(0-c.a)*5; c.has2=true; sfx.jump();
+            }
+          } else c.recT=0;
+        }
       }
+      if(hit.wall>420){ sfx.land(Math.min(1,hit.wall/1400)); shake(1.5); }
     }
-    if(hit.wall>420){ sfx.land(Math.min(1,hit.wall/1400)); shake(1.5); }
   }
   if(boosting){
     c.emitT-=dt;
@@ -893,10 +976,11 @@ function updateCar(c,dt){
 }
 function respawnCar(c){
   const sp=spawnFor(c.slot);
-  Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,grounded:true,boost:34,
+  Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,grounded:true,boost:33,ride:false,
     facing:sp.f,faceT:sp.f,faceTween:sp.f,has2:false,flipT:0,air:0});
 }
 function carCar(){
+  // Sideswipe-style: no demolitions, cars just bump each other
   for(let i=0;i<CARS.length;i++) for(let j=i+1;j<CARS.length;j++){
     const a=CARS[i], b=CARS[j];
     if(a.dead||b.dead) continue;
@@ -904,25 +988,14 @@ function carCar(){
     if(d>=min||d<.01) continue;
     const nx=dx/d, ny=dy/d;
     const closing=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
-    if(Math.abs(closing)>1150){
-      const atk=closing>0?a:b, vic=closing>0?b:a;
-      if(atk.boosting||Math.hypot(atk.vx,atk.vy)>1300){ demolish(vic,atk); continue; }
-    }
     const push=(min-d)/2;
     a.x-=nx*push; a.y-=ny*push; b.x+=nx*push; b.y+=ny*push;
     if(closing>0){
       const imp=closing*.72;
       a.vx-=nx*imp; a.vy-=ny*imp; b.vx+=nx*imp; b.vy+=ny*imp;
-      if(closing>420){ sfx.kick(closing*.8); shake(2); }
+      if(closing>420){ sfx.bump(); shake(2); vib(8); }
     }
   }
-}
-function demolish(v,atk){
-  v.dead=true; v.respawn=2.2;
-  spawnBurst(v.x,v.y,teamColor(v.team),46); spawnRing(v.x,v.y);
-  stats[atk.team].demos++; sfx.demo(); shake(9); vib([30,50,30]);
-  flashT=.18; flashCol='#ffffff';
-  if(v===me()) toastMsg('DEMOLISHED — RESPAWNING',2.2);
 }
 
 /* ============================== BALL ============================== */
@@ -1033,13 +1106,6 @@ function aiDrive(car,brain,dt){
       for(const p of pads) if(p.on&&p.x>620){ const dd=Math.abs(p.x-car.x); if(dd<bd){bd=dd;best=p;} }
       if(best){ tx=best.x+40; mode='pad'; }
     }
-    if(d.demo){
-      const opps=CARS.filter(x=>x.team!==car.team&&!x.dead);
-      const opp=opps.reduce((bb,x)=>Math.abs(x.x-car.x)<Math.abs((bb||x).x-car.x)?x:bb,null);
-      if(opp&&Math.abs(b.x-opp.x)>500&&Math.abs(opp.x-car.x)<600&&car.boost>40){
-        tx=opp.x; mode='demo';
-      }
-    }
     if(car.grounded&&brain.jumpCd<=0){
       const dx2=Math.abs(b.x-car.x);
       if(dx2<230&&b.y<car.y-150&&b.y>170){
@@ -1055,19 +1121,18 @@ function aiDrive(car,brain,dt){
   }
   if(!car.grounded){
     if(brain.aerial&&!b.hidden&&car.air<2.2){
-      // flies straight at the ball with the new direct air control
       const dirx=b.x-car.x, diry=b.y-car.y, l=Math.hypot(dirx,diry)||1;
       inp.stick=clamp(dirx/l*1.5,-1,1);
       inp.sy=clamp(diry/l*1.5,-1,1);
       inp.boost=car.boost>0&&l>160;
       if(b.y<car.y-60&&!car.has2&&car.air>.25&&car.air<1.2){
-        inp.stick*=.25; inp.sy*=.25; inp.jump=true;    // soft stick => double jump
+        inp.stick*=.25; inp.sy*=.25; inp.jump=true;
       }
-      if(l<190&&!car.has2&&Math.abs(dirx)>60){          // flip finisher
+      if(l<190&&!car.has2&&Math.abs(dirx)>60){
         inp.stick=dirx<0?-1:1; inp.sy=diry<0?-1:1; inp.jump=true;
       }
     } else {
-      inp.stick=0; inp.sy=0;   // neutral stick: auto-level takes over
+      inp.stick=0; inp.sy=0;
     }
   } else {
     brain.aerial=false;
@@ -1075,7 +1140,7 @@ function aiDrive(car,brain,dt){
     inp.stick=clamp(err*.02,-1,1);
     if(Math.abs(inp.stick)<.06) inp.stick=0;
     if((Math.abs(brain.tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP)||brain.mode==='demo')
-      inp.boost=true;
+      inp.boost=(Math.abs(brain.tx-car.x)>360&&car.boost>14&&Math.random()<d.boostP);
     if(Math.abs(car.vx)<70&&Math.abs(brain.tx-car.x)>200){
       brain.stuck+=dt;
       if(brain.stuck>.8){ inp.jump=true; brain.stuck=0; }
@@ -1085,12 +1150,12 @@ function aiDrive(car,brain,dt){
 
 /* ============================== MATCH FLOW ============================== */
 function resetPositions(){
-  ball.x=800; ball.y=430; ball.vx=0; ball.vy=0; ball.w=0; ball.rot=0;
+  ball.x=800; ball.y=300; ball.vx=0; ball.vy=0; ball.w=0; ball.rot=0;
   ball.hidden=false; ball.trail.length=0; ball.touchT=0;
   for(const c of CARS){
     const sp=spawnFor(c.slot);
     Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,grounded:true,air:0,has2:false,
-      flipT:0,coyote:0,boost:34,dead:false,facing:sp.f,faceT:sp.f,faceTween:sp.f,squash:0,recT:0});
+      flipT:0,coyote:0,ride:false,boost:33,dead:false,facing:sp.f,faceT:sp.f,faceTween:sp.f,squash:0,recT:0});
   }
   for(const p of pads){ p.on=true; p.t=0; }
   lastToucher=null; onT.left=onT.right=false;
@@ -1351,9 +1416,9 @@ addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();
   if(k===' '||k==='arrowup'||k==='w'){
     if(state!=='menu'&&!paused) pendingJump=true;
-    if(k!==' ') keys.add('u');           // W / Up held = fly up
+    if(k!==' ') keys.add('u');
   }
-  if(k==='s'||k==='arrowdown') keys.add('dn');  // S / Down held = fly down
+  if(k==='s'||k==='arrowdown') keys.add('dn');
   if(k==='shift'||k==='b') keys.add('boost');
   if(k==='a'||k==='arrowleft') keys.add('l');
   if(k==='d'||k==='arrowright') keys.add('r');
@@ -1894,7 +1959,7 @@ function drawHUD(){
     const a=clamp(8-(timeS-matchStartT),0,1);
     ctx.font=`600 ${12*u}px 'Chakra Petch',sans-serif`;
     ctx.fillStyle=`rgba(125,136,153,${a})`; ctx.textAlign='center';
-    ctx.fillText('IN THE AIR THE CAR FOLLOWS YOUR STICK · DOUBLE-TAP JUMP TO FLIP',cw/2,ch-26*u);
+    ctx.fillText('HOLD INTO A WALL TO RIDE IT · DOUBLE-TAP JUMP TO FLIP',cw/2,ch-26*u);
   }
 }
 function drawBanner(){
@@ -2135,8 +2200,7 @@ function showEnd(){
   $('endScore').innerHTML=`<span class="b">${score.blue}</span> — <span class="o">${score.orange}</span>`;
   $('endSub').textContent=endSub;
   const rows=[['GOALS',score.blue,score.orange],['SHOTS',stats.blue.shots,stats.orange.shots],
-    ['SAVES',stats.blue.saves,stats.orange.saves],['BOOST PADS',stats.blue.pads,stats.orange.pads],
-    ['DEMOS',stats.blue.demos,stats.orange.demos]];
+    ['SAVES',stats.blue.saves,stats.orange.saves],['BOOST PADS',stats.blue.pads,stats.orange.pads]];
   $('statsGrid').innerHTML=rows.map(r=>
     `<div class="sr"><div>${r[1]}</div><div>${r[0]}</div><div>${r[2]}</div></div>`).join('');
   $('topSpeed').textContent='TOP BALL SPEED — '+Math.round(stats.topSpeed*.075)+' KM/H';
