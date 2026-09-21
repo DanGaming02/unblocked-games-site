@@ -118,5 +118,11 @@
     "type": "html",
     "path": "games/PF.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Rocket League Sideswipe 2",
+    "type": "html",
+    "path": "games/RLS2.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
