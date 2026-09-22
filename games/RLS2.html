@@ -194,10 +194,10 @@ const HW=58, HH=19, CR=26, BR=64;
 const AIR_ACC_BOOST=4800, AIR_CAP_BOOST=1700, AIR_TURN=9;
 const teamColor=t=>t==='blue'?'#3fc1ff':'#ff7a1a';
 
-/* ---- 2.5D camera: play plane at z=0, arena extruded in depth ---- */
-const CAMZ=1750, ZFAR=-600, ZNEAR=300, GW=150;   // GW = goal mouth half-width in depth
-const REF={x:800,y:505};                          // projection reference (camera aim point)
-const mOf=z=>CAMZ/(CAMZ-z);                       // depth magnification about REF
+/* ---- 2.5D camera ---- */
+const CAMZ=1750, ZFAR=-600, ZNEAR=300, GW=150;
+const REF={x:800,y:505};
+const mOf=z=>CAMZ/(CAMZ-z);
 function pz(x,y,z){ const m=mOf(z); return [REF.x+(x-REF.x)*m, REF.y+(y-REF.y)*m]; }
 function quad(c,a,b,d,e){
   c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]);
@@ -268,7 +268,6 @@ function resize(){
 }
 addEventListener('resize',()=>{ resize(); rebuildCaches(); });
 
-/* ---- prerendered layers (performance) ---- */
 function buildStarLayers(){
   const w=clamp(Math.ceil(cw/2),360,1024), h=clamp(Math.ceil(ch/2),240,700);
   starLayers=[{par:.03},{par:.08}].map((L,i)=>{
@@ -296,25 +295,9 @@ function buildNebulae(){
 function buildGrads(){
   ballGrad=ctx.createRadialGradient(-24,-26,8,0,0,BR+2);
   ballGrad.addColorStop(0,'#ffffff'); ballGrad.addColorStop(.45,'#eef2f6'); ballGrad.addColorStop(1,'#a9b4c0');
-  canopyGrad=ctx.createLinearGradient(0,-17,0,0);
-  canopyGrad.addColorStop(0,'#2c3d52'); canopyGrad.addColorStop(1,'#0d141d');
-}
-function traceBody(g){
-  g.beginPath();
-  g.moveTo(-52,-11); g.lineTo(-28,-19); g.lineTo(2,-19);
-  g.quadraticCurveTo(22,-19,34,-12);
-  g.quadraticCurveTo(50,-6,57,1);
-  g.quadraticCurveTo(55,9,44,11);
-  g.lineTo(-38,13);
-  g.quadraticCurveTo(-54,14,-52,-11);
-  g.closePath();
 }
 
-/* ==================== THE 2.5D ARENA BAKE ==================== */
-/* The 2D arena profile is extruded along z. Every 3D point (x,y,z) projects
-   into play-plane coords via pz(); everything is baked ONCE into a cache, so
-   the runtime cost is a single drawImage. The play plane (z=0) maps 1:1, so
-   all gameplay rendering stays pixel-exact. */
+/* ==================== 2.5D ARENA BAKE (unchanged) ==================== */
 function bakeArena(){
   arenaSX=clamp(baseScale*Math.min(dpr,2),1,1.6);
   const area=AB_W*AB_H*arenaSX*arenaSX;
@@ -325,14 +308,12 @@ function bakeArena(){
   c.scale(arenaSX,arenaSX); c.translate(-AB_X,-AB_Y);
   c.lineJoin='round';
   const mF=mOf(ZFAR);
-  // 1) crowd stands, far beyond the arena
   if(backdrop){
     c.save();
     c.translate(REF.x,REF.y); c.scale(.72,.72); c.translate(-REF.x,-REF.y);
     c.drawImage(backdrop,40,-330);
     c.restore();
   }
-  // 2) far wall (the arena's back cross-section)
   c.save();
   c.translate(REF.x,REF.y); c.scale(mF,mF); c.translate(-REF.x,-REF.y);
   farWallPath(c);
@@ -344,7 +325,6 @@ function bakeArena(){
   c.fillRect(AR.L+80,AR.C+150,(AR.R-AR.L)-160,24);
   c.fillRect(AR.L+80,AR.C+330,(AR.R-AR.L)-160,24);
   c.restore();
-  // 3) ceiling plane (with roof light bars)
   quad(c,pz(AR.L+AR.TR,AR.C,ZFAR),pz(AR.R-AR.TR,AR.C,ZFAR),
         pz(AR.R-AR.TR,AR.C,ZNEAR),pz(AR.L+AR.TR,AR.C,ZNEAR));
   c.fillStyle='#131a25'; c.fill();
@@ -353,7 +333,6 @@ function bakeArena(){
     const a=pz(lx,AR.C,ZFAR), b=pz(lx,AR.C,ZNEAR);
     c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
   }
-  // 4) rounded corner bands (ceiling-to-wall cylinders)
   for(const s of [-1,1]){
     const ocx=s<0?AR.L+AR.TR:AR.R-AR.TR, ocy=AR.C+AR.TR;
     const th0=s<0?Math.PI:1.5*Math.PI, th1=s<0?1.5*Math.PI:TAU;
@@ -372,7 +351,6 @@ function bakeArena(){
     c.closePath();
     c.fillStyle='#18202e'; c.fill();
   }
-  // 5) side walls (with the goal mouth gap at |z|<GW, y>GT)
   for(const s of [-1,1]){
     const wx=s<0?AR.L:AR.R;
     const wc=s<0?'#1a2433':'#18212f';
@@ -384,7 +362,6 @@ function bakeArena(){
             pz(wx,AR.F,zz[1]),pz(wx,AR.F,zz[0]));
       c.fillStyle=wc; c.fill();
     }
-    // panel seams + crossbar trim line
     c.strokeStyle='rgba(255,255,255,0.04)'; c.lineWidth=3;
     for(const z of [-450,-300,150]){
       const a=pz(wx,AR.C+AR.TR,z), b=pz(wx,AR.F,z);
@@ -394,7 +371,6 @@ function bakeArena(){
     c.strokeStyle='rgba(255,255,255,0.05)'; c.lineWidth=4;
     c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
   }
-  // 6) the floor plane: green pitch in perspective
   const Fp0=pz(AR.L,AR.F,ZFAR), Fp1=pz(AR.R,AR.F,ZFAR),
         Fp2=pz(AR.R,AR.F,520),  Fp3=pz(AR.L,AR.F,520);
   quad(c,Fp0,Fp1,Fp2,Fp3);
@@ -403,26 +379,26 @@ function bakeArena(){
   pg.addColorStop(.78,'#0b2415'); pg.addColorStop(1,'#06090f');
   c.fillStyle=pg; c.fill();
   c.save(); quad(c,Fp0,Fp1,Fp2,Fp3); c.clip();
-  c.fillStyle='rgba(255,255,255,0.05)';            // mow stripes
+  c.fillStyle='rgba(255,255,255,0.05)';
   for(let x=AR.L,i=0;x<AR.R;x+=180,i++) if(i%2===0){
     quad(c,pz(x,AR.F,ZFAR),pz(Math.min(x+180,AR.R),AR.F,ZFAR),
           pz(Math.min(x+180,AR.R),AR.F,520),pz(x,AR.F,520));
     c.fill();
   }
-  c.strokeStyle='rgba(240,252,240,0.10)'; c.lineWidth=3;   // depth lines
+  c.strokeStyle='rgba(240,252,240,0.10)'; c.lineWidth=3;
   for(const z of [-450,-300,-150,0,150]){
     const a=pz(AR.L,AR.F,z), b=pz(AR.R,AR.F,z);
     c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
   }
-  let a=pz(800,AR.F,ZFAR), b=pz(800,AR.F,ZNEAR);           // halfway line
+  let a=pz(800,AR.F,ZFAR), b=pz(800,AR.F,ZNEAR);
   c.strokeStyle='rgba(240,252,240,0.5)'; c.lineWidth=5;
   c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
-  a=pz(AR.L,AR.F,ZFAR); b=pz(AR.R,AR.F,ZFAR);              // far touchline
+  a=pz(AR.L,AR.F,ZFAR); b=pz(AR.R,AR.F,ZFAR);
   c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
-  a=pz(AR.L,AR.F,350); b=pz(AR.R,AR.F,350);                // near edge hint
+  a=pz(AR.L,AR.F,350); b=pz(AR.R,AR.F,350);
   c.strokeStyle='rgba(240,255,240,0.25)';
   c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
-  c.strokeStyle='rgba(240,252,240,0.5)';                   // center circle
+  c.strokeStyle='rgba(240,252,240,0.5)';
   c.beginPath();
   for(let i=0;i<=28;i++){
     const ph=i/28*TAU;
@@ -430,10 +406,10 @@ function bakeArena(){
     i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]);
   }
   c.closePath(); c.stroke();
-  const cd=pz(800,AR.F,0);                                 // kickoff spot
+  const cd=pz(800,AR.F,0);
   c.fillStyle='rgba(240,252,240,0.5)';
   c.beginPath(); c.ellipse(cd[0],cd[1],8,4,0,0,TAU); c.fill();
-  c.strokeStyle='rgba(240,252,240,0.30)'; c.lineWidth=4;   // goal boxes
+  c.strokeStyle='rgba(240,252,240,0.30)'; c.lineWidth=4;
   for(const s of [-1,1]){
     const gx=s<0?AR.L+130:AR.R-130, dir=s<0?1:-1;
     c.beginPath();
@@ -445,21 +421,20 @@ function bakeArena(){
     c.stroke();
   }
   c.restore();
-  // 7) 3D goal pockets: floor, ceiling, side faces, netted back, frames
   for(const s of [-1,1]){
     const wx=s<0?AR.L:AR.R;
     const bx=s<0?AR.L-AR.GD:AR.R+AR.GD;
     const col=teamColor(s<0?'blue':'orange');
     quad(c,pz(bx,AR.F,-GW),pz(bx,AR.F,GW),pz(wx,AR.F,GW),pz(wx,AR.F,-GW));
-    c.fillStyle='#0d2818'; c.fill();                        // pocket floor
+    c.fillStyle='#0d2818'; c.fill();
     quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(wx,AR.GT,GW),pz(wx,AR.GT,-GW));
-    c.fillStyle='#0d1219'; c.fill();                        // pocket ceiling
+    c.fillStyle='#0d1219'; c.fill();
     for(const zz of [-GW,GW]){
       quad(c,pz(bx,AR.GT,zz),pz(bx,AR.F,zz),pz(wx,AR.F,zz),pz(wx,AR.GT,zz));
-      c.fillStyle='#0a0f16'; c.fill();                      // pocket sides
+      c.fillStyle='#0a0f16'; c.fill();
     }
     quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(bx,AR.F,GW),pz(bx,AR.F,-GW));
-    c.fillStyle='#070b10'; c.fill();                        // net back
+    c.fillStyle='#070b10'; c.fill();
     c.save();
     quad(c,pz(bx,AR.GT,-GW),pz(bx,AR.GT,GW),pz(bx,AR.F,GW),pz(bx,AR.F,-GW));
     c.clip();
@@ -476,15 +451,15 @@ function bakeArena(){
     }
     c.restore();
     c.setLineDash([16,12]); c.strokeStyle=col; c.globalAlpha=.5; c.lineWidth=4;
-    a=pz(wx,AR.F,-GW); b=pz(wx,AR.F,GW);                    // goal line
+    a=pz(wx,AR.F,-GW); b=pz(wx,AR.F,GW);
     c.beginPath(); c.moveTo(a[0],a[1]); c.lineTo(b[0],b[1]); c.stroke();
     c.setLineDash([]); c.globalAlpha=1;
-    c.beginPath(); goalFramePath(c,wx+s*30);                // recessed frame
+    c.beginPath(); goalFramePath(c,wx+s*30);
     c.strokeStyle=col; c.globalAlpha=.30; c.lineWidth=6; c.stroke();
-    c.beginPath(); goalFramePath(c,wx);                     // main frame
+    c.beginPath(); goalFramePath(c,wx);
     c.globalAlpha=.9; c.lineWidth=7; c.stroke();
     c.globalAlpha=1;
-    c.fillStyle=col;                                        // crossbar posts
+    c.fillStyle=col;
     for(const zz of [-GW,GW]){
       const p=pz(wx,AR.GT,zz);
       c.beginPath(); c.arc(p[0],p[1],9,0,TAU); c.fill();
@@ -813,7 +788,6 @@ function applySnapshot(m){
       const own=(c.id===NET.id);
       recErr(c,a[1],a[2],a[4],a[5]);
       c.a=a[3]; c.w=a[6]; c.facing=a[7];
-      if(!own){ c.faceTween=c.facing; c.faceT=c.facing; }
       c.boost=a[8]; c.grounded=!!a[9];
     }
     c.dead=!!a[10]; c.respawn=a[11];
@@ -921,7 +895,8 @@ function makeCar(team,slot,extra){
   const sp=spawnFor(slot);
   return {team,slot,id:extra.id||('car'+slot),name:extra.name||'',bot:!!extra.bot,
     x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,
-    facing:sp.f,faceT:sp.f,faceTween:sp.f,grounded:true,air:0,has2:false,flipT:0,flipDir:1,
+    facing:sp.f,faceT:sp.f,faceTween:sp.f,yaw:sp.f<0?Math.PI:0,
+    grounded:true,air:0,has2:false,flipT:0,flipDir:1,
     coyote:0,jc:0,ride:false,boost:33,boosting:false,dead:false,respawn:0,squash:0,wheel:0,recT:0,
     emitT:0,ssT:0,spdMul:1,brain:extra.brain||null,
     input:{stick:0,sy:0,jump:false,boost:false}};
@@ -971,7 +946,7 @@ function drawParticles(){
   ctx.restore(); ctx.globalAlpha=1;
 }
 
-/* ============================== ARENA COLLISION (2D play plane, unchanged) ============================== */
+/* ============================== ARENA COLLISION ============================== */
 function arenaCollide(b,r,e,tang){
   const {L,R,F,C,TR,GT,GD}=AR;
   const out={floor:0,wall:0,post:0};
@@ -1095,6 +1070,12 @@ function tryWallRide(c,dt,jp){
 /* ============================== CAR PHYSICS ============================== */
 function updateCar(c,dt){
   if(c.dead){ c.respawn-=dt; if(c.respawn<=0) respawnCar(c); return; }
+  // visual yaw: the whole 3D car rotates around instead of mirror-flipping
+  const yawT=c.facing<0?Math.PI:0;
+  let dyw=wrapA(yawT-c.yaw);
+  if(Math.abs(dyw)>Math.PI-0.02) dyw=Math.PI;
+  c.yaw=wrapA(c.yaw+clamp(dyw,-11*dt,11*dt));
+
   const inp=c.input, jp=inp.jump; inp.jump=false;
   if(jp) c.jc++;
   const boosting=inp.boost&&c.boost>0;
@@ -1114,7 +1095,6 @@ function updateCar(c,dt){
     c.vx+=clamp(target-c.vx,-acc*dt,acc*dt);
     c.vy=0; c.y=AR.F-CR;
     c.a=wrapA(c.a)*Math.exp(-16*dt); c.w=0;
-    c.faceTween+=(c.faceT-c.faceTween)*Math.min(1,13*dt);
     c.wheel+=(c.vx/13)*dt;
     c.air=0; c.has2=false; c.flipT=0; c.ride=false;
     if(jp){ c.vy=-900; c.grounded=false; c.air=.001; c.coyote=0;
@@ -1234,7 +1214,7 @@ function updateCar(c,dt){
 function respawnCar(c){
   const sp=spawnFor(c.slot);
   Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,grounded:true,boost:33,ride:false,
-    facing:sp.f,faceT:sp.f,faceTween:sp.f,has2:false,flipT:0,air:0});
+    facing:sp.f,faceT:sp.f,yaw:sp.f<0?Math.PI:0,has2:false,flipT:0,air:0});
 }
 function carCar(){
   for(let i=0;i<CARS.length;i++) for(let j=i+1;j<CARS.length;j++){
@@ -1410,7 +1390,8 @@ function resetPositions(){
   for(const c of CARS){
     const sp=spawnFor(c.slot);
     Object.assign(c,{x:sp.x,y:AR.F-CR,vx:0,vy:0,a:0,w:0,ex:0,ey:0,grounded:true,air:0,has2:false,
-      flipT:0,coyote:0,ride:false,boost:33,dead:false,facing:sp.f,faceT:sp.f,faceTween:sp.f,squash:0,recT:0});
+      flipT:0,coyote:0,ride:false,boost:33,dead:false,facing:sp.f,faceT:sp.f,
+      yaw:sp.f<0?Math.PI:0,squash:0,recT:0});
   }
   for(const p of pads){ p.on=true; p.t=0; }
   lastToucher=null; onT.left=onT.right=false;
@@ -1878,7 +1859,7 @@ function drawGoalPulse(){
 }
 function drawPads(t){
   for(const p of pads){
-    ctx.fillStyle='rgba(0,0,0,0.4)';   // depth plate on the floor plane
+    ctx.fillStyle='rgba(0,0,0,0.4)';
     ctx.beginPath(); ctx.ellipse(p.x,AR.F-8,32,7,0,0,TAU); ctx.fill();
     ctx.fillStyle='#0a0f16';
     ctx.beginPath(); ctx.ellipse(p.x,AR.F-4,34,8,0,0,TAU); ctx.fill();
@@ -1955,71 +1936,171 @@ function drawBall(){
   ctx.fillStyle='rgba(6,10,16,0.10)';
   ctx.beginPath(); ctx.arc(b.x,by,BR,.3,1.5); ctx.closePath(); ctx.fill();
 }
+
+/* ==================== THE 3D CAR (Sideswipe-style) ==================== */
+/* Body = wedge profile extruded in depth, cabin = glass prism on top,
+   wheels = projected spinning discs. Yaw turns the whole car in 3D. */
+const CARP=[[-54,-12],[-28,-19],[-2,-19],[24,-15],[50,-10],[57,-1],[55,7],[40,12],[-44,13],[-56,4]];
+const CAB=[[-26,-19],[-22,-28],[4,-28],[18,-23],[18,-19]];
+const BW=27, CW=22;
 function drawCar(c){
   if(c.dead) return;
-  const P=c.team==='blue';
-  const acc=P?'#3fc1ff':'#ff7a1a', acc2=P?'#1d6d99':'#a3540c';
-  const dark=P?'#0f2130':'#2f180a';
-  const sq=c.squash;
-  let fs=c.faceTween; if(Math.abs(fs)<.12) fs=fs<0?-.12:.12;
-  // 2.5D: far-side silhouette, projected into depth (z=-60)
-  const mS=mOf(-60);
-  const fxp=REF.x+(c.x-REF.x)*mS, fyp=REF.y+(c.y-REF.y)*mS;
-  ctx.save();
-  ctx.translate(fxp,fyp); ctx.rotate(c.a);
-  ctx.scale(fs*mS*(1+sq*.10),(1-sq*.24)*mS);
-  traceBody(ctx);
-  ctx.fillStyle=dark; ctx.fill();
-  ctx.restore();
-  // near-side sprite at the play plane (z=0)
-  ctx.save();
-  ctx.translate(c.x,c.y); ctx.rotate(c.a);
-  ctx.scale(fs*(1+sq*.10),1-sq*.24);
+  const f=c.facing, p=f*c.a, yaw=wrapA(c.yaw||0);
+  const cy=Math.cos(yaw), sy=Math.sin(yaw);
+  const cp=Math.cos(p), sp=Math.sin(p);
+  const Fx=cp*cy, Fy=sp, Fz=-cp*sy;      // forward
+  const Dx=-sp*cy, Dy=cp, Dz=sp*sy;      // down
+  const Wx=sy, Wz=cy;                    // width (into depth)
+  const sqv=1-(c.squash||0)*.22;
+  const L2W=(u,v,w)=>{
+    v*=sqv;
+    return {x:c.x+u*Fx+v*Dx+w*Wx, y:c.y+u*Fy+v*Dy, z:u*Fz+v*Dz+w*Wz};
+  };
+  const pj=(u,v,w)=>{ const q=L2W(u,v,w); return pz(q.x,q.y,q.z); };
+  const poly=(qs,col)=>{
+    if(!qs||!qs.length) return;
+    ctx.beginPath();
+    ctx.moveTo(qs[0][0],qs[0][1]);
+    for(let i=1;i<qs.length;i++) ctx.lineTo(qs[i][0],qs[i][1]);
+    ctx.closePath();
+    ctx.fillStyle=col; ctx.fill();
+  };
+  const team=c.team==='blue';
+  const paint=team?[36,102,180]:[226,108,20];
+  const accent=team?[130,214,255]:[255,196,110];
+  const glass=[24,36,54];
+  const sh=(col,k)=>`rgb(${Math.min(255,col[0]*k)|0},${Math.min(255,col[1]*k)|0},${Math.min(255,col[2]*k)|0})`;
+  const LX=.27, LY=-.70, LZ=.66;
+
+  const prims=[];
+  function face(pts,colFn,after){
+    let mx=0,my=0,mz=0;
+    for(const q of pts){ mx+=q.x; my+=q.y; mz+=q.z; }
+    const n=pts.length; mx/=n; my/=n; mz/=n;
+    const e1x=pts[1].x-pts[0].x, e1y=pts[1].y-pts[0].y, e1z=pts[1].z-pts[0].z;
+    const e2x=pts[2].x-pts[0].x, e2y=pts[2].y-pts[0].y, e2z=pts[2].z-pts[0].z;
+    let nx=e1y*e2z-e1z*e2y, ny=e1z*e2x-e1x*e2z, nz=e1x*e2y-e1y*e2x;
+    const nl=Math.hypot(nx,ny,nz)||1; nx/=nl; ny/=nl; nz/=nl;
+    if(nx*(mx-c.x)+ny*(my-c.y)+nz*mz<0){ nx=-nx; ny=-ny; nz=-nz; }
+    if(nz<-0.08) return;                 // back-face cull
+    const b=Math.max(0,nx*LX+ny*LY+nz*LZ);
+    const k=.55+.75*b;
+    const qj=pts.map(q=>pz(q.x,q.y,q.z));
+    prims.push({z:mz,draw(){
+      poly(qj,colFn(k));
+      if(after) after();
+    }});
+  }
+
+  // boost flame from the rear nozzle (before the body, additive)
   if(c.boosting){
-    const L=34+Math.random()*26;
+    const R=L2W(-58,0,0);
     ctx.save(); ctx.globalCompositeOperation='lighter';
-    const tri=(x1,y1,x2,y2,x3,y3,col)=>{ ctx.fillStyle=col;
-      ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.lineTo(x3,y3); ctx.closePath(); ctx.fill(); };
-    tri(-56,-10,-56,12,-58-L*1.15,1,'rgba(255,90,20,0.30)');
-    tri(-57,-6,-57,8,-58-L*.8,1,'rgba(255,150,30,0.5)');
-    tri(-58,-3,-58,5,-58-L*.5,1,'rgba(255,220,80,0.8)');
-    tri(-58,-1,-58,3,-58-L*.28,1,'#ffffff');
+    const tri=(wd,len,col)=>{
+      const a=pz(R.x-Wx*wd-Fx*2, R.y-Fy*2, R.z-Wz*wd-Fz*2);
+      const b=pz(R.x+Wx*wd-Fx*2, R.y-Fy*2, R.z+Wz*wd-Fz*2);
+      const tp=pz(R.x-Fx*len, R.y-Fy*len, R.z-Fz*len);
+      poly([a,b,tp],col);
+    };
+    const Lf=34+Math.random()*24;
+    tri(7,Lf*1.15,'rgba(255,90,20,0.30)');
+    tri(5,Lf*.8,'rgba(255,150,30,0.5)');
+    tri(3,Lf*.5,'rgba(255,220,80,0.8)');
+    tri(1.6,Lf*.28,'#ffffff');
     ctx.restore();
   }
-  for(const wx of [36,-36]){
-    ctx.save(); ctx.translate(wx,13);
-    ctx.fillStyle='#0b0f15'; ctx.beginPath(); ctx.arc(0,0,13,0,TAU); ctx.fill();
-    ctx.strokeStyle='#1c242e'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,12.4,0,TAU); ctx.stroke();
-    ctx.strokeStyle='#4a5563'; ctx.beginPath(); ctx.arc(0,0,8.5,0,TAU); ctx.stroke();
-    ctx.rotate(c.wheel);
-    ctx.strokeStyle='#5a6675'; ctx.lineWidth=2.5;
-    ctx.beginPath(); ctx.moveTo(-8,0); ctx.lineTo(8,0); ctx.moveTo(0,-8); ctx.lineTo(0,8); ctx.stroke();
-    ctx.fillStyle=acc; ctx.beginPath(); ctx.arc(0,0,3,0,TAU); ctx.fill();
-    ctx.restore();
+
+  // body skin strips
+  for(let i=0;i<CARP.length;i++){
+    const A=CARP[i], B=CARP[(i+1)%CARP.length];
+    const roof=(i===1||i===2);
+    const nose=(i===4), tail=(i===9);
+    face([L2W(A[0],A[1],-BW),L2W(B[0],B[1],-BW),L2W(B[0],B[1],BW),L2W(A[0],A[1],BW)],
+      roof?(k)=>sh(accent,k*.95):(k)=>sh(paint,k),
+      nose?()=>{                       // headlights on the nose fascia
+        const tu=(B[0]-A[0])/11.4, tv=(B[1]-A[1])/11.4;
+        const nu=tv, nv=-tu;
+        for(const t of [.42,.68]){
+          const cu=A[0]+(B[0]-A[0])*t+nu*.8, cv=A[1]+(B[1]-A[1])*t+nv*.8;
+          for(const w of [-13,13]){
+            poly([pj(cu-tu*3.2+nu*2,cv-tv*3.2+nv*2,w),
+                  pj(cu+tu*3.2+nu*2,cv+tv*3.2+nv*2,w),
+                  pj(cu+tu*3.2,cv+tv*3.2,w),
+                  pj(cu-tu*3.2,cv-tv*3.2,w)],'#eef4ff');
+          }
+        }
+      }:tail?()=>{                     // taillights + exhaust nozzle
+        poly([pj(-56.8,-4.5,-5.5),pj(-56.8,4.5,-5.5),pj(-56.8,4.5,5.5),pj(-56.8,-4.5,5.5)],'#0d1218');
+        for(const w of [-17,12]){
+          poly([pj(-55.6,-8,w),pj(-55.6,-2,w),pj(-55.6,-2,w+5),pj(-55.6,-8,w+5)],
+               c.boosting?'#ff4438':'rgba(255,68,56,0.75)');
+        }
+      }:null);
   }
-  ctx.fillStyle='#101823';
-  ctx.fillRect(-56,-25,14,5);
-  ctx.fillRect(-49,-21,4,6);
-  traceBody(ctx);
-  ctx.fillStyle='#18222f'; ctx.fill();
-  ctx.strokeStyle='#0a0f16'; ctx.lineWidth=2; ctx.stroke();
-  ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(-27,-17.5); ctx.lineTo(2,-17.5);
-  ctx.quadraticCurveTo(20,-17.5,31,-12); ctx.stroke();
-  if(canopyGrad) ctx.fillStyle=canopyGrad;
-  ctx.beginPath(); ctx.moveTo(-2,-16); ctx.lineTo(19,-9);
-  ctx.quadraticCurveTo(21,-3,19,1); ctx.lineTo(1,1); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle='rgba(160,200,255,0.35)'; ctx.lineWidth=1.2;
-  ctx.beginPath(); ctx.moveTo(2,-14); ctx.lineTo(15,-9); ctx.stroke();
-  ctx.fillStyle=acc2; ctx.fillRect(-50,3,98,5);
-  ctx.fillStyle=acc; ctx.fillRect(-26,-19,28,4);
-  ctx.beginPath(); ctx.moveTo(44,-2); ctx.lineTo(56,1); ctx.lineTo(44,6); ctx.closePath(); ctx.fill();
-  ctx.fillStyle='#f6f9ff';
-  ctx.beginPath(); ctx.moveTo(50,-3); ctx.lineTo(56,0); ctx.lineTo(50,1); ctx.closePath(); ctx.fill();
-  ctx.fillStyle=c.boosting?'#ff3b30':'rgba(255,59,48,0.55)';
-  ctx.fillRect(-54,-7,3,4);
-  ctx.fillStyle='#0a0f15'; ctx.fillRect(-59,-4,6,10);
-  ctx.restore();
+  // body side caps (paint + stripe + skirt details)
+  for(const w of [-BW,BW]){
+    const pts=CARP.map(q=>L2W(q[0],q[1],w));
+    face(pts,(k)=>sh(paint,k),()=>{
+      const wd=w*.978;
+      poly([pj(-50,4,wd),pj(46,4,wd),pj(46,9,wd),pj(-50,9,wd)],sh(accent,1.02));
+      poly([pj(-52,9,wd),pj(48,9,wd),pj(48,13,wd),pj(-52,13,wd)],sh(paint,.42));
+      poly([pj(40,-8,wd),pj(54,-2,wd),pj(52,3,wd),pj(40,3,wd)],sh(accent,.85));
+    });
+  }
+  // cabin (glass) strips + caps
+  for(let i=0;i<CAB.length;i++){
+    const A=CAB[i], B=CAB[(i+1)%CAB.length];
+    face([L2W(A[0],A[1],-CW),L2W(B[0],B[1],-CW),L2W(B[0],B[1],CW),L2W(A[0],A[1],CW)],
+      (k)=>sh(glass,k*.95));
+  }
+  for(const w of [-CW,CW]){
+    const pts=CAB.map(q=>L2W(q[0],q[1],w));
+    face(pts,(k)=>sh(glass,k),()=>{
+      const wd=w*.97;
+      poly([pj(-19,-26,wd),pj(2,-26,wd),pj(13,-22.5,wd),pj(13,-21.5,wd),pj(-19,-21.5,wd)],
+        'rgba(150,200,255,0.20)');
+    });
+  }
+  // wheels: projected spinning discs
+  for(const wu of [36,-36]){
+    for(const w of [20,-20]){
+      (function(u0,v0,w0){
+        const N=14, wpts=[];
+        for(let i=0;i<N;i++){
+          const ph=i/N*TAU+c.wheel;
+          wpts.push(L2W(u0+14*Math.cos(ph), v0+14*Math.sin(ph), w0));
+        }
+        let z=0; for(const q of wpts) z+=q.z;
+        prims.push({z:z/N,draw(){
+          const dk=w0<0?.82:1;
+          poly(wpts.map(q=>pz(q.x,q.y,q.z)),'#141922');
+          const rim=[];
+          for(let i=0;i<10;i++){
+            const ph=i/10*TAU+c.wheel;
+            const q=L2W(u0+8.5*Math.cos(ph), v0+8.5*Math.sin(ph), w0);
+            rim.push(pz(q.x,q.y,q.z));
+          }
+          poly(rim, sh([70,80,92],dk));
+          ctx.strokeStyle=sh([96,106,120],dk); ctx.lineWidth=2.6;
+          for(const a2 of [0,Math.PI/2]){
+            const q1=L2W(u0+7.5*Math.cos(c.wheel+a2), v0+7.5*Math.sin(c.wheel+a2), w0);
+            const q2=L2W(u0-7.5*Math.cos(c.wheel+a2), v0-7.5*Math.sin(c.wheel+a2), w0);
+            const p1=pz(q1.x,q1.y,q1.z), p2=pz(q2.x,q2.y,q2.z);
+            ctx.beginPath(); ctx.moveTo(p1[0],p1[1]); ctx.lineTo(p2[0],p2[1]); ctx.stroke();
+          }
+          const hub=[];
+          for(let i=0;i<6;i++){
+            const ph=i/6*TAU;
+            const q=L2W(u0+3.2*Math.cos(ph), v0+3.2*Math.sin(ph), w0);
+            hub.push(pz(q.x,q.y,q.z));
+          }
+          poly(hub, team?'#3fc1ff':'#ff7a1a');
+        }});
+      })(wu,11,w);
+    }
+  }
+  prims.sort((a,b)=>a.z-b.z);
+  for(const pr of prims) pr.draw();
 }
 function drawTags(){
   ctx.font="700 27px 'Chakra Petch',sans-serif";
