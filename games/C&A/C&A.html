@@ -79,12 +79,16 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 @keyframes popUp{0%{opacity:0;margin-top:6px}12%{opacity:1}100%{opacity:0;margin-top:-74px}}
 .hitm{position:absolute;pointer-events:none;transform:translate(-50%,-50%);animation:hitm .28s ease-out forwards}
 @keyframes hitm{0%{opacity:1;scale:.5}100%{opacity:0;scale:1.35}}
+.shell{position:absolute;width:9px;height:4px;background:#c8a44a;border:1px solid #7a5f26;border-radius:2px;pointer-events:none;z-index:3}
+.muzzle{position:absolute;width:90px;height:90px;transform:translate(-50%,-50%);pointer-events:none;z-index:2;
+ background:radial-gradient(circle,rgba(255,220,120,.95) 0%,rgba(255,150,40,.5) 35%,transparent 70%);animation:muz .16s ease-out forwards}
+@keyframes muz{0%{opacity:1;scale:.3}100%{opacity:0;scale:1.4}}
 #panel{display:flex;flex-direction:column;background:rgba(17,20,25,.94);border-left:1px solid var(--line);min-height:0}
 #tabs{display:flex;border-bottom:1px solid var(--line)}
-#tabs button{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--mut);cursor:pointer;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:.16em;text-transform:uppercase;padding:13px 0;position:relative;transition:color .15s}
+#tabs button{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--mut);cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:13px 0;position:relative;transition:color .15s}
 #tabs button:hover{color:var(--txt)}
 #tabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
-#tabs .badge{position:absolute;top:6px;right:12px;background:var(--line2);border-radius:8px;font-size:10px;padding:1px 6px;color:var(--txt)}
+#tabs .badge{position:absolute;top:6px;right:10px;background:var(--line2);border-radius:8px;font-size:10px;padding:1px 6px;color:var(--txt)}
 .view{flex:1;overflow-y:auto;min-height:0}
 .sect{padding:12px 16px 6px;font-size:11px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2}
 .row{display:flex;align-items:center;gap:13px;padding:10px 14px;border-bottom:1px solid #1c2128}
@@ -99,6 +103,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .row .lvl{font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.08em}
 .lockrow{opacity:.55}
 .dim{opacity:.35}
+.pbar{height:6px;background:#0d1014;border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:6px}
+.pbar i{display:block;height:100%;background:var(--amber);transition:width .3s}
 .crow{padding:12px 14px;border-bottom:1px solid #1c2128}
 .crow .head{display:flex;align-items:center;gap:14px}
 .crow .cart{width:86px;flex:none}
@@ -150,7 +156,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #phaseCase .unl{font-size:13px;letter-spacing:.5em;color:var(--amber);text-transform:uppercase;animation:pulse 1s infinite}
 #reelWin{position:relative;width:100%;height:170px;overflow:hidden;background:#0d1015;border:1px solid var(--line2);border-radius:5px;
  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-#strip{position:absolute;top:9px;left:0;display:flex;gap:8px;will-change:transform}
+#strip{position:absolute;top:9px;left:0;display:flex;gap:8px;will-change:transform,filter}
 .rcard{width:126px;height:152px;flex:none;background:#171b21;border:1px solid #262b33;border-radius:4px;display:flex;flex-direction:column;align-items:center;padding:9px 4px 0}
 .rcard .im{height:50px;display:flex;align-items:center;margin-top:4px}
 .rcard .w{font-size:11.5px;font-weight:600;color:#c8ccd4;margin-top:6px;letter-spacing:.02em}
@@ -231,6 +237,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
   <div><div class="lbl">Headshots</div><b id="stHs">0</b></div>
  </div>
  <div class="tools">
+  <button class="btn ibtn" id="artBtn" title="Toggle official / vector artwork"></button>
   <button class="btn ibtn" id="sndBtn" title="Sound"></button>
   <button class="btn ibtn" id="saveBtn" title="Save now"></button>
   <button class="btn ibtn danger" id="resetBtn" title="Reset progress"></button>
@@ -262,9 +269,10 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
  </section>
  <aside id="panel">
   <div id="tabs">
-   <button data-t="up" class="on">Upgrades</button>
+   <button data-t="up" class="on">Gear</button>
    <button data-t="cases">Cases</button>
    <button data-t="inv">Inventory <span class="badge" id="invBadge">0</span></button>
+   <button data-t="mis">Contracts <span class="badge" id="misBadge" style="display:none;background:var(--amber);color:#17110a">!</span></button>
   </div>
   <div class="view" id="view"></div>
  </aside>
@@ -289,7 +297,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
 </div>
 
 <div id="toasts"></div>
-<footer>Unofficial CS2 fan project · key art from Valve's public Steam CDN · every skin render is vector art drawn live in your browser</footer>
+<footer>Unofficial CS2 fan project · official art via community CSGO-API mirror · falls back to built-in vector renders offline</footer>
 
 <script>
 /* ============ 1. UTILITIES & ICONS ============ */
@@ -307,6 +315,7 @@ const IC={
  chev:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
  key:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="4"/><path d="M11 11l9 9M17 17l2-2M14 14l2-2"/></svg>',
  tag:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12l-8 8-9-9V3h8l9 9z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>',
+ art:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>',
  cross:'<svg width="42" height="42" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/></svg>'};
 
 /* ============ 2. AUDIO ============ */
@@ -350,6 +359,7 @@ const SKINS={
  redline:{n:'Redline',base:'#18181c',p:['stripes','#c8354a',9,34,-24]}, cyrex:{n:'Cyrex',base:'#e8e6e0',p:['tri','#d0342c','#17171c']},
  asiimov:{n:'Asiimov',base:'#e9e5da',p:['blobs',['#f08a2c','#17171c'],5]}, fade:{n:'Fade',base:'#f850a8',p:['grad',['#f8c04a','#f8509b','#7a3ff0']]},
  howl:{n:'Howl',base:'#2a1c14',p:['blobs',['#e04b1c','#f2b23c','#8a2310'],7]}, dragonlore:{n:'Dragon Lore',base:'#c9b98a',p:['blobs',['#8a9a4a','#4a6a3a','#e8d8a0'],6]},
+ wildlotus:{n:'Wild Lotus',base:'#1c3a2a',p:['blobs',['#e06a9a','#8ad0a0','#f0d84a','#2a6a4a'],7]},
  kitbash:{n:'Kitbash',base:'#3a3f47',p:['stripes','#e8a33d',8,40,0]}, runic:{n:'Runic',base:'#1d222a',p:['dots',['#38e8e0'],3,13]},
  ultralight:{n:'Ultralight',base:'#b9bfc8',p:['bands','#2b2f38']}, wildsix:{n:'Wild Six',base:'#3d4a3c',p:['blobs',['#5c7a4e','#232622','#6a6a5a'],7]},
  connexion:{n:'Connexion',base:'#18233f',p:['zig','#38b8f0','#38b8f0']}, brother:{n:'Brother',base:'#c2b190',p:['bands','#4a3a2a']},
@@ -382,7 +392,12 @@ const SKINS={
  risingskull:{n:'Rising Skull',base:'#2a2a30',p:['blobs',['#e8e8ee','#c85a4a','#8a8a96'],5]}, scavenger:{n:'Scavenger',base:'#4a4a3a',p:['blobs',['#8a8a5a','#2a2a20','#c8b06a'],6]},
  zxspectron:{n:'ZX Spectron',base:'#1a1e2e',p:['stripes','#2a8a7a',7,26,-20]}, bi83:{n:'BI83 Spectrum',base:'#e8e4da',p:['tri','#2a5aa8','#d02a2a']},
  icecoaled:{n:'Ice Coaled',base:'#d8e8ee',p:['blobs',['#4a9ad8','#8a6a9a','#e8f4fa'],6]}, chromatic:{n:'Chromatic Aberration',base:'#1a1a24',p:['grad',['#d02a4a','#2a5ad0','#2ad084']]},
- skullcrusher:{n:'Skull Crusher',base:'#e8e4da',p:['blobs',['#3a3a44','#8a8a96','#c85a4a'],6]}};
+ skullcrusher:{n:'Skull Crusher',base:'#e8e4da',p:['blobs',['#3a3a44','#8a8a96','#c85a4a'],6]},
+ weasel:{n:'Weasel',base:'#c8b088',p:['blobs',['#7a5a34','#efe6d2'],5]}, gauss:{n:'Gauss',base:'#1a2030',p:['zig','#38b8f0','#8a97a8']},
+ blacksand:{n:'Black Sand',base:'#4a4438',p:['blobs',['#2a2620','#6a5f48','#8a7a5a'],7]}, bloodshot:{n:'Bloodshot',base:'#e8e4e0',p:['blobs',['#c02030','#8a1420'],4]},
+ sonar:{n:'Sonar',base:'#14323a',p:['dots',['#38e8d0'],2.4,14]}, oxideblaze:{n:'Oxide Blaze',base:'#1c2228',p:['zig','#38e8d0','#f0e04a']},
+ phosphor:{n:'Phosphor',base:'#20242a',p:['dots',['#c8f04a','#f0e04a'],2.4,13]}, neonoir:{n:'Neo-Noir',base:'#1a1424',p:['blobs',['#f05a9a','#4a5ae0','#e8e8ee'],6]},
+ mecha:{n:'Mecha Industries',base:'#e8e6e2',p:['stripes','#e85a1c',9,38,-14]}};
 
 function paint(skin,id){
  const p=skin.p;
@@ -541,7 +556,10 @@ const WEAPONS={
   el:[r(52,43,44,13,6,'#1c1f24'),cc(50,49,4.5,'#2b3038'),cc(94,49,3.4,'#c8a44a'),ln(60,46,90,52,'#0f1216',1.2),ln(60,52,90,46,'#0f1216',1.2),ln(104,47,210,44,'#0f1216',1.5)]}},
  broken:{n:'★ Broken Knife',b:{tx:6,sil:[p('M96,42 L146,34 L152,52 L128,60 L96,58 Z')],
   el:[r(52,42,44,16,5,'#1c1f24'),cc(48,50,4.5,'#2b3038'),ln(60,46,68,54,'#0f1216',1.5),ln(70,46,78,54,'#0f1216',1.5),
-   ln(140,36,146,48,'#0f1216',1.5),ln(134,44,142,56,'#0f1216',1.5),gp('M100,48 L126,42','#0f1216',1.6)]}}};
+   ln(140,36,146,48,'#0f1216',1.5),ln(134,44,142,56,'#0f1216',1.5),gp('M100,48 L126,42','#0f1216',1.6)]}},
+ stiletto:{n:'★ Stiletto Knife',b:{tx:0,sil:[p('M96,44 L206,38 L232,46 L208,53 L96,56 Z')],
+  el:[r(54,44,42,13,6,'#1c1f24'),cc(50,50,4.5,'#2b3038'),cc(96,50,3,'#c8a44a'),
+   ln(64,47,88,52,'#0f1216',1.2),ln(64,52,88,46,'#0f1216',1.2),gp('M100,49 L214,45','#0f1216',1.4)]}}};
 
 function el2(a){
  const st=' stroke="#0b0d10" stroke-width="1.2"';
@@ -609,6 +627,11 @@ const CASES=[
    restricted:[['r8','boneforged',1],['mag7','justice',1.2]],
    classified:[['awp','capillary',1.2],['deagle','blueply',1.1]],
    covert:[['ak47','phantom',1.8],['m4a1s','playertwo',2.2]]}},
+ {id:'dz',name:'Danger Zone Case',short:'DANGER ZONE',price:7800,scale:1200,color:'#c8503c',knife:'stiletto',
+  pool:{milspec:[['glock18','weasel',1],['mp5sd','gauss',1],['sawed','blacksand',.9]],
+   restricted:[['ssg08','bloodshot',1.1],['mag7','sonar',1]],
+   classified:[['glock18','oxideblaze',1.2],['mp5sd','phosphor',1.3]],
+   covert:[['awp','neonoir',2],['deagle','mecha',1.8]]}},
  {id:'kilowatt',name:'Kilowatt Case',short:'KILOWATT',price:26000,scale:4000,color:'#f2c23c',knife:'kukri',
   pool:{milspec:[['glock18','block18',1],['sawed','analoginput',1],['ump45','motorized',.9],['nova','darksigil',.9]],
    restricted:[['zeus','olympus',1.4],['famas','rem',1],['ssg08','dezastre',1]],
@@ -626,7 +649,8 @@ const CLICKERS=[
  {w:'awp',sk:'asiimov',cps:1800,cost:1100000,tier:'cov'},
  {w:'m4a4',sk:'howl',cps:4500,cost:4000000,tier:'contra'},
  {w:'awp',sk:'dragonlore',cps:11000,cost:14000000,tier:'cov',achid:'dragon'},
- {w:'karambit',sk:'fade',cps:28000,cost:50000000,tier:'gold'}];
+ {w:'ak47',sk:'wildlotus',cps:26000,cost:45000000,tier:'cov'},
+ {w:'karambit',sk:'fade',cps:70000,cost:120000000,tier:'gold'}];
 const TIERC={con:'#b0c3d9',ind:'#5e98d9',ms:'#4b69ff',res:'#8847ff',cla:'#d32ce6',cov:'#eb4b4b',contra:'#e4ae39',gold:'#ffd24a'};
 const AUTOS=[
  {id:'trader',n:'Junk Skin Trader',d:'Sells grey skins in bulk',rate:2.5,cost:600},
@@ -656,26 +680,37 @@ const ACH={
  tradeup:{n:'Contract Wizard',d:'Complete a trade-up contract'},
  dragon:{n:'Dragonslayer',d:'Buy the AWP | Dragon Lore'},
  global:{n:'Global Elite',d:'Reach the max profile rank'},
+ hunter:{n:'Contract Killer',d:'Complete 10 contracts'},
  prime:{n:'Prime Status',d:'Activate Prime Matchmaking'}};
+const MISSIONS=[
+ {k:'clicks',t:400,n:'Grind 400 clicks',r:2500,xp:150},
+ {k:'hs',t:60,n:'Land 60 headshot crits',r:6000,xp:200},
+ {k:'cases',t:4,n:'Open 4 cases',r:9000,xp:250},
+ {k:'earned',t:80000,n:'Earn $80,000',r:12000,xp:250},
+ {k:'sold',t:12,n:'Sell 12 skins',r:7000,xp:180},
+ {k:'tradeups',t:1,n:'Complete a trade-up contract',r:15000,xp:300},
+ {k:'drops',t:1,n:'Claim a weekly drop',r:5000,xp:150}];
 const DROP_CASE={id:'drop',name:'Weekly Drop',short:'WEEKLY',price:0,scale:6,color:'#a8cf6b',
  pool:{milspec:CASES[0].pool.milspec.concat(CASES[1].pool.milspec).map(e=>[e[0],e[1],1]),
   restricted:CASES[0].pool.restricted,classified:[['glock18','vogue',1]]}};
 
 /* ============ 6. STATE ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
-function freshState(){return{v:2,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,
- xp:0,rank:0,prestige:0,ach:{},stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,best:0}};}
+function freshState(){return{v:4,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,
+ xp:0,rank:0,prestige:0,ach:{},missions:[],stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,missions:0,best:0}};}
 function save(){try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));}catch(e){}}
 let saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,700);}
 function rankIdx(xp){let r=0;for(let i=0;i<RANKS.length;i++)if(xp>=RANKS[i].x)r=i;return r;}
 function load(){try{const raw=localStorage.getItem('cs2clicker');if(!raw)return false;
  S=Object.assign(freshState(),JSON.parse(raw));
- /* migrate old saves */
  if(typeof S.weapon==='string'){S.wi=Math.max(0,CLICKERS.findIndex(c=>c.w===S.weapon));delete S.weapon;}
  if(S.owned&&!S.ownedWi)S.ownedWi=S.owned.map(w=>{const i=CLICKERS.findIndex(c=>c.w===w);return i<0?0:i;});
- S.ownedWi=[...new Set(S.ownedWi)].sort((a,b)=>a-b);
- if(!S.xp)S.xp=S.stats.clicks+25*S.stats.cases+5*S.stats.hs;
- S.rank=rankIdx(S.xp);S.prestige=S.prestige||0;S.ach=S.ach||{};S.stats.tradeups=S.stats.tradeups||0;
+ S.ownedWi=[...new Set(S.ownedWi)].sort((a,b)=>a-b).filter(i=>i<CLICKERS.length);
+ if(S.wi>=CLICKERS.length)S.wi=0;
+ if(!S.xp)S.xp=S.stats.clicks+25*(S.stats.cases||0)+5*(S.stats.hs||0);
+ S.prestige=S.prestige||0;S.ach=S.ach||{};
+ S.stats=Object.assign({tradeups:0,sold:0,drops:0,missions:0},S.stats);
+ S.rank=rankIdx(S.xp);
  if(S.savedAt){const dt=(Date.now()-S.savedAt)/1000;if(dt>90)offlineGain=ratePerSec()*Math.min(dt,3600)*.25;}
  return true;}catch(e){return false;}}
 function mult(){return (1+.5*S.prestige)*(1+.015*S.rank);}
@@ -697,6 +732,28 @@ function gainXP(n){S.xp+=n;const ri=rankIdx(S.xp);
 function ach(id){if(S.ach[id])return;S.ach[id]=1;
  toast('ACHIEVEMENT — '+ACH[id].n,'gold');SND.reveal(2);saveSoon();}
 
+/* ---- missions ---- */
+function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:0;}
+function newMission(i){
+ const used=S.missions.map(m=>m.i);
+ const cands=MISSIONS.map((t,j)=>j).filter(j=>!used.includes(j));
+ const j=cands.length?cands[(Math.random()*cands.length)|0]:(Math.random()*MISSIONS.length)|0;
+ S.missions[i]={i:j,start:statOf(MISSIONS[j].k),done:false};}
+function missionProgress(m){return Math.max(0,statOf(MISSIONS[m.i].k)-m.start);}
+function checkMissions(){
+ for(const m of S.missions){
+  if(!m.done&&missionProgress(m)>=MISSIONS[m.i].t){m.done=true;
+   toast('MISSION COMPLETE — '+MISSIONS[m.i].n,'g');SND.reveal(1);
+   const badge=$('#misBadge');if(badge)badge.style.display='';}}}
+function claimMission(i){
+ const m=S.missions[i];if(!m)return;
+ const t=MISSIONS[m.i];
+ if(!m.done||missionProgress(m)<t.t)return deny('Mission not complete');
+ earn(t.r*mult());gainXP(t.xp);S.stats.missions++;
+ if(S.stats.missions>=10)ach('hunter');
+ SND.buy();toast('Contract complete — +'+fmt(t.r*mult())+' & '+t.xp+' XP','g');
+ newMission(i);renderPanel();saveSoon();}
+
 /* ============ 7. ITEMS ============ */
 function rollRarity(){const r=Math.random();
  return r<.0026?'gold':r<.009?'covert':r<.041?'classified':r<.2008?'restricted':'milspec';}
@@ -716,7 +773,88 @@ function poolFlat(c){const out=[];
  if(c.knife){out.push({w:c.knife,sk:'fade',rar:'gold'},{w:c.knife,sk:'doppler',rar:'gold'});}
  return out;}
 
-/* ============ 8. UI ============ */
+/* ============ 8. OFFICIAL ARTWORK LAYER ============ */
+const API_BASES=[
+ 'https://bymykel.github.io/CSGO-API/api/en/',
+ 'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/'];
+const IDX={skins:{},crates:{}};
+let artMode=true,apiOK=false,loaded=false;
+/* v4 FIX — the pipe: catalog names are "AK-47 | Redline" (spaces around "|"),
+   so both sides must normalize to "ak-47|redline". This is what broke every weapon
+   lookup while crates (no pipe in their names) kept working. */
+const norm=s=>String(s).toLowerCase()
+ .replace(/[\u2018\u2019'`\u201c\u201d"]/g,'')
+ .replace(/[\u2122\u2605]/g,'')
+ .replace(/\s+/g,' ')
+ .replace(/\s*\|\s*/g,'|')
+ .trim();
+const wKey=(wid,skid)=>norm(WEAPONS[wid].n)+'|'+norm(SKINS[skid].n);
+const officialFor=(wid,skid)=>(loaded&&artMode)?(IDX.skins[wKey(wid,skid)]||null):null;
+const officialCase=c=>(loaded&&artMode&&c.price>0)?(IDX.crates[norm(c.name)]||null):null;
+async function tryJSON(base,file,ms){
+ try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),ms||12000);
+  const res=await fetch(base+file,{signal:ctl.signal});
+  clearTimeout(t);if(!res.ok)return null;
+  return await res.json();}catch(e){return null;}}
+/* deep-walk any JSON shape and visit every object carrying a name + image,
+   regardless of whether the catalog is flat, grouped by weapon, or nested */
+function walkJSON(node,cb){
+ if(Array.isArray(node)){for(const o of node)walkJSON(o,cb);return;}
+ if(node&&typeof node==='object'){
+  const img=(typeof node.image==='string'&&node.image)||(typeof node.image_url==='string'&&node.image_url)||null;
+  if(img&&typeof node.name==='string')cb(node.name,img,node);
+  for(const k in node){const v=node[k];if(v&&typeof v==='object')walkJSON(v,cb);}}}
+function indexSkin(name,img,o){
+ IDX.skins[norm(name)]=img;
+ if(typeof o.id==='string')IDX.skins[norm(o.id)]=img;
+ if(o.weapon&&typeof o.weapon.name==='string')IDX.skins[norm(o.weapon.name+' | '+name)]=img;
+ if(typeof o.paint_name==='string')IDX.skins[norm(name+' | '+o.paint_name)]=img;}
+async function loadArt(){
+ let base=null,data=null;
+ for(const b of API_BASES){data=await tryJSON(b,'skins.json',25000);if(data){base=b;break;}}
+ if(!base){loaded=true;apiOK=false;
+  toast('Artwork API unreachable — using built-in vector renders','r');setArtIcon();return;}
+ walkJSON(data,(n,i,o)=>indexSkin(n,i,o));
+ const knives=await tryJSON(base,'skins_not_grouped.json');
+ if(knives)walkJSON(knives,(n,i,o)=>indexSkin(n,i,o));
+ const crates=await tryJSON(base,'crates.json');
+ if(crates)walkJSON(crates,(n,i)=>{IDX.crates[norm(n)]=i;});
+ loaded=true;apiOK=true;
+ const cov=coverage();
+ toast('Official artwork loaded — matched '+cov.ok+' / '+cov.total+' items','g');
+ setArtIcon();renderStage();renderPanel();}
+function coverage(){
+ const pairs=new Set();
+ for(const c of CLICKERS)pairs.add(wKey(c.w,c.sk));
+ for(const c of CASES){
+  for(const k in c.pool)for(const e of c.pool[k])pairs.add(wKey(e[0],e[1]));
+  for(const f of FINISHES)pairs.add(wKey(c.knife,f[0]));}
+ let ok=0;const miss=[];
+ pairs.forEach(k=>{if(IDX.skins[k])ok++;else miss.push(k);});
+ if(miss.length)console.log('[CS2 art] unmatched (vector fallback):',miss);
+ window.CS2ART={idx:IDX,missing:miss};
+ return{ok,total:pairs.size};}
+window.ART={
+ fail(el){el.outerHTML=wsvg(el.dataset.wid,el.dataset.sk,+el.dataset.vw);},
+ failCase(el){const c=CASES.find(x=>x.id===el.dataset.cid);
+  el.outerHTML=caseSVG(c||DROP_CASE,+el.dataset.cvw);}};
+function art(wid,skid,vw,maxh){
+ const url=officialFor(wid,skid);
+ if(!url)return wsvg(wid,skid,vw);
+ return '<img src="'+url+'" alt="" draggable="false" style="max-height:'+maxh+'px;max-width:100%;object-fit:contain" '+
+  'data-wid="'+wid+'" data-sk="'+skid+'" data-vw="'+vw+'" onerror="ART.fail(this)">';}
+function caseArt(c,vw,maxh){
+ const url=officialCase(c);
+ if(!url)return caseSVG(c,vw);
+ return '<img src="'+url+'" alt="" draggable="false" style="max-height:'+maxh+'px;max-width:100%;object-fit:contain" '+
+  'data-cid="'+c.id+'" data-cvw="'+vw+'" onerror="ART.failCase(this)">';}
+function setArtIcon(){
+ const b=$('#artBtn');if(!b)return;
+ b.innerHTML=IC.art;
+ b.style.color=(artMode&&apiOK)?'var(--amber)':'var(--mut)';
+ b.style.borderColor=(artMode&&apiOK)?'var(--amber)':'';}
+
+/* ============ 9. UI ============ */
 function toast(msg,kind){const t=document.createElement('div');t.className='toast '+(kind||'');t.innerHTML=msg;
  $('#toasts').appendChild(t);setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),350);},3400);}
 function refreshHUD(){
@@ -732,7 +870,7 @@ function refreshHUD(){
  $('#rankBar').style.width=(nx?clampN((S.xp-RANKS[ri].x)/(nx.x-RANKS[ri].x)*100,0,100):100)+'%';}
 function renderStage(){
  const c=currentClicker(),eq=equippedItem(),sk=(eq&&eq.w===c.w)?eq.sk:c.sk;
- $('#stageW').innerHTML=wsvg(c.w,sk,Math.min(520,Math.floor(innerWidth*.5)));
+ $('#stageW').innerHTML=art(c.w,sk,Math.min(520,Math.floor(innerWidth*.5)),210);
  $('#plName').textContent=WEAPONS[c.w].n;
  $('#plSkin').textContent=SKINS[sk].n;$('#plSkin').style.color=TIERC[c.tier];
  const st=eq&&eq.w===c.w&&eq.st;
@@ -753,18 +891,39 @@ function hitAt(x,y,crit){
  const d=document.createElement('div');d.className='hitm';d.style.left=x+'px';d.style.top=y+'px';
  d.innerHTML=IC.cross;if(crit)d.firstChild.setAttribute('stroke','#ff5b4d');
  $('#stage').appendChild(d);setTimeout(()=>d.remove(),320);}
+function shell(){
+ const w=$('#stageW');if(!w)return;
+ const r=w.getBoundingClientRect(),s=$('#stage').getBoundingClientRect();
+ const d=document.createElement('div');d.className='shell';
+ d.style.left=(r.right-s.left-40-Math.random()*30)+'px';
+ d.style.top=(r.top-s.top+r.height*.45)+'px';
+ $('#stage').appendChild(d);
+ const dx=40+Math.random()*50,dy=-(30+Math.random()*40),rot=Math.random()*300-150;
+ d.animate([{transform:'translate(0,0) rotate(0deg)',opacity:1},
+  {transform:'translate('+dx+'px,'+dy+'px) rotate('+(rot*.6)+'deg)',opacity:1,offset:.45},
+  {transform:'translate('+(dx*1.3)+'px,'+(dy+150)+'px) rotate('+rot+'deg)',opacity:0}],
+  {duration:550+Math.random()*200,easing:'cubic-bezier(.2,.6,.6,1)'});
+ setTimeout(()=>d.remove(),800);}
+function muzzle(){
+ const w=$('#stageW');if(!w)return;
+ const r=w.getBoundingClientRect(),s=$('#stage').getBoundingClientRect();
+ const d=document.createElement('div');d.className='muzzle';
+ d.style.left=(r.right-s.left-20)+'px';d.style.top=(r.top-s.top+r.height*.42)+'px';
+ $('#stage').appendChild(d);setTimeout(()=>d.remove(),200);}
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
 function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderPanel();}
 function renderPanel(){
  $('#invBadge').textContent=S.inv.length;
- $('#view').innerHTML=TAB==='up'?viewUp():TAB==='cases'?viewCases():viewInv();}
+ const dn=S.missions.filter(m=>m.done).length;
+ const mb=$('#misBadge');mb.style.display=dn?'':'none';mb.textContent=dn;
+ $('#view').innerHTML=TAB==='up'?viewUp():TAB==='cases'?viewCases():TAB==='mis'?viewMiss():viewInv();}
 function viewUp(){
  let h='<div class="sect">Weapons — click power</div>';
  CLICKERS.forEach((c,i)=>{
   const owned=S.ownedWi.includes(i),cur=S.wi===i,gated=i>0&&!S.ownedWi.includes(i-1);
-  h+='<div class="row '+(cur?'cur':(!owned&&gated?'lockrow':(!owned&&S.money<c.cost?'lockrow':'')))+'"><div class="art">'+wsvg(c.w,c.sk,92)+'</div>'+
+  h+='<div class="row '+(cur?'cur':(!owned&&(gated||S.money<c.cost)?'lockrow':''))+'"><div class="art">'+art(c.w,c.sk,92,40)+'</div>'+
    '<div class="info"><div class="nm" style="color:'+TIERC[c.tier]+'">'+WEAPONS[c.w].n+'</div>'+
    '<div class="sb">'+SKINS[c.sk].n+' · '+fmt(c.cps)+' / click'+((gated&&!owned)?' · locked — buy the previous weapon':'')+'</div></div><div class="act">'+
    (owned?(cur?'<span class="lvl">Equipped</span>':'<button class="btn" data-eq="'+i+'">Equip</button>')
@@ -793,7 +952,7 @@ function viewUp(){
   '<button class="btn '+(ok?'primary':'')+'" data-prime="1">Go Prime</button></div></div>';
  h+='<div class="sect">Career</div>';
  const stats=[['Total earned',fmt(S.stats.earned)],['Clicks',S.stats.clicks.toLocaleString()],['Headshots',S.stats.hs],
-  ['Cases opened',S.stats.cases],['Trade-ups',S.stats.tradeups],['Income multiplier','×'+mult().toFixed(2)]];
+  ['Cases opened',S.stats.cases],['Trade-ups',S.stats.tradeups],['Contracts done',S.stats.missions],['Income multiplier','×'+mult().toFixed(2)]];
  h+=stats.map(x=>'<div class="row"><div class="info"><div class="nm">'+x[0]+'</div></div><div class="price" style="color:var(--txt)">'+x[1]+'</div></div>').join('');
  h+='<div class="sect">Achievements — '+Object.keys(S.ach).length+' / '+Object.keys(ACH).length+'</div><div class="achbox">';
  for(const id in ACH)h+='<div class="achi'+(S.ach[id]?' on':'')+'"><b>'+ACH[id].n+'</b><span>'+ACH[id].d+'</span></div>';
@@ -801,7 +960,7 @@ function viewUp(){
 function viewCases(){
  let h='';
  for(const c of CASES){
-  h+='<div class="crow"><div class="head"><div class="cart">'+caseSVG(c,86)+'</div>'+
+  h+='<div class="crow"><div class="head"><div class="cart">'+caseArt(c,86,72)+'</div>'+
    '<div class="info"><div class="nm">'+c.name+'</div><div class="sub">Rare special: '+WEAPONS[c.knife].n+'</div></div>'+
    '<div class="open"><div class="price">'+fmt(c.price)+'</div>'+
    '<div style="display:flex;gap:6px"><button class="btn primary" data-oc="'+c.id+'">'+IC.key+'Open</button>'+
@@ -815,8 +974,8 @@ function oddsHTML(c){
  h+='<div class="pool">';
  for(const k of RORDER){
   h+='<div class="pg">';
-  if(k==='gold')h+='<div class="pi">'+wsvg(c.knife,'fade',56)+'<div class="n">'+WEAPONS[c.knife].n+'<small style="color:var(--gold)">Random finish</small></div></div>';
-  else for(const e of c.pool[k])h+='<div class="pi">'+wsvg(e[0],e[1],56)+'<div class="n">'+WEAPONS[e[0]].n+'<small style="color:'+RAR[k].c+'">'+SKINS[e[1]].n+'</small></div></div>';
+  if(k==='gold')h+='<div class="pi">'+art(c.knife,'fade',56,34)+'<div class="n">'+WEAPONS[c.knife].n+'<small style="color:var(--gold)">Random finish</small></div></div>';
+  else for(const e of c.pool[k])h+='<div class="pi">'+art(e[0],e[1],56,34)+'<div class="n">'+WEAPONS[e[0]].n+'<small style="color:'+RAR[k].c+'">'+SKINS[e[1]].n+'</small></div></div>';
   h+='</div>';}
  return h+'</div><div class="note">Drop rates as published in CS2 · wear &amp; StatTrak™ rolled per opening · the house always wins</div>';}
 const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e8974a 38% 45%,#c85a4a 45% 100%)';
@@ -834,8 +993,7 @@ function viewInv(){
  for(const it of [...S.inv].reverse()){
   const sel=TU.sel.includes(it.id);
   const canSel=(!TU.rar||it.rar===TU.rar)&&S.equipped!==it.id;
-  const dim=TU.on&&(!canSel);
-  h+='<div class="irow'+(dim?' dim':'')+'"><div class="art">'+wsvg(it.w,it.sk,92)+'</div><div class="info">'+
+  h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
    '<div class="nm">'+WEAPONS[it.w].n+' <span style="color:'+RAR[it.rar].c+'">| '+SKINS[it.sk].n+'</span> '+(it.st?'<span class="stt">ST™ '+it.stK+'</span>':'')+'</div>'+
    '<div class="floatbar" style="'+FBG+'"><i style="left:'+(it.float*100).toFixed(1)+'%"></i></div>'+
    '<div class="fw">'+WEAR[wearOf(it.float)].n+' · float '+it.float.toFixed(4)+'</div></div>';
@@ -847,8 +1005,20 @@ function viewInv(){
     '<button class="btn" data-si="'+it.id+'">Sell</button></div></div>';}
   h+='</div>';}
  return h;}
+function viewMiss(){
+ let h='<div class="sect">Active contracts</div>';
+ S.missions.forEach((m,i)=>{
+  const t=MISSIONS[m.i],prog=Math.min(missionProgress(m),t.t);
+  h+='<div class="row"><div class="info"><div class="nm">'+t.n+'</div>'+
+   '<div class="sb">Reward: '+fmt(t.r*mult())+' + '+t.xp+' XP</div>'+
+   '<div class="pbar"><i style="width:'+(prog/t.t*100).toFixed(1)+'%"></i></div>'+
+   '<div class="sb">'+(t.k==='earned'?fmt(prog)+' / '+fmt(t.t):Math.floor(prog)+' / '+t.t)+'</div></div>'+
+   '<div class="act">'+(m.done?'<button class="btn primary" data-mi="'+i+'">Claim</button>':'<span class="lvl">'+Math.floor(prog/t.t*100)+'%</span>')+'</div></div>';});
+ h+='<div class="sect">Career</div><div class="row"><div class="info"><div class="nm">'+S.stats.missions+' contracts completed</div>'+
+  '<div class="sb">A new contract is issued every time you claim one</div></div></div>';
+ return h;}
 
-/* ============ 9. ACTIONS ============ */
+/* ============ 10. ACTIONS ============ */
 function deny(msg){SND.deny();const m=$('#money');m.classList.remove('deny');void m.offsetWidth;m.classList.add('deny');toast(msg||'Not enough money','r');}
 function buyWeapon(i){
  const c=CLICKERS[i];
@@ -875,10 +1045,10 @@ function equipItem(id){S.equipped=id;const it=S.inv.find(i=>i.id===id);
  SND.buy();toast('Equipped '+WEAPONS[it.w].n+' | '+SKINS[it.sk].n+' · +25% clicks','g');
  renderStage();renderPanel();saveSoon();}
 function sellItem(id){const i=S.inv.findIndex(x=>x.id===id);if(i<0)return;
- const it=S.inv[i];earn(it.val);S.inv.splice(i,1);
+ const it=S.inv[i];earn(it.val);S.inv.splice(i,1);S.stats.sold++;
  if(S.equipped===id)S.equipped=null;
  SND.sell();toast('Sold '+WEAPONS[it.w].n+' | '+SKINS[it.sk].n+' for '+fmt(it.val),'g');
- renderStage();renderPanel();saveSoon();}
+ renderStage();renderPanel();hudDirty=true;saveSoon();}
 let cfCb=null;
 function askConfirm(t,b,yes,cb){$('#cfTitle').textContent=t;$('#cfBody').innerHTML=b;$('#cfYes').textContent=yes;cfCb=cb;$('#confirm').classList.add('show');}
 function askSellJunk(){
@@ -887,14 +1057,15 @@ function askSellJunk(){
  const t=junk.reduce((a,i)=>a+i.val,0);
  askConfirm('Sell junk?','Sell '+junk.length+' Mil-Spec / Restricted skins for a total of <b style="color:var(--green)">'+fmt(t)+'</b>?','Sell',()=>{
   for(const j of junk){const i=S.inv.findIndex(x=>x.id===j.id);if(i>=0)S.inv.splice(i,1);}
-  earn(t);SND.sell();toast('Sold '+junk.length+' skins for '+fmt(t),'g');
+  earn(t);S.stats.sold+=junk.length;SND.sell();toast('Sold '+junk.length+' skins for '+fmt(t),'g');
   renderPanel();hudDirty=true;saveSoon();});}
 function goPrime(){
  if(S.stats.earned<primeReq())return deny('Earn '+fmt(primeReq())+' total first');
  askConfirm('Go Prime?','Resets money, weapons, squad and inventory. You keep rank, XP, achievements and career stats. Income multiplier becomes <b>×'+(1+.5*(S.prestige+1)).toFixed(1)+'</b>.','Go Prime',()=>{
   S.prestige++;S.money=0;S.wi=0;S.ownedWi=[0];S.auto={};S.perk=0;S.inv=[];S.equipped=null;S.dropClicks=0;
+  for(let i=0;i<3;i++)newMission(i);
   ach('prime');SND.reveal(4);
-  toast('PRIME MATCHMAKING — income ×'+(1+.5*S.prestige).toFixed(1)+' · grind starts over','gold');
+  toast('PRIME MATCHMAKING — income ×'+(1+.5*S.prestige).toFixed(1)+' · the grind starts over','gold');
   renderStage();renderPanel();refreshDrop();hudDirty=true;save();});}
 function execTradeUp(){
  if(TU.sel.length!==10)return;
@@ -910,7 +1081,7 @@ function execTradeUp(){
  TU.on=false;TU.sel=[];TU.rar=null;saveSoon();
  openFlow({title:'Trade-Up <b>Contract</b>',c,pre:it,countCase:false});}
 
-/* ============ 10. CASE OPENING ============ */
+/* ============ 11. CASE OPENING ============ */
 let spinning=false,pending=null,reelRAF=null,RS=null,flowCase=true;
 const STEP=134;
 function buyOpen(cid){
@@ -925,7 +1096,7 @@ function openFlow(o){
  flowCase=o.countCase!==false;
  spinning=true;
  $('#cmTitle').innerHTML=o.title;
- $('#cmCaseArt').innerHTML=caseSVG(o.c,150);
+ $('#cmCaseArt').innerHTML=caseArt(o.c,150,140);
  $('#phaseCase').style.display='flex';
  $('#reelWin').style.display='none';$('#reelHint').style.display='none';
  $('#phaseReveal').style.display='none';
@@ -941,25 +1112,27 @@ function runReel(c){
  let h='';
  for(let i=0;i<N;i++){
   const it=i===WIN?pending:pool[(Math.random()*pool.length)|0];
-  h+='<div class="rcard"><div class="im">'+wsvg(it.w,it.sk,104)+'</div><div class="w">'+WEAPONS[it.w].n+'</div>'+
+  h+='<div class="rcard"><div class="im">'+art(it.w,it.sk,104,46)+'</div><div class="w">'+WEAPONS[it.w].n+'</div>'+
    '<div class="s" style="color:'+RAR[it.rar].c+'">'+SKINS[it.sk].n+'</div>'+(it.st?'<div class="st">ST™</div>':'')+
    '<i style="background:'+RAR[it.rar].c+'"></i></div>';}
  strip.innerHTML=h;
  const winW=win.clientWidth;
  const jit=(Math.random()*.62-.31)*STEP;
  const x0=2*STEP+63-winW/2, xT=WIN*STEP+63-winW/2+jit;
- strip.style.transform='translateX('+(-x0)+'px)';
+ strip.style.transform='translateX('+(-x0)+'px)';strip.style.filter='none';
  $('#skipBtn').style.display='block';
- RS={strip,x0,xT,t0:performance.now(),D:6400,last:-1,winW};
+ RS={strip,x0,xT,t0:performance.now(),D:6400,last:-1,px:x0,winW};
  const ease=t=>1-Math.pow(1-t,4.6);
  (function fr(now){
   const t=Math.min(1,(now-RS.t0)/RS.D);
   const x=RS.x0+(RS.xT-RS.x0)*ease(t);
+  const v=x-RS.px;RS.px=x;
+  RS.strip.style.filter=v>18?'blur('+Math.min(3,(v-18)/30).toFixed(1)+'px)':'none';
   RS.strip.style.transform='translateX('+(-x)+'px)';
   const idx=Math.floor((x+RS.winW/2-63)/STEP);
   if(idx!==RS.last){RS.last=idx;SND.tick();}
   if(t<1)reelRAF=requestAnimationFrame(fr);
-  else setTimeout(reveal,450);
+  else{RS.strip.style.filter='none';setTimeout(reveal,450);}
  })(RS.t0);}
 function skipReel(){
  if(!RS)return;
@@ -977,7 +1150,7 @@ function reveal(){
  $('#phaseReveal').style.display='flex';
  $('#phaseReveal').innerHTML=
   '<div id="flare" style="background:radial-gradient(circle,'+R.c+'66 0%,'+R.c+'22 38%,transparent 68%)"></div>'+
-  '<div id="rvItem">'+wsvg(it.w,it.sk,340)+(tier>=3?'<div class="shine"></div>':'')+'</div>'+
+  '<div id="rvItem">'+art(it.w,it.sk,340,150)+(tier>=3?'<div class="shine"></div>':'')+'</div>'+
   '<div id="rvChips"><span class="chip2">'+wr.n+'</span><span class="chip2">float '+it.float.toFixed(4)+'</span>'+
   (it.st?'<span class="chip2 st">StatTrak™</span>':'')+
   (it.rar==='gold'?'<span class="chip2" style="color:var(--gold);border-color:var(--gold)">Rare special</span>':'')+'</div>'+
@@ -999,7 +1172,7 @@ function finishOpen(msg,kind){
  spinning=false;pending=null;
  toast(msg,kind||'');renderPanel();hudDirty=true;saveSoon();}
 
-/* ============ 11. EVENTS & INIT ============ */
+/* ============ 12. EVENTS & INIT ============ */
 function stageClick(e){
  const rect=$('#stage').getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
  S.stats.clicks++;S.dropClicks++;
@@ -1013,19 +1186,22 @@ function stageClick(e){
  popAt(x,y,crit?'HEADSHOT +'+fmt(v):'+'+fmt(v),crit);
  hitAt(x,y,crit);
  crit?SND.dink():SND.click();
- const sv=$('#stageW svg');
- if(sv)sv.animate([{transform:'translate(0,0) rotate(0deg)'},
+ shell();
+ const node=$('#stageW svg')||$('#stageW img');
+ if(node&&node.animate)node.animate([{transform:'translate(0,0) rotate(0deg)'},
   {transform:'translate('+(3+Math.random()*5).toFixed(1)+'px,'+(2+Math.random()*4).toFixed(1)+'px) rotate(-'+(0.5+Math.random()*.5).toFixed(2)+'deg)'},
   {transform:'translate(0,0) rotate(0deg)'}],{duration:120,easing:'ease-out'});
+ if(crit){muzzle();
+  $('#stage').animate([{transform:'translate(0,0)'},{transform:'translate(3px,2px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0,0)'}],{duration:140});}
  if(S.stats.clicks>=5)$('#hint').style.display='none';
  refreshDrop();}
 function setSndIcon(){$('#sndBtn').innerHTML=S.muted?IC.mute:IC.vol;}
 function init(){
  if(!load())S=freshState();
+ artMode=(S.official!==false);
  itemSeq=S.inv.reduce((m,i)=>Math.max(m,i.id),0)+1;
- $('#saveBtn').innerHTML=IC.save;$('#resetBtn').innerHTML=IC.reset;setSndIcon();
- refreshHUD();renderStage();renderPanel();refreshDrop();
- if(S.stats.clicks>=5)$('#hint').style.display='none';
+ if(!Array.isArray(S.missions)||S.missions.length!==3){S.missions=[];for(let i=0;i<3;i++)newMission(i);}
+ /* critical listeners FIRST — the game must always be enterable */
  $('#enterBtn').addEventListener('click',()=>{
   auInit();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();
   $('#splash').classList.add('gone');
@@ -1034,6 +1210,12 @@ function init(){
   if(e.button!==undefined&&e.button!==0)return;
   if(e.target.closest('#dropBox,#plate'))return;
   stageClick(e);});
+ /* UI setup — wrapped so a render error can never kill the listeners above */
+ try{
+  $('#saveBtn').innerHTML=IC.save;$('#resetBtn').innerHTML=IC.reset;setSndIcon();setArtIcon();
+  refreshHUD();renderStage();renderPanel();refreshDrop();
+  if(S.stats.clicks>=5)$('#hint').style.display='none';
+ }catch(err){console.error('[CS2] render init error:',err);}
  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.t)));
  $('#view').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;
@@ -1049,6 +1231,7 @@ function init(){
   else if(d.prime)goPrime();
   else if(d.eqi)equipItem(+d.eqi);
   else if(d.si)sellItem(+d.si);
+  else if(d.mi)claimMission(+d.mi);
   else if(d.selljunk)askSellJunk();
   else if(d.tumode){TU.on=true;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tucancel){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();}
@@ -1061,11 +1244,16 @@ function init(){
    renderPanel();}});
  $('#claimBtn').addEventListener('click',()=>{
   if(S.dropClicks<DROP_NEED||spinning)return;
-  S.dropClicks=0;refreshDrop();
+  S.dropClicks=0;S.stats.drops++;refreshDrop();
   const r=Math.random(),rar=r<.02?'classified':r<.15?'restricted':'milspec';
   openFlow({title:'Weekly <b>Care Package</b>',c:DROP_CASE,rar});});
  $('#skipBtn').addEventListener('click',skipReel);
  $('#cmClose').addEventListener('click',()=>{if(spinning&&pending)keepItem(pending);});
+ $('#artBtn').addEventListener('click',()=>{
+  artMode=!artMode;S.official=artMode;saveSoon();setArtIcon();
+  if(artMode&&!apiOK){loaded=false;toast('Retrying artwork API…');loadArt();}
+  else toast(artMode?'Official artwork mode':'Vector artwork mode','g');
+  renderStage();renderPanel();});
  $('#sndBtn').addEventListener('click',()=>{S.muted=!S.muted;setSndIcon();saveSoon();});
  $('#saveBtn').addEventListener('click',()=>{save();toast('Progress saved','g');});
  $('#resetBtn').addEventListener('click',()=>askConfirm('Reset progress?','All money, rank, skins, achievements and prestige will be wiped. There is no undo.','Reset',()=>{
@@ -1079,9 +1267,11 @@ function init(){
  document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
  let last=performance.now();
  setInterval(()=>{const now=performance.now(),dt=(now-last)/1000;last=now;
-  const rr=ratePerSec();if(rr>0)earn(rr*dt);},250);
+  const rr=ratePerSec();if(rr>0)earn(rr*dt);
+  checkMissions();},250);
  (function loop(){if(hudDirty){refreshHUD();hudDirty=false;}requestAnimationFrame(loop);})();
- setInterval(saveSoon,15000);}
+ setInterval(saveSoon,15000);
+ loadArt();}
 init();
 </script>
 </body>
