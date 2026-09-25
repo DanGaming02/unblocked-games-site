@@ -31,6 +31,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
  transition:border-color .15s,color .15s,background .15s,transform .06s}
 .btn:hover{border-color:var(--amber);color:var(--amber2)}
 .btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
 .btn.primary{background:var(--amber);border-color:transparent;color:#17110a}
 .btn.primary:hover{background:var(--amber2);color:#17110a}
 .btn.danger:hover{border-color:var(--red);color:var(--red)}
@@ -40,25 +41,31 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .ibtn svg{margin:0}
 #hud{position:relative;z-index:5;height:66px;display:flex;align-items:center;gap:22px;padding:0 18px;background:rgba(16,19,24,.92);border-bottom:1px solid var(--line)}
 .lbl{font-size:10px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase}
-#money{font-size:29px;font-weight:700;color:var(--green);line-height:1}
+#money{font-size:29px;font-weight:700;color:var(--green);line-height:1;font-variant-numeric:tabular-nums}
 #money.deny{color:var(--red);animation:shake .3s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 #hud .mini{display:flex;gap:16px;font-size:13px;color:var(--mut);font-weight:600;margin-top:2px}
-#hud .mini b{color:var(--txt)}
+#hud .mini b{color:var(--txt);font-variant-numeric:tabular-nums}
 #brand{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:0}
 #brand img{height:34px;object-fit:contain;opacity:.9}
 #brand .t{font-size:14px;font-weight:700;letter-spacing:.42em;color:var(--mut);text-transform:uppercase;margin-left:.42em}
 #hud .stats{display:flex;gap:20px;text-align:right}
-#hud .stats b{font-size:17px;font-weight:700}
-.rbar{width:92px;height:4px;background:#0d1014;border:1px solid var(--line);margin-top:4px}
-.rbar i{display:block;height:100%;background:var(--amber)}
+#hud .stats b{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.rbar{width:92px;height:4px;background:#0d1014;border:1px solid var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
+.rbar i{display:block;height:100%;background:var(--amber);transition:width .4s}
 #hud .tools{display:flex;gap:8px}
 #main{position:relative;z-index:2;display:grid;grid-template-columns:1fr 420px;height:calc(100% - 66px)}
 #stage{position:relative;overflow:hidden;cursor:crosshair;touch-action:manipulation}
 #stage .gridbg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);background-size:46px 46px}
 #stage .vig{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 46%,transparent 40%,rgba(5,7,9,.72) 100%);pointer-events:none}
 #xh{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);opacity:.07;pointer-events:none}
-#stageW{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);max-width:64%;filter:drop-shadow(0 20px 16px rgba(0,0,0,.55));pointer-events:none}
+#stageWrap{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);max-width:64%;pointer-events:none;
+ display:flex;flex-direction:column;align-items:center}
+#stageW{display:flex;justify-content:center;filter:drop-shadow(0 20px 16px rgba(0,0,0,.55))}
+#stageR{transform:scaleY(-1);opacity:.13;filter:blur(1px) grayscale(.35);
+ -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 65%);mask-image:linear-gradient(to top,#000 0%,transparent 65%)}
+.mote{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,240,200,.5);pointer-events:none;animation:mote linear infinite}
+@keyframes mote{0%{transform:translateY(0);opacity:0}10%{opacity:.55}85%{opacity:.35}100%{transform:translateY(-46vh);opacity:0}}
 #hint{position:absolute;left:50%;top:69%;transform:translateX(-50%);font-size:15px;letter-spacing:.4em;color:var(--amber);text-transform:uppercase;animation:pulse 1.6s infinite;pointer-events:none}
 @keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
 #plate{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:18px;padding:9px 20px;background:rgba(14,17,21,.9);border-top:1px solid var(--line);backdrop-filter:blur(3px)}
@@ -67,7 +74,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #plate .chip{font-size:11px;font-weight:700;letter-spacing:.1em;border:1px solid #6b4426;border-radius:2px;padding:1px 6px;color:#cf6a32}
 #plate .grow{flex:1}
 #plate .pstat{text-align:right}
-#plate .pstat b{font-size:17px;font-weight:700}
+#plate .pstat b{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
 #dropBox{position:absolute;top:16px;right:16px;width:196px;background:rgba(14,17,21,.9);border:1px solid var(--line);border-radius:4px;padding:10px 12px;cursor:default}
 #dropBox .bar{height:6px;background:#0d1014;border:1px solid var(--line);border-radius:3px;margin:8px 0 2px;overflow:hidden}
 #dropBox .bar i{display:block;height:100%;background:var(--amber);width:0%;transition:width .2s}
@@ -97,14 +104,14 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #tabs .badge{position:absolute;top:6px;right:10px;background:var(--line2);border-radius:8px;font-size:10px;padding:1px 6px;color:var(--txt)}
 .view{flex:1;overflow-y:auto;min-height:0}
 .sect{padding:12px 16px 6px;font-size:11px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2}
-.row{display:flex;align-items:center;gap:13px;padding:10px 14px;border-bottom:1px solid #1c2128}
-.row:hover{background:rgba(255,255,255,.02)}
+.row{display:flex;align-items:center;gap:13px;padding:10px 14px;border-bottom:1px solid #1c2128;transition:background .12s}
+.row:hover{background:rgba(255,255,255,.025)}
 .row .art{width:94px;flex:none;display:flex;justify-content:center}
 .row .info{flex:1;min-width:0}
 .row .nm{font-size:15px;font-weight:700;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .row .sb{font-size:12px;color:var(--mut);font-weight:600;letter-spacing:.04em}
 .row .act{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.row .price{font-size:13px;font-weight:700;color:var(--green)}
+.row .price{font-size:13px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
 .row.cur{box-shadow:inset 3px 0 0 var(--amber);background:rgba(232,163,61,.05)}
 .row .lvl{font-size:11px;color:var(--amber);font-weight:700;letter-spacing:.08em}
 .lockrow{opacity:.55}
@@ -113,11 +120,14 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .pbar i{display:block;height:100%;background:var(--amber);transition:width .3s}
 .crow{padding:12px 14px;border-bottom:1px solid #1c2128}
 .crow .head{display:flex;align-items:center;gap:14px}
-.crow .cart{width:86px;flex:none}
+.crow .cart{width:86px;flex:none;transition:transform .2s}
+.crow:hover .cart{transform:translateY(-2px)}
 .crow .info{flex:1;min-width:0}
 .crow .nm{font-size:16px;font-weight:700}
 .crow .sub{font-size:12px;color:var(--mut);font-weight:600;margin-top:2px}
 .crow .open{display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.chev svg{transition:transform .25s}
+.chev.open svg{transform:rotate(180deg)}
 .odds{margin-top:11px;border-top:1px dashed var(--line);padding-top:10px;display:none}
 .odds.show{display:block}
 .orow{display:flex;align-items:center;gap:10px;margin-bottom:5px;font-size:12px;font-weight:600}
@@ -133,17 +143,18 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .odds .note{font-size:10px;color:#5a6270;letter-spacing:.08em;margin-top:8px;text-transform:uppercase}
 #invHead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2;flex-wrap:wrap}
 #invHead .t{font-size:12px;color:var(--mut);font-weight:700;letter-spacing:.14em;text-transform:uppercase;flex:1}
-.irow{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #1c2128}
+.irow{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #1c2128;transition:background .12s}
 .irow:hover{background:rgba(255,255,255,.02)}
-.irow .art{width:92px;flex:none}
+.irow .art{width:92px;flex:none;cursor:pointer}
 .irow .info{flex:1;min-width:0}
 .irow .nm{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .irow .floatbar{position:relative;height:5px;border-radius:2px;overflow:hidden;margin:5px 0 3px;width:150px}
 .irow .floatbar i{position:absolute;top:-1px;width:2px;height:7px;background:#fff;box-shadow:0 0 0 1px #000}
 .irow .fw{font-size:11px;color:var(--mut);font-weight:600;letter-spacing:.04em}
-.irow .val{font-size:14px;font-weight:700;color:var(--green);text-align:right;min-width:74px}
+.irow .val{font-size:14px;font-weight:700;color:var(--green);text-align:right;min-width:74px;font-variant-numeric:tabular-nums}
 .irow .stt{font-size:10px;font-weight:700;color:#cf6a32;letter-spacing:.06em;border:1px solid #6b4426;padding:0 5px;border-radius:2px}
-.empty{padding:60px 20px;text-align:center;color:#5a6270}
+.empty{padding:44px 20px;text-align:center;color:#5a6270}
+.empty svg{opacity:.45;margin-bottom:10px}
 .empty .t{font-size:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
 .empty .s{font-size:12px;margin-top:6px}
 .achbox{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px}
@@ -169,6 +180,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .rcard .s{font-size:12px;font-weight:700;text-align:center;line-height:1.15;margin-top:1px}
 .rcard .st{font-size:9px;font-weight:700;color:#cf6a32;letter-spacing:.06em}
 .rcard i{align-self:stretch;margin-top:auto;height:4px;border-radius:0 0 3px 3px}
+.rcard.win{border-color:var(--amber);animation:winpop .45s ease-out}
+@keyframes winpop{0%{transform:scale(1)}45%{transform:scale(1.12)}100%{transform:scale(1)}}
 #marker{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--amber);transform:translateX(-50%);box-shadow:0 0 8px rgba(232,163,61,.7);z-index:3}
 #marker::before,#marker::after{content:'';position:absolute;left:50%;transform:translateX(-50%);border:7px solid transparent}
 #marker::before{top:-2px;border-top-color:var(--amber)}
@@ -182,7 +195,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #rvItem .shine{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 #rvItem .shine::after{content:'';position:absolute;top:-30%;left:-70%;width:45%;height:170%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.5),transparent);transform:rotate(10deg);animation:shine 1.1s .25s ease-out}
 @keyframes shine{to{left:130%}}
-#rvChips{display:flex;gap:8px}
+#rvChips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .chip2{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border:1px solid var(--line2);border-radius:2px;padding:2px 9px;color:var(--mut)}
 .chip2.st{color:#cf6a32;border-color:#6b4426}
 #rvW{font-size:20px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c8ccd4}
@@ -194,6 +207,15 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #confirm h3{font-size:17px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px}
 #confirm p{font-size:14px;color:var(--mut);font-weight:600;line-height:1.5;margin-bottom:20px}
 #confirm .bb{display:flex;gap:10px;justify-content:flex-end}
+#inspect .box{background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:20px 24px 22px;width:min(560px,94vw);text-align:center;position:relative;overflow:hidden}
+#insFlare{position:absolute;top:-40px;left:50%;width:460px;height:460px;transform:translateX(-50%);border-radius:50%;pointer-events:none;opacity:.55}
+#insArt{position:relative;display:flex;justify-content:center;margin:4px 0 2px}
+#insName{position:relative;font-size:21px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#c8ccd4}
+#insSkin{position:relative;font-size:26px;font-weight:700;letter-spacing:.04em}
+.chiprow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:9px 0 4px;position:relative}
+#insVal{position:relative;font-size:18px;font-weight:700;color:var(--green)}
+#insVal small{color:var(--mut);font-size:10px;letter-spacing:.2em;display:block;text-transform:uppercase}
+#inspect .bb{display:flex;gap:10px;justify-content:center;margin-top:16px;position:relative}
 #toasts{position:fixed;top:78px;right:16px;z-index:150;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:rgba(18,21,27,.96);border:1px solid var(--line2);border-left:3px solid var(--amber);border-radius:3px;padding:9px 14px;font-size:13px;font-weight:600;letter-spacing:.04em;max-width:340px;animation:tIn .25s ease-out;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 .toast.g{border-left-color:var(--green)}.toast.r{border-left-color:var(--red)}.toast.gold{border-left-color:var(--gold)}
@@ -204,7 +226,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
  #main{grid-template-columns:1fr;grid-template-rows:52vh 1fr}
  #panel{border-left:none;border-top:1px solid var(--line)}
  #brand,#hud .stats{display:none}
- #stageW{max-width:90%}
+ #stageWrap{max-width:92%}
 }
 </style>
 </head>
@@ -258,7 +280,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
    <path d="M320 0v180M320 460v180M0 320h180M460 320h180"/>
   </svg>
   <div class="vig"></div>
-  <div id="stageW"></div>
+  <div id="stageWrap"><div id="stageW"></div><div id="stageR"></div></div>
   <div id="hint">Click to earn cash</div>
   <div id="owLock">
    <div class="t1">Overwatch</div>
@@ -301,6 +323,22 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
  </div>
 </div>
 
+<div class="modal" id="inspect">
+ <div class="box">
+  <div id="insFlare"></div>
+  <div id="insArt"></div>
+  <div id="insName"></div>
+  <div id="insSkin"></div>
+  <div id="insChips" class="chiprow"></div>
+  <div id="insVal"></div>
+  <div class="bb">
+   <button class="btn" id="insEquip">Equip</button>
+   <button class="btn danger" id="insSell">Sell</button>
+   <button class="btn" id="insClose">Close</button>
+  </div>
+ </div>
+</div>
+
 <div class="modal" id="confirm">
  <div class="box"><h3 id="cfTitle"></h3><p id="cfBody"></p>
   <div class="bb"><button class="btn" id="cfNo">Cancel</button><button class="btn danger" id="cfYes">Confirm</button></div>
@@ -308,7 +346,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
 </div>
 
 <div id="toasts"></div>
-<footer>Unofficial CS2 fan project · official art via community CSGO-API mirror · overwatch input protection active · progress autosaves</footer>
+<footer>Unofficial CS2 fan project · official art via community CSGO-API mirror · overwatch input protection active on PC · progress autosaves</footer>
 
 <script>
 /* ============ 1. UTILITIES & ICONS ============ */
@@ -318,6 +356,16 @@ const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 let UID=0;
+/* Device fingerprint — Overwatch anti-autoclicker runs on PC ONLY.
+   iPads/iPhones/iPods/Androids are exempt; iPadOS 13+ in "desktop mode" reports a Macintosh
+   user-agent but still exposes touch points, so that combo is also treated as a tablet.
+   Touch-capable Windows laptops are still PCs, so they keep protection. */
+const IS_TOUCH=(()=>{
+ const ua=navigator.userAgent||'';
+ const hasTouch=(navigator.maxTouchPoints||0)>0||'ontouchstart' in window;
+ if(/iPad|iPhone|iPod|Android|Mobile|Tablet/i.test(ua))return true;
+ if(/Macintosh/.test(ua)&&hasTouch)return true;
+ return false;})();
 const IC={
  vol:'<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 8a5 5 0 0 1 0 8M18.5 5.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
  mute:'<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -610,6 +658,7 @@ const RORDER=['milspec','restricted','classified','covert','gold'];
 const TU_NEXT={milspec:'restricted',restricted:'classified',classified:'covert',covert:'gold'};
 const BASEVAL={milspec:1.7,restricted:6.5,classified:25,covert:100,gold:700};
 const WEAR={fn:{n:'Factory New',m:1},mw:{n:'Minimal Wear',m:.9},ft:{n:'Field-Tested',m:.8},ww:{n:'Well-Worn',m:.7},bs:{n:'Battle-Scarred',m:.5}};
+const WC={fn:'#7fbf5a',mw:'#a8cf6b',ft:'#e8c84a',ww:'#e8974a',bs:'#c85a4a'};
 function wearOf(f){return f<=.07?'fn':f<=.15?'mw':f<=.38?'ft':f<=.45?'ww':'bs';}
 const FINISHES=[['vanilla','Vanilla',.35,.25],['nightstripe','Night Stripe',.7,.2],['doppler','Doppler',1.5,.2],['tiger','Tiger Tooth',2,.12],['marble','Marble Fade',2.2,.12],['fade','Fade',2.4,.11]];
 const CASES=[
@@ -692,6 +741,9 @@ const ACH={
  dragon:{n:'Dragonslayer',d:'Buy the AWP | Dragon Lore'},
  global:{n:'Global Elite',d:'Reach the max profile rank'},
  hunter:{n:'Contract Killer',d:'Complete 10 contracts'},
+ marathon:{n:'Marathon',d:'Grind 5,000 total clicks'},
+ arsenal:{n:'Arsenal',d:'Own 8 weapons at once'},
+ untouched:{n:'Untouchable',d:'Buy the ★ Karambit | Fade'},
  prime:{n:'Prime Status',d:'Activate Prime Matchmaking'}};
 const MISSIONS=[
  {k:'clicks',t:400,n:'Grind 400 clicks',r:2500,xp:150},
@@ -707,11 +759,9 @@ const DROP_CASE={id:'drop',name:'Weekly Drop',short:'WEEKLY',price:0,scale:6,col
 
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
-/* WIPE LOCK — once a reset is confirmed, no save path may write again,
-   so the beforeunload/pagehide autosave can't resurrect the deleted save (the old reset bug) */
 let wipeLock=false;
-function freshState(){return{v:6,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,
- xp:0,rank:0,prestige:0,ach:{},missions:[],stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,missions:0,best:0}};}
+function freshState(){return{v:8,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,fast:false,
+ xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,missions:0,best:0}};}
 function save(){if(wipeLock)return;
  try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));}catch(e){}}
 let saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,500);}
@@ -719,11 +769,14 @@ function rankIdx(xp){let r=0;for(let i=0;i<RANKS.length;i++)if(xp>=RANKS[i].x)r=
 function load(){try{const raw=localStorage.getItem('cs2clicker');if(!raw)return false;
  S=Object.assign(freshState(),JSON.parse(raw));
  if(typeof S.weapon==='string'){S.wi=Math.max(0,CLICKERS.findIndex(c=>c.w===S.weapon));delete S.weapon;}
- if(S.owned&&!S.ownedWi)S.ownedWi=S.owned.map(w=>{const i=CLICKERS.findIndex(c=>c.w===w);return i<0?0:i;});
+ if(S.owned&&!S.ownedWi){
+  S.ownedWi=S.owned.map(w=>{
+   let idx=-1;CLICKERS.forEach((c,i)=>{if(c.w===w)idx=i;});
+   return idx<0?0:idx;});}
  S.ownedWi=[...new Set(S.ownedWi)].sort((a,b)=>a-b).filter(i=>i<CLICKERS.length);
  if(S.wi>=CLICKERS.length)S.wi=0;
  if(!S.xp)S.xp=S.stats.clicks+25*(S.stats.cases||0)+5*(S.stats.hs||0);
- S.prestige=S.prestige||0;S.ach=S.ach||{};
+ S.prestige=S.prestige||0;S.ach=S.ach||{};S.pending=S.pending||null;S.fast=!!S.fast;
  S.stats=Object.assign({tradeups:0,sold:0,drops:0,missions:0},S.stats);
  S.rank=rankIdx(S.xp);
  if(S.savedAt){const dt=(Date.now()-S.savedAt)/1000;if(dt>90)offlineGain=ratePerSec()*Math.min(dt,3600)*.25;}
@@ -880,7 +933,8 @@ function refreshHUD(){
  $('#rankBar').style.width=(nx?clampN((S.xp-RANKS[ri].x)/(nx.x-RANKS[ri].x)*100,0,100):100)+'%';}
 function renderStage(){
  const c=currentClicker(),eq=equippedItem(),sk=(eq&&eq.w===c.w)?eq.sk:c.sk;
- $('#stageW').innerHTML=art(c.w,sk,Math.min(520,Math.floor(innerWidth*.5)),210);
+ const html=art(c.w,sk,Math.min(520,Math.floor(innerWidth*.5)),210);
+ $('#stageW').innerHTML=html;$('#stageR').innerHTML=html;
  $('#plName').textContent=WEAPONS[c.w].n;
  $('#plSkin').textContent=SKINS[sk].n;$('#plSkin').style.color=TIERC[c.tier];
  const st=eq&&eq.w===c.w&&eq.st;
@@ -920,6 +974,16 @@ function muzzle(){
  const d=document.createElement('div');d.className='muzzle';
  d.style.left=(r.right-s.left-20)+'px';d.style.top=(r.top-s.top+r.height*.42)+'px';
  $('#stage').appendChild(d);setTimeout(()=>d.remove(),200);}
+function spawnMotes(){
+ const stg=$('#stage');
+ for(let i=0;i<14;i++){
+  const m=document.createElement('div');m.className='mote';
+  m.style.left=(Math.random()*100)+'%';
+  m.style.top=(30+Math.random()*70)+'%';
+  m.style.animationDuration=(14+Math.random()*18)+'s';
+  m.style.animationDelay=(-Math.random()*20)+'s';
+  m.style.opacity=(.2+Math.random()*.3).toFixed(2);
+  stg.appendChild(m);}}
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
@@ -930,7 +994,7 @@ function renderPanel(){
  const mb=$('#misBadge');mb.style.display=dn?'':'none';mb.textContent=dn;
  $('#view').innerHTML=TAB==='up'?viewUp():TAB==='cases'?viewCases():TAB==='mis'?viewMiss():viewInv();}
 function viewUp(){
- let h='<div class="sect">Weapons — click power</div>';
+ let h='<div class="sect">Weapons — click power · '+S.ownedWi.length+' / '+CLICKERS.length+' owned</div>';
  CLICKERS.forEach((c,i)=>{
   const owned=S.ownedWi.includes(i),cur=S.wi===i,gated=i>0&&!S.ownedWi.includes(i-1);
   h+='<div class="row '+(cur?'cur':(!owned&&(gated||S.money<c.cost)?'lockrow':''))+'"><div class="art">'+art(c.w,c.sk,92,40)+'</div>'+
@@ -938,7 +1002,8 @@ function viewUp(){
    '<div class="sb">'+SKINS[c.sk].n+' · '+fmt(c.cps)+' / click'+((gated&&!owned)?' · locked — buy the previous weapon':'')+'</div></div><div class="act">'+
    (owned?(cur?'<span class="lvl">Equipped</span>':'<button class="btn" data-eq="'+i+'">Equip</button>')
     :'<div class="price">'+fmt(c.cost)+'</div><button class="btn" data-bw="'+i+'">Buy</button>')+'</div></div>';});
- h+='<div class="sect">Squad — passive income</div>';
+ const lvls=Object.values(S.auto).reduce((a,b)=>a+b,0);
+ h+='<div class="sect">Squad — passive income · '+lvls+' levels</div>';
  for(const a of AUTOS){
   const lv=S.auto[a.id]||0,cost=Math.round(a.cost*Math.pow(GROWTH,lv)),
    cost10=Math.round(a.cost*Math.pow(GROWTH,lv)*(Math.pow(GROWTH,10)-1)/(GROWTH-1));
@@ -961,20 +1026,22 @@ function viewUp(){
   '<div class="act"><div class="lvl">now ×'+(1+.5*S.prestige).toFixed(1)+'</div>'+
   '<button class="btn '+(ok?'primary':'')+'" data-prime="1">Go Prime</button></div></div>';
  h+='<div class="sect">Career</div>';
- const stats=[['Total earned',fmt(S.stats.earned)],['Clicks',S.stats.clicks.toLocaleString()],['Headshots',S.stats.hs],
+ const stats=[['Net worth',fmt(S.money+S.inv.reduce((a,i)=>a+i.val,0))],['Total earned',fmt(S.stats.earned)],
+  ['Clicks',S.stats.clicks.toLocaleString()],['Headshots',S.stats.hs],
   ['Cases opened',S.stats.cases],['Trade-ups',S.stats.tradeups],['Contracts done',S.stats.missions],['Income multiplier','×'+mult().toFixed(2)]];
  h+=stats.map(x=>'<div class="row"><div class="info"><div class="nm">'+x[0]+'</div></div><div class="price" style="color:var(--txt)">'+x[1]+'</div></div>').join('');
  h+='<div class="sect">Achievements — '+Object.keys(S.ach).length+' / '+Object.keys(ACH).length+'</div><div class="achbox">';
  for(const id in ACH)h+='<div class="achi'+(S.ach[id]?' on':'')+'"><b>'+ACH[id].n+'</b><span>'+ACH[id].d+'</span></div>';
  return h+'</div>';}
 function viewCases(){
- let h='';
+ let h='<div class="sect" style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+
+  '<span>Container marketplace</span><button class="btn" data-fast="1">Fast open: '+(S.fast?'ON':'OFF')+'</button></div>';
  for(const c of CASES){
-  h+='<div class="crow"><div class="head"><div class="cart">'+caseArt(c,86,72)+'</div>'+
+  h+='<div class="crow'+(S.money<c.price?' lockrow':'')+'"><div class="head"><div class="cart">'+caseArt(c,86,72)+'</div>'+
    '<div class="info"><div class="nm">'+c.name+'</div><div class="sub">Rare special: '+WEAPONS[c.knife].n+'</div></div>'+
    '<div class="open"><div class="price">'+fmt(c.price)+'</div>'+
    '<div style="display:flex;gap:6px"><button class="btn primary" data-oc="'+c.id+'">'+IC.key+'Open</button>'+
-   '<button class="btn ibtn" data-od="'+c.id+'" style="width:30px;height:30px">'+IC.chev+'</button></div></div></div>'+
+   '<button class="btn ibtn chev'+(openCases.has(c.id)?' open':'')+'" data-od="'+c.id+'" style="width:30px;height:30px">'+IC.chev+'</button></div></div></div>'+
    '<div class="odds'+(openCases.has(c.id)?' show':'')+'" id="od-'+c.id+'">'+oddsHTML(c)+'</div></div>';}
  return h;}
 function oddsHTML(c){
@@ -990,7 +1057,7 @@ function oddsHTML(c){
  return h+'</div><div class="note">Drop rates as published in CS2 · wear &amp; StatTrak™ rolled per opening · the house always wins</div>';}
 const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e8974a 38% 45%,#c85a4a 45% 100%)';
 function viewInv(){
- if(!S.inv.length)return '<div class="empty"><div class="t">Inventory empty</div><div class="s">Open a case or grind the weekly drop — every skin you keep lands here.</div></div>';
+ if(!S.inv.length)return '<div class="empty">'+caseSVG(DROP_CASE,96)+'<div class="t">Inventory empty</div><div class="s">Open a case or grind the weekly drop — every skin you keep lands here.</div></div>';
  let h;
  if(TU.on){
   h='<div id="invHead"><span class="t">Trade-Up: '+TU.sel.length+' / 10'+(TU.rar?' · '+RAR[TU.rar].n:' · pick any rarity')+'</span>'+
@@ -1003,7 +1070,7 @@ function viewInv(){
  for(const it of [...S.inv].reverse()){
   const sel=TU.sel.includes(it.id);
   const canSel=(!TU.rar||it.rar===TU.rar)&&S.equipped!==it.id;
-  h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
+  h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art" data-insp="'+it.id+'" title="Inspect">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
    '<div class="nm">'+WEAPONS[it.w].n+' <span style="color:'+RAR[it.rar].c+'">| '+SKINS[it.sk].n+'</span> '+(it.st?'<span class="stt">ST™ '+it.stK+'</span>':'')+'</div>'+
    '<div class="floatbar" style="'+FBG+'"><i style="left:'+(it.float*100).toFixed(1)+'%"></i></div>'+
    '<div class="fw">'+WEAR[wearOf(it.float)].n+' · float '+it.float.toFixed(4)+'</div></div>';
@@ -1037,6 +1104,8 @@ function buyWeapon(i){
  if(S.money<c.cost)return deny();
  S.money-=c.cost;S.ownedWi.push(i);S.wi=i;SND.buy();
  if(c.achid)ach(c.achid);
+ if(S.ownedWi.length>=8)ach('arsenal');
+ if(i===CLICKERS.length-1)ach('untouched');
  toast(WEAPONS[c.w].n+' | '+SKINS[c.sk].n+' purchased & equipped','g');
  renderStage();renderPanel();hudDirty=true;save();}
 function buyAuto(id,n){
@@ -1069,9 +1138,6 @@ function askSellJunk(){
   for(const j of junk){const i=S.inv.findIndex(x=>x.id===j.id);if(i>=0)S.inv.splice(i,1);}
   earn(t);S.stats.sold+=junk.length;SND.sell();toast('Sold '+junk.length+' skins for '+fmt(t),'g');
   renderPanel();hudDirty=true;save();});}
-/* RESET — the wipe lock stops every autosave path (including beforeunload during
-   the reload itself) from re-writing the save after we delete it. This was the bug
-   that made reset look like it "didn't work": the save resurrected itself on reload. */
 function doReset(){
  wipeLock=true;
  try{localStorage.removeItem('cs2clicker');}catch(e){}
@@ -1088,8 +1154,10 @@ function execTradeUp(){
  if(TU.sel.length!==10)return;
  const items=TU.sel.map(id=>S.inv.find(i=>i.id===id)).filter(Boolean);
  if(items.length!==10){TU.sel=[];TU.on=false;renderPanel();return;}
- for(const it of items){const i=S.inv.indexOf(it);if(i>=0)S.inv.splice(i,1);}
  const nextR=TU_NEXT[items[0].rar];
+ if(!nextR){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();
+  return toast('Rare special items cannot be traded up','r');}
+ for(const it of items){const i=S.inv.indexOf(it);if(i>=0)S.inv.splice(i,1);}
  const c=CASES[(Math.random()*CASES.length)|0];
  const fl=clampN(items.reduce((a,i)=>a+i.float,0)/items.length+(Math.random()-.5)*.1,0,1);
  const stAll=items.every(i=>i.st);
@@ -1097,6 +1165,25 @@ function execTradeUp(){
  S.stats.tradeups++;gainXP(60);ach('tradeup');
  TU.on=false;TU.sel=[];TU.rar=null;save();
  openFlow({title:'Trade-Up <b>Contract</b>',c,pre:it,countCase:false});}
+
+/* ---- inspect ---- */
+let inspId=null;
+function inspectItem(id){
+ const it=S.inv.find(i=>i.id===id);if(!it)return;
+ inspId=id;
+ const R=RAR[it.rar],wf=wearOf(it.float);
+ $('#insFlare').style.background='radial-gradient(circle,'+R.c+'33 0%,transparent 65%)';
+ $('#insArt').innerHTML=art(it.w,it.sk,360,160);
+ $('#insName').textContent=WEAPONS[it.w].n;
+ $('#insSkin').textContent=SKINS[it.sk].n;$('#insSkin').style.color=R.c;
+ $('#insChips').innerHTML='<span class="chip2" style="color:'+WC[wf]+';border-color:'+WC[wf]+'">'+WEAR[wf].n+'</span>'+
+  '<span class="chip2">float '+it.float.toFixed(4)+'</span>'+
+  (it.st?'<span class="chip2 st">StatTrak™ '+it.stK+'</span>':'')+
+  '<span class="chip2" style="color:'+R.c+';border-color:'+R.c+'">'+R.n+'</span>';
+ $('#insVal').innerHTML=fmt(it.val)+'<small>market value</small>';
+ const canEq=S.ownedWi.some(i=>CLICKERS[i].w===it.w)&&S.equipped!==it.id;
+ $('#insEquip').style.display=canEq?'':'none';
+ $('#inspect').classList.add('show');}
 
 /* ============ 11. CASE OPENING ============ */
 let spinning=false,pending=null,reelRAF=null,RS=null,flowCase=true;
@@ -1112,6 +1199,8 @@ function openFlow(o){
  pending=o.pre||rollItem(o.c,o.rar);
  flowCase=o.countCase!==false;
  spinning=true;
+ S.pending={id:pending.id,w:pending.w,sk:pending.sk,rar:pending.rar,float:pending.float,st:pending.st,val:pending.val,stK:pending.stK};
+ save();
  $('#cmTitle').innerHTML=o.title;
  $('#cmCaseArt').innerHTML=caseArt(o.c,150,140);
  $('#phaseCase').style.display='flex';
@@ -1120,7 +1209,7 @@ function openFlow(o){
  $('#skipBtn').style.display='none';$('#cmClose').style.display='none';
  $('#caseModal').classList.add('show');
  SND.unlock();
- setTimeout(()=>{if(spinning)runReel(o.c);},1100);}
+ setTimeout(()=>{if(spinning)runReel(o.c);},S.fast?350:1100);}
 function runReel(c){
  $('#phaseCase').style.display='none';
  const win=$('#reelWin'),strip=$('#strip');
@@ -1138,7 +1227,7 @@ function runReel(c){
  const x0=2*STEP+63-winW/2, xT=WIN*STEP+63-winW/2+jit;
  strip.style.transform='translateX('+(-x0)+'px)';strip.style.filter='none';
  $('#skipBtn').style.display='block';
- RS={strip,x0,xT,t0:performance.now(),D:6400,last:-1,px:x0,winW};
+ RS={strip,x0,xT,t0:performance.now(),D:S.fast?1300:6400,last:-1,px:x0,winW};
  const ease=t=>1-Math.pow(1-t,4.6);
  (function fr(now){
   const t=Math.min(1,(now-RS.t0)/RS.D);
@@ -1149,13 +1238,15 @@ function runReel(c){
   const idx=Math.floor((x+RS.winW/2-63)/STEP);
   if(idx!==RS.last){RS.last=idx;SND.tick();}
   if(t<1)reelRAF=requestAnimationFrame(fr);
-  else{RS.strip.style.filter='none';setTimeout(reveal,450);}
+  else{RS.strip.style.filter='none';
+   const wcard=RS.strip.children[54];if(wcard)wcard.classList.add('win');
+   setTimeout(reveal,S.fast?150:450);}
  })(RS.t0);}
 function skipReel(){
  if(!RS)return;
  cancelAnimationFrame(reelRAF);
  RS.strip.style.transform='translateX('+(-RS.xT)+'px)';
- RS=null;setTimeout(reveal,220);}
+ RS=null;setTimeout(reveal,200);}
 function keepItem(it){S.inv.push(it);SND.buy();
  if(S.inv.length>=15)ach('collector15');
  finishOpen('Kept '+WEAPONS[it.w].n+' | '+SKINS[it.sk].n,'g');}
@@ -1163,12 +1254,13 @@ function reveal(){
  cancelAnimationFrame(reelRAF);
  $('#reelWin').style.display='none';$('#reelHint').style.display='none';
  $('#skipBtn').style.display='none';RS=null;
- const it=pending,R=RAR[it.rar],wr=WEAR[wearOf(it.float)],tier=RORDER.indexOf(it.rar);
+ const it=pending,R=RAR[it.rar],wf=wearOf(it.float),tier=RORDER.indexOf(it.rar);
  $('#phaseReveal').style.display='flex';
  $('#phaseReveal').innerHTML=
   '<div id="flare" style="background:radial-gradient(circle,'+R.c+'66 0%,'+R.c+'22 38%,transparent 68%)"></div>'+
   '<div id="rvItem">'+art(it.w,it.sk,340,150)+(tier>=3?'<div class="shine"></div>':'')+'</div>'+
-  '<div id="rvChips"><span class="chip2">'+wr.n+'</span><span class="chip2">float '+it.float.toFixed(4)+'</span>'+
+  '<div id="rvChips"><span class="chip2" style="color:'+WC[wf]+';border-color:'+WC[wf]+'">'+WEAR[wf].n+'</span>'+
+  '<span class="chip2">float '+it.float.toFixed(4)+'</span>'+
   (it.st?'<span class="chip2 st">StatTrak™</span>':'')+
   (it.rar==='gold'?'<span class="chip2" style="color:var(--gold);border-color:var(--gold)">Rare special</span>':'')+'</div>'+
   '<div id="rvW">'+WEAPONS[it.w].n+'</div>'+
@@ -1183,13 +1275,16 @@ function reveal(){
  $('#rvKeep').onclick=()=>keepItem(it);}
 function finishOpen(msg,kind){
  const it=pending;
+ S.pending=null;
  if(flowCase){S.stats.cases++;gainXP(25);if(S.stats.cases>=25)ach('case25');}
  if(it.val>S.stats.best)S.stats.best=it.val;
  $('#caseModal').classList.remove('show');
  spinning=false;pending=null;
  toast(msg,kind||'');renderPanel();hudDirty=true;save();}
 
-/* ============ 12. OVERWATCH — ANTI-AUTOCLICKER ============ */
+/* ============ 12. OVERWATCH — ANTI-AUTOCLICKER (PC ONLY) ============ */
+/* On touch devices (iPad / iPhone / Android — see IS_TOUCH above) every click
+   is trusted and this whole layer is bypassed in stageClick. */
 const OW={deltas:[],last:0,strikes:0,lockUntil:0,lastFlag:0,window:[]};
 function owAllowed(now){
  if(now<OW.lockUntil)return false;
@@ -1231,10 +1326,12 @@ function owStrike(now){
 
 /* ============ 13. EVENTS & INIT ============ */
 function stageClick(e){
- if(!owAllowed(performance.now()))return;
+ /* v8: Overwatch input analysis runs on PC only — touch devices are exempt */
+ if(!IS_TOUCH&&!owAllowed(performance.now()))return;
  const rect=$('#stage').getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;
  S.stats.clicks++;S.dropClicks++;
  if(S.stats.clicks===1)ach('firstblood');
+ if(S.stats.clicks>=5000)ach('marathon');
  const crit=Math.random()<critChance();
  let v=clickPower();
  if(crit){v*=critMult();S.stats.hs++;
@@ -1245,7 +1342,7 @@ function stageClick(e){
  hitAt(x,y,crit);
  crit?SND.dink():SND.click();
  shell();
- if(S.stats.clicks%50===0)saveSoon();                    /* checkpoint save while grinding */
+ if(S.stats.clicks%50===0)saveSoon();
  const node=$('#stageW svg')||$('#stageW img');
  if(node&&node.animate)node.animate([{transform:'translate(0,0) rotate(0deg)'},
   {transform:'translate('+(3+Math.random()*5).toFixed(1)+'px,'+(2+Math.random()*4).toFixed(1)+'px) rotate(-'+(0.5+Math.random()*.5).toFixed(2)+'deg)'},
@@ -1260,11 +1357,19 @@ function init(){
  if(!S)S=freshState();
  artMode=(S.official!==false);
  itemSeq=S.inv.reduce((m,i)=>Math.max(m,i.id),0)+1;
+ let recovered=null;
+ if(S.pending&&S.pending.w&&WEAPONS[S.pending.w]){
+  recovered=S.pending;S.pending=null;
+  S.inv.push(recovered);
+  itemSeq=Math.max(itemSeq,recovered.id+1);}
  if(!Array.isArray(S.missions)||S.missions.length!==3){S.missions=[];for(let i=0;i<3;i++)newMission(i);}
- /* critical listeners FIRST */
+ save();
+ if(IS_TOUCH)document.querySelector('footer').textContent='Unofficial CS2 fan project · official art via community CSGO-API mirror · touch device — overwatch input protection off · progress autosaves';
  $('#enterBtn').addEventListener('click',()=>{
   auInit();if(AU.ctx&&AU.ctx.state==='suspended')AU.ctx.resume();
   $('#splash').classList.add('gone');
+  if(IS_TOUCH)toast('Touch device detected — Overwatch input protection is off','g');
+  if(recovered)setTimeout(()=>toast('Unboxing recovered — '+WEAPONS[recovered.w].n+' | '+SKINS[recovered.sk].n+' returned to your inventory','g'),900);
   if(hadSave&&S.stats.clicks>0)
    toast('Progress loaded — '+fmt(S.money)+' · '+RANKS[S.rank].n+' · '+S.stats.cases+' cases opened','g');
   if(offlineGain>0){earn(offlineGain);toast('While you were away: +'+fmt(offlineGain),'g');}});
@@ -1275,7 +1380,7 @@ function init(){
  try{
   $('#saveBtn').innerHTML=IC.save;$('#resetBtn').innerHTML=IC.reset;
   setSndIcon();setArtIcon();
-  refreshHUD();renderStage();renderPanel();refreshDrop();
+  refreshHUD();renderStage();renderPanel();refreshDrop();spawnMotes();
   if(S.stats.clicks>=5)$('#hint').style.display='none';
  }catch(err){console.error('[CS2] render init error:',err);}
  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.t)));
@@ -1284,7 +1389,9 @@ function init(){
   const d=b.dataset;
   if(d.oc)buyOpen(d.oc);
   else if(d.od){const id=d.od;openCases.has(id)?openCases.delete(id):openCases.add(id);
-   const el=$('#od-'+id);if(el)el.classList.toggle('show');}
+   const el=$('#od-'+id);if(el)el.classList.toggle('show');renderPanel();}
+  else if(d.fast){S.fast=!S.fast;save();renderPanel();
+   toast(S.fast?'Fast open enabled — shorter animations':'Fast open disabled','g');}
   else if(d.bw!==undefined)buyWeapon(+d.bw);
   else if(d.eq!==undefined){S.wi=+d.eq;SND.buy();renderStage();renderPanel();save();}
   else if(d.ba)buyAuto(d.ba,1);
@@ -1295,6 +1402,7 @@ function init(){
   else if(d.si)sellItem(+d.si);
   else if(d.mi)claimMission(+d.mi);
   else if(d.selljunk)askSellJunk();
+  else if(d.insp){if(!TU.on)inspectItem(+d.insp);}
   else if(d.tumode){TU.on=true;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tucancel){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tuexec)execTradeUp();
@@ -1306,9 +1414,9 @@ function init(){
    renderPanel();}});
  $('#claimBtn').addEventListener('click',()=>{
   if(S.dropClicks<DROP_NEED||spinning)return;
-  S.dropClicks=0;S.stats.drops++;refreshDrop();save();
+  S.dropClicks=0;S.stats.drops++;refreshDrop();save();gainXP(15);
   const r=Math.random(),rar=r<.02?'classified':r<.15?'restricted':'milspec';
-  openFlow({title:'Weekly <b>Care Package</b>',c:DROP_CASE,rar});});
+  openFlow({title:'Weekly <b>Care Package</b>',c:DROP_CASE,rar,countCase:false});});
  $('#skipBtn').addEventListener('click',skipReel);
  $('#cmClose').addEventListener('click',()=>{if(spinning&&pending)keepItem(pending);});
  $('#artBtn').addEventListener('click',()=>{
@@ -1323,10 +1431,19 @@ function init(){
   'Wipe everything',doReset));
  $('#cfNo').addEventListener('click',()=>$('#confirm').classList.remove('show'));
  $('#cfYes').addEventListener('click',()=>{$('#confirm').classList.remove('show');if(cfCb)cfCb();});
+ $('#insClose').addEventListener('click',()=>$('#inspect').classList.remove('show'));
+ $('#inspect').addEventListener('click',e=>{if(e.target.id==='inspect')$('#inspect').classList.remove('show');});
+ $('#insSell').addEventListener('click',()=>{
+  if(inspId===null)return;const id=inspId;inspId=null;
+  $('#inspect').classList.remove('show');sellItem(id);});
+ $('#insEquip').addEventListener('click',()=>{
+  if(inspId===null)return;const id=inspId;inspId=null;
+  $('#inspect').classList.remove('show');equipItem(id);});
  window.addEventListener('keydown',e=>{
-  if(e.key==='Escape'&&$('#confirm').classList.contains('show'))$('#confirm').classList.remove('show');});
+  if(e.key==='Escape'){
+   if($('#confirm').classList.contains('show'))$('#confirm').classList.remove('show');
+   if($('#inspect').classList.contains('show'))$('#inspect').classList.remove('show');}});
  window.addEventListener('resize',()=>renderStage());
- /* save on every exit path — beforeunload AND pagehide (mobile) — both honor the wipe lock */
  window.addEventListener('beforeunload',save);
  window.addEventListener('pagehide',save);
  document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
@@ -1335,7 +1452,7 @@ function init(){
   const rr=ratePerSec();if(rr>0)earn(rr*dt);
   checkMissions();},250);
  (function loop(){if(hudDirty){refreshHUD();hudDirty=false;}requestAnimationFrame(loop);})();
- setInterval(save,10000);       /* hard autosave every 10s */
+ setInterval(save,10000);
  loadArt();}
 init();
 </script>
