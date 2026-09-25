@@ -142,8 +142,17 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .pi .n{font-size:12px;font-weight:600;line-height:1.2}
 .pi .n small{display:block;font-size:10px;color:var(--mut)}
 .odds .note{font-size:10px;color:#5a6270;letter-spacing:.08em;margin-top:8px;text-transform:uppercase}
+.rrow{display:flex;align-items:center;gap:10px;padding:6px 14px;border-bottom:1px solid #1c2128}
+.rrow:hover{background:rgba(255,255,255,.02)}
+.rrow .art{width:70px;flex:none;display:flex;justify-content:center}
+.rrow .info{flex:1;min-width:0}
+.rrow .nm{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .fw{font-size:10px;color:var(--mut);font-weight:600}
+.rrow .val{font-size:12px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
+.rrow .stt{font-size:9px;font-weight:700;color:#cf6a32;border:1px solid #6b4426;padding:0 4px;border-radius:2px}
 #invHead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2;flex-wrap:wrap}
 #invHead .t{font-size:12px;color:var(--mut);font-weight:700;letter-spacing:.14em;text-transform:uppercase;flex:1}
+.sel{background:#1c2027;border:1px solid var(--line2);color:var(--txt);font-family:inherit;font-weight:600;font-size:11px;letter-spacing:.05em;padding:5px 6px;border-radius:3px;text-transform:uppercase;cursor:pointer}
 .irow{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #1c2128;transition:background .12s}
 .irow:hover{background:rgba(255,255,255,.02)}
 .irow .art{width:92px;flex:none;cursor:pointer}
@@ -217,6 +226,21 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #insVal{position:relative;font-size:18px;font-weight:700;color:var(--green)}
 #insVal small{color:var(--mut);font-size:10px;letter-spacing:.2em;display:block;text-transform:uppercase}
 #inspect .bb{display:flex;gap:10px;justify-content:center;margin-top:16px;position:relative}
+/* quantity picker */
+#qtyModal .qbox{background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:22px 26px 24px;width:min(430px,92vw);
+ display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center}
+#qTitle{font-size:13px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--mut)}
+#qTitle b{color:var(--txt)}
+#qArt{display:flex;justify-content:center}
+.qrow{display:flex;gap:10px;align-items:center}
+#qInput{width:88px;text-align:center;background:#0d1015;border:1px solid var(--line2);color:var(--txt);
+ font-family:inherit;font-weight:700;font-size:24px;padding:6px 4px;border-radius:3px;font-variant-numeric:tabular-nums}
+#qInput:focus{outline:none;border-color:var(--amber)}
+.qpresets{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+#qTotal{font-size:14px;font-weight:600;color:var(--mut)}
+#qTotal b{font-variant-numeric:tabular-nums}
+.qnote{font-size:10px;color:#5a6270;letter-spacing:.14em;text-transform:uppercase}
+#qtyModal .bb{display:flex;gap:10px}
 /* multi-open: simultaneous reels */
 #multiModal .mbox{background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:18px 20px 20px;width:min(940px,94vw);max-height:90vh;display:flex;flex-direction:column;gap:12px}
 #mmTitle{font-size:14px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--mut);text-align:center}
@@ -349,6 +373,31 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
  </div>
 </div>
 
+<div class="modal" id="qtyModal">
+ <div class="qbox">
+  <div id="qTitle"></div>
+  <div id="qArt"></div>
+  <div class="qrow">
+   <button class="btn" id="qMinus">−</button>
+   <input id="qInput" type="number" min="1" max="50" value="5">
+   <button class="btn" id="qPlus">+</button>
+  </div>
+  <div class="qpresets">
+   <button class="btn sm" data-q="1">×1</button>
+   <button class="btn sm" data-q="5">×5</button>
+   <button class="btn sm" data-q="10">×10</button>
+   <button class="btn sm" data-q="25">×25</button>
+   <button class="btn sm" data-q="50">×50</button>
+  </div>
+  <div id="qTotal"></div>
+  <div class="qnote">1 – 50 cases per batch · every reel spins at once</div>
+  <div class="bb">
+   <button class="btn" id="qCancel">Cancel</button>
+   <button class="btn primary" id="qGo">Open</button>
+  </div>
+ </div>
+</div>
+
 <div class="modal" id="multiModal">
  <div class="mbox">
   <div id="mmTitle"></div>
@@ -411,6 +460,7 @@ const IC={
  key:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8" cy="8" r="4"/><path d="M11 11l9 9M17 17l2-2M14 14l2-2"/></svg>',
  tag:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 12l-8 8-9-9V3h8l9 9z"/><circle cx="7.5" cy="7.5" r="1.5" fill="currentColor"/></svg>',
  art:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>',
+ elli:'<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>',
  cross:'<svg width="42" height="42" viewBox="0 0 24 24" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M3 3l7 7M21 3l-7 7M3 21l7-7M21 21l-7-7"/></svg>'};
 
 /* ============ 2. AUDIO ============ */
@@ -782,6 +832,8 @@ const ACH={
  arsenal:{n:'Arsenal',d:'Own 8 weapons at once'},
  untouched:{n:'Untouchable',d:'Buy the ★ Karambit | Fade'},
  bulk:{n:'Bulk Buyer',d:'Open 5+ cases in one go'},
+ deeppocket:{n:'Deep Pocket',d:'Open 25+ cases in one go'},
+ regular:{n:'Regular',d:'Log in 7 days in a row'},
  prime:{n:'Prime Status',d:'Activate Prime Matchmaking'}};
 const MISSIONS=[
  {k:'clicks',t:400,n:'Grind 400 clicks',r:2500,xp:150},
@@ -798,8 +850,8 @@ const DROP_CASE={id:'drop',name:'Weekly Drop',short:'WEEKLY',price:0,scale:6,col
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
 let wipeLock=false;
-function freshState(){return{v:10,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,fast:false,
- xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,
+function freshState(){return{v:11,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,fast:false,
+ xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',
  stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
 function save(){if(wipeLock)return;
  try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));}catch(e){}}
@@ -816,6 +868,8 @@ function load(){try{const raw=localStorage.getItem('cs2clicker');if(!raw)return 
  if(S.wi>=CLICKERS.length)S.wi=0;
  if(!S.xp)S.xp=S.stats.clicks+25*(S.stats.cases||0)+5*(S.stats.hs||0);
  S.prestige=S.prestige||0;S.ach=S.ach||{};S.pending=S.pending||null;S.pendingMulti=S.pendingMulti||null;S.fast=!!S.fast;
+ if(!Array.isArray(S.recent))S.recent=[];
+ S.lastDaily=S.lastDaily||'';S.dailyStreak=S.dailyStreak||0;S.invSort=S.invSort||'new';
  S.stats=Object.assign({tradeups:0,sold:0,drops:0,missions:0,unboxSpent:0,unboxValue:0},S.stats);
  S.rank=rankIdx(S.xp);
  if(S.savedAt){const dt=(Date.now()-S.savedAt)/1000;if(dt>90)offlineGain=ratePerSec()*Math.min(dt,3600)*.25;}
@@ -838,6 +892,9 @@ function gainXP(n){S.xp+=n;const ri=rankIdx(S.xp);
  hudDirty=true;}
 function ach(id){if(S.ach[id])return;S.ach[id]=1;
  toast('ACHIEVEMENT — '+ACH[id].n,'gold');SND.reveal(2);saveSoon();}
+function recordRecent(it){
+ S.recent.unshift({w:it.w,sk:it.sk,rar:it.rar,val:it.val,float:it.float,st:it.st});
+ if(S.recent.length>12)S.recent.length=12;}
 
 /* ---- missions ---- */
 function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:0;}
@@ -1069,6 +1126,7 @@ function viewUp(){
  const stats=[['Net worth',fmt(S.money+S.inv.reduce((a,i)=>a+i.val,0))],['Total earned',fmt(S.stats.earned)],
   ['Clicks',S.stats.clicks.toLocaleString()],['Headshots',S.stats.hs],
   ['Cases opened',S.stats.cases],['Trade-ups',S.stats.tradeups],['Contracts done',S.stats.missions],
+  ['Login streak',S.dailyStreak+' day'+(S.dailyStreak===1?'':'s')],
   ['Unboxing ROI',roi],['Income multiplier','×'+mult().toFixed(2)]];
  h+=stats.map(x=>'<div class="row"><div class="info"><div class="nm">'+x[0]+'</div></div><div class="price" style="color:var(--txt)">'+x[1]+'</div></div>').join('');
  h+='<div class="sect">Achievements — '+Object.keys(S.ach).length+' / '+Object.keys(ACH).length+'</div><div class="achbox">';
@@ -1085,9 +1143,21 @@ function viewCases(){
    '<button class="btn primary" data-oc="'+c.id+'">'+IC.key+'Open</button>'+
    '<button class="btn sm" data-oc5="'+c.id+'" title="Open 5 — '+fmt(c.price*5)+'">×5</button>'+
    '<button class="btn sm" data-oc10="'+c.id+'" title="Open 10 — '+fmt(c.price*10)+'">×10</button>'+
+   '<button class="btn sm ibtn" data-oq="'+c.id+'" title="Choose quantity" style="width:28px;height:27px;padding:0">'+IC.elli+'</button>'+
    '<button class="btn ibtn chev'+(openCases.has(c.id)?' open':'')+'" data-od="'+c.id+'" style="width:30px;height:30px">'+IC.chev+'</button>'+
    '</div></div></div>'+
    '<div class="odds'+(openCases.has(c.id)?' show':'')+'" id="od-'+c.id+'">'+oddsHTML(c)+'</div></div>';}
+ h+=recentHTML();
+ return h;}
+function recentHTML(){
+ if(!S.recent.length)return '';
+ let h='<div class="sect">Recent pulls</div>';
+ for(const r of S.recent){
+  h+='<div class="rrow"><div class="art">'+art(r.w,r.sk,72,32)+'</div>'+
+   '<div class="info"><div class="nm">'+WEAPONS[r.w].n+' <span style="color:'+RAR[r.rar].c+'">| '+SKINS[r.sk].n+'</span>'+
+   (r.st?' <span class="stt">ST™</span>':'')+'</div>'+
+   '<div class="fw">'+WEAR[wearOf(r.float)].n+' · float '+r.float.toFixed(4)+'</div></div>'+
+   '<div class="val">'+fmt(r.val)+'</div></div>';}
  return h;}
 function oddsHTML(c){
  let h='';
@@ -1101,6 +1171,13 @@ function oddsHTML(c){
   h+='</div>';}
  return h+'</div><div class="note">Drop rates as published in CS2 · wear &amp; StatTrak™ rolled per opening · the house always wins</div>';}
 const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e8974a 38% 45%,#c85a4a 45% 100%)';
+function sortInv(arr){
+ const a=[...arr];
+ if(S.invSort==='val')a.sort((x,y)=>y.val-x.val);
+ else if(S.invSort==='rar'){const ro={gold:5,covert:4,classified:3,restricted:2,milspec:1};
+  a.sort((x,y)=>ro[y.rar]-ro[x.rar]||y.val-x.val);}
+ else if(S.invSort==='wear')a.sort((x,y)=>x.float-y.float);
+ return a;}
 function viewInv(){
  if(!S.inv.length)return '<div class="empty">'+caseSVG(DROP_CASE,96)+'<div class="t">Inventory empty</div><div class="s">Open a case or grind the weekly drop — every skin you keep lands here.</div></div>';
  let h;
@@ -1111,8 +1188,14 @@ function viewInv(){
  else{
   const total=S.inv.reduce((a,i)=>a+i.val,0);
   h='<div id="invHead"><span class="t">'+S.inv.length+' items · '+fmt(total)+'</span>'+
+   '<select id="invSort" class="sel">'+
+   '<option value="new"'+(S.invSort==='new'?' selected':'')+'>Newest</option>'+
+   '<option value="val"'+(S.invSort==='val'?' selected':'')+'>Value</option>'+
+   '<option value="rar"'+(S.invSort==='rar'?' selected':'')+'>Rarity</option>'+
+   '<option value="wear"'+(S.invSort==='wear'?' selected':'')+'>Float</option>'+
+   '</select>'+
    '<button class="btn" data-tumode="1">Trade-Up</button><button class="btn" data-selljunk="1">'+IC.tag+'Sell junk</button></div>';}
- for(const it of [...S.inv].reverse()){
+ for(const it of sortInv(S.inv).reverse()){
   const sel=TU.sel.includes(it.id);
   const canSel=(!TU.rar||it.rar===TU.rar)&&S.equipped!==it.id;
   h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art" data-insp="'+it.id+'" title="Inspect">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
@@ -1230,6 +1313,27 @@ function inspectItem(id){
  $('#insEquip').style.display=canEq?'':'none';
  $('#inspect').classList.add('show');}
 
+/* ---- quantity picker (v11) ---- */
+let qtyCase=null;
+function openQty(cid){
+ const c=CASES.find(x=>x.id===cid);if(!c)return;
+ qtyCase=c;
+ $('#qTitle').innerHTML='Choose quantity — <b>'+c.name+'</b>';
+ $('#qArt').innerHTML=caseArt(c,110);
+ $('#qInput').value=5;
+ updateQTotal();
+ $('#qtyModal').classList.add('show');
+ setTimeout(()=>{$('#qInput').focus();$('#qInput').select();},50);}
+function qVal(){return clampN(parseInt($('#qInput').value||'1',10)||1,1,50);}
+function updateQTotal(){
+ const n=qVal(),c=qtyCase;
+ if(!c)return;
+ $('#qInput').value=n;
+ const total=c.price*n,ok=S.money>=total;
+ $('#qTotal').innerHTML='Total: <b style="color:'+(ok?'var(--green)':'var(--red)')+'">'+fmt(total)+'</b>'+
+  (ok?'':' · you have '+fmt(S.money));
+ $('#qGo').textContent='Open '+n;}
+
 /* ============ 11. CASE OPENING ============ */
 let spinning=false,pending=null,reelRAF=null,RS=null,flowCase=true,flowPaid=false;
 const STEP=134;
@@ -1323,15 +1427,16 @@ function finishOpen(msg,kind){
  const it=pending;
  S.pending=null;
  if(flowCase){S.stats.cases++;gainXP(25);if(S.stats.cases>=25)ach('case25');}
- if(flowPaid)S.stats.unboxValue+=it.val;   /* kept or sold, it was pulled */
+ if(flowPaid)S.stats.unboxValue+=it.val;
  if(it.val>S.stats.best)S.stats.best=it.val;
+ recordRecent(it);
  $('#caseModal').classList.remove('show');
  spinning=false;pending=null;
  toast(msg,kind||'');renderPanel();hudDirty=true;save();}
 
-/* ---- multi-open (v10): all reels spin simultaneously ---- */
+/* ---- multi-open: all reels spin simultaneously ---- */
 let MMRS=null;
-const MCARD=76,MCW=35,MNC=26,MWIN=20; /* card pitch, half-width, count, winner index */
+const MCARD=76,MCW=35;
 function multiOpen(cid,n){
  if(spinning)return;
  const c=CASES.find(x=>x.id===cid);
@@ -1344,11 +1449,13 @@ function multiOpen(cid,n){
  for(const it of items){
   total+=it.val;
   if(it.rar==='gold')ach('goldpull');
-  if(it.val>S.stats.best)S.stats.best=it.val;}
+  if(it.val>S.stats.best)S.stats.best=it.val;
+  recordRecent(it);}
  S.stats.unboxValue+=total;
  S.stats.cases+=n;
  if(c.id==='kilowatt')ach('kilowatt');
  if(n>=5)ach('bulk');
+ if(n>=25)ach('deeppocket');
  if(S.stats.cases>=25)ach('case25');
  gainXP(25*n);
  S.pendingMulti=items;save();
@@ -1366,12 +1473,17 @@ function runMultiOpen(c,items,total,spent){
  $('#mmSkip').style.display='';
  $('#multiModal').classList.add('show');
  SND.unlock();
+ const n=items.length;
+ /* leaner reels for big batches so 50 still runs smooth */
+ const NC=n>20?18:26, WIN=NC-6;
+ const stag=S.fast?Math.min(70,Math.max(10,(800/n)|0)):Math.min(190,Math.max(25,(2500/n)|0));
+ const DBASE=S.fast?850:(n>20?3400:4200), DRANGE=S.fast?450:(n>20?1800:2300);
  const pool=poolFlat(c),now=performance.now();
  const reels=items.map((it,i)=>{
   const strip=$('#mrstrip'+i);
   let h='';
-  for(let k=0;k<MNC;k++){
-   const cur=k===MWIN?it:pool[(Math.random()*pool.length)|0];
+  for(let k=0;k<NC;k++){
+   const cur=k===WIN?it:pool[(Math.random()*pool.length)|0];
    h+='<div class="mrc"><div class="im">'+art(cur.w,cur.sk,64,34)+'</div>'+
     '<div class="w">'+WEAPONS[cur.w].n+'</div>'+
     '<div class="s" style="color:'+RAR[cur.rar].c+'">'+SKINS[cur.sk].n+'</div>'+
@@ -1380,12 +1492,11 @@ function runMultiOpen(c,items,total,spent){
   const winW=strip.parentElement.clientWidth;
   const jit=(Math.random()*.5-.25)*MCARD;
   const x0=MCARD+MCW-winW/2;
-  const xT=MWIN*MCARD+MCW-winW/2+jit;
+  const xT=WIN*MCARD+MCW-winW/2+jit;
   strip.style.transform='translateX('+(-x0)+'px)';
   return{strip,winW,x0,xT,px:x0,lastIdx:-1,done:false,it,
-   t0:now+(S.fast?70:190)*i,
-   D:(S.fast?850:4200)+Math.random()*(S.fast?450:2300),
-   winEl:strip.children[MWIN],cap:$('#mrcap'+i),el:$('#mreel'+i)};});
+   t0:now+stag*i, D:DBASE+Math.random()*DRANGE,
+   winEl:strip.children[WIN],cap:$('#mrcap'+i),el:$('#mreel'+i)};});
  MMRS={reels,items,total,spent,finished:false,raf:0,lastTick:0};
  (function fr(now){
   if(!MMRS||MMRS.finished)return;
@@ -1534,6 +1645,16 @@ function init(){
    if(it&&WEAPONS[it.w]){S.inv.push(it);itemSeq=Math.max(itemSeq,it.id+1);recoveredMulti++;}}
   S.pendingMulti=null;}
  if(!Array.isArray(S.missions)||S.missions.length!==3){S.missions=[];for(let i=0;i<3;i++)newMission(i);}
+ /* daily login bonus & streak */
+ let dailyBonus=0,dailyDay=0;
+ const today=new Date().toISOString().slice(0,10);
+ if(S.lastDaily!==today){
+  const yest=new Date(Date.now()-864e5).toISOString().slice(0,10);
+  S.dailyStreak=(S.lastDaily===yest)?(S.dailyStreak||0)+1:1;
+  S.lastDaily=today;
+  dailyDay=S.dailyStreak;
+  dailyBonus=Math.round(1000*Math.min(S.dailyStreak,7)*mult());
+  if(S.dailyStreak>=7)ach('regular');}
  save();
  if(IS_TOUCH)document.querySelector('footer').textContent='Unofficial CS2 fan project · official art via community CSGO-API mirror · touch device — overwatch input protection off · progress autosaves';
  $('#enterBtn').addEventListener('click',()=>{
@@ -1541,6 +1662,8 @@ function init(){
   $('#splash').classList.add('gone');
   if(IS_TOUCH)toast('Touch device detected — Overwatch input protection is off','g');
   else toast('Spacebar also fires · Overwatch input protection is on','g');
+  if(dailyBonus>0){earn(dailyBonus);SND.buy();
+   toast('DAILY BONUS — Day '+dailyDay+' streak · +'+fmt(dailyBonus),'gold');}
   if(recovered)setTimeout(()=>toast('Unboxing recovered — '+WEAPONS[recovered.w].n+' | '+SKINS[recovered.sk].n+' returned to your inventory','g'),900);
   if(recoveredMulti)setTimeout(()=>toast('Multi-open recovered — '+recoveredMulti+' skins returned to your inventory','g'),1400);
   if(hadSave&&S.stats.clicks>0)
@@ -1563,6 +1686,7 @@ function init(){
   if(d.oc)buyOpen(d.oc);
   else if(d.oc5)multiOpen(d.oc5,5);
   else if(d.oc10)multiOpen(d.oc10,10);
+  else if(d.oq)openQty(d.oq);
   else if(d.od){const id=d.od;openCases.has(id)?openCases.delete(id):openCases.add(id);
    const el=$('#od-'+id);if(el)el.classList.toggle('show');renderPanel();}
   else if(d.fast){S.fast=!S.fast;save();renderPanel();
@@ -1587,6 +1711,8 @@ function init(){
    if(ix>=0)TU.sel.splice(ix,1);else{if(TU.sel.length>=10)return;TU.sel.push(id);}
    TU.rar=TU.sel.length?S.inv.find(i=>i.id===TU.sel[0]).rar:null;
    renderPanel();}});
+ $('#view').addEventListener('change',e=>{
+  if(e.target.id==='invSort'){S.invSort=e.target.value;save();renderPanel();}});
  $('#claimBtn').addEventListener('click',()=>{
   if(S.dropClicks<DROP_NEED||spinning)return;
   S.dropClicks=0;S.stats.drops++;refreshDrop();save();gainXP(15);
@@ -1597,6 +1723,20 @@ function init(){
  $('#mmSkip').addEventListener('click',mmSkip);
  $('#mmKeep').addEventListener('click',()=>{if(MMRS&&MMRS.finished)mmResolve(false);});
  $('#mmSell').addEventListener('click',()=>{if(MMRS&&MMRS.finished)mmResolve(true);});
+ /* quantity picker wiring */
+ $('#qMinus').addEventListener('click',()=>{$('#qInput').value=qVal()-1;updateQTotal();});
+ $('#qPlus').addEventListener('click',()=>{$('#qInput').value=qVal()+1;updateQTotal();});
+ $('#qInput').addEventListener('input',updateQTotal);
+ $('#qInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#qGo').click();});
+ $('#qInput').addEventListener('keyup',e=>{if(e.key==='Enter')return;});
+ document.querySelectorAll('.qpresets button').forEach(b=>
+  b.addEventListener('click',()=>{$('#qInput').value=b.dataset.q;updateQTotal();}));
+ $('#qCancel').addEventListener('click',()=>$('#qtyModal').classList.remove('show'));
+ $('#qtyModal').addEventListener('click',e=>{if(e.target.id==='qtyModal')$('#qtyModal').classList.remove('show');});
+ $('#qGo').addEventListener('click',()=>{
+  const n=qVal(),c=qtyCase;
+  $('#qtyModal').classList.remove('show');
+  if(c)multiOpen(c.id,n);});
  $('#artBtn').addEventListener('click',()=>{
   artMode=!artMode;S.official=artMode;save();setArtIcon();
   if(artMode&&!apiOK){loaded=false;toast('Retrying artwork API…');loadArt();}
@@ -1620,7 +1760,8 @@ function init(){
  window.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
    if($('#confirm').classList.contains('show'))$('#confirm').classList.remove('show');
-   if($('#inspect').classList.contains('show'))$('#inspect').classList.remove('show');}
+   if($('#inspect').classList.contains('show'))$('#inspect').classList.remove('show');
+   if($('#qtyModal').classList.contains('show'))$('#qtyModal').classList.remove('show');}
   if(e.code==='Space'&&!e.repeat){
    const t=e.target;
    if(t&&(t.tagName==='BUTTON'||t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
