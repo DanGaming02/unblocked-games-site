@@ -42,8 +42,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .ibtn svg{margin:0}
 #hud{position:relative;z-index:5;height:66px;display:flex;align-items:center;gap:22px;padding:0 18px;background:rgba(16,19,24,.92);border-bottom:1px solid var(--line)}
 .lbl{font-size:10px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase}
-#money{font-size:29px;font-weight:700;color:var(--green);line-height:1;font-variant-numeric:tabular-nums}
-#money.deny{color:var(--red);animation:shake .3s}
+#money{font-size:29px;font-weight:700;color:#ff5b4d;line-height:1;font-variant-numeric:tabular-nums}
+#money.deny{color:#fff;animation:shake .3s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 #hud .mini{display:flex;gap:16px;font-size:13px;color:var(--mut);font-weight:600;margin-top:2px}
 #hud .mini b{color:var(--txt);font-variant-numeric:tabular-nums}
@@ -448,7 +448,6 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
 /* ============ 1. UTILITIES & ICONS ============ */
 const $=s=>document.querySelector(s);
 const fmt=n=>'$'+Math.floor(n).toLocaleString('en-US');
-/* item prices: show cents under $100, whole dollars above */
 const fmtC=n=>'$'+(n>=100?Math.floor(n).toLocaleString('en-US'):n.toFixed(2));
 const clampN=(v,a,b)=>Math.max(a,Math.min(b,v));
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -752,16 +751,13 @@ const RAR={milspec:{n:'Mil-Spec',c:'#4b69ff',odds:'79.92%',w:.7992},restricted:{
  gold:{n:'★ Rare Special',c:'#ffd24a',odds:'0.26%',w:.0026}};
 const RORDER=['milspec','restricted','classified','covert','gold'];
 const TU_NEXT={milspec:'restricted',restricted:'classified',classified:'covert',covert:'gold'};
-/* v13: wear multipliers behave like the real market — Field-Tested is the baseline */
 const WEAR={fn:{n:'Factory New',m:2.0},mw:{n:'Minimal Wear',m:1.35},ft:{n:'Field-Tested',m:1.0},ww:{n:'Well-Worn',m:.85},bs:{n:'Battle-Scarred',m:.7}};
 const WC={fn:'#7fbf5a',mw:'#a8cf6b',ft:'#e8c84a',ww:'#e8974a',bs:'#c85a4a'};
 function wearOf(f){return f<=.07?'fn':f<=.15?'mw':f<=.38?'ft':f<=.45?'ww':'bs';}
 const ST_MULT=1.8;
-/* knife finishes: [skinId, name, real FT price, weight] */
 const FINISHES=[
  ['vanilla','Vanilla',75,.25],['nightstripe','Night Stripe',160,.2],['doppler','Doppler',470,.2],
  ['tiger','Tiger Tooth',520,.12],['marble','Marble Fade',560,.12],['fade','Fade',510,.11]];
-/* pools: [weapon, skin, real-market FT price in USD] */
 const CASES=[
  {id:'fracture',name:'Fracture Case',short:'FRACTURE',price:6,color:'#e8722a',knife:'navaja',
   knifePrices:{vanilla:75,nightstripe:160,doppler:470,tiger:520,marble:560,fade:510},
@@ -846,6 +842,7 @@ const ACH={
  decamillion:{n:'High Roller',d:'Earn $10,000,000 total'},
  kilowatt:{n:'Shock Therapy',d:'Open a Kilowatt Case'},
  tradeup:{n:'Contract Wizard',d:'Complete a trade-up contract'},
+ bladesmith:{n:'Bladesmith',d:'Forge a knife trade-up'},
  dragon:{n:'Dragonslayer',d:'Buy the AWP | Dragon Lore'},
  global:{n:'Global Elite',d:'Reach the max profile rank'},
  hunter:{n:'Contract Killer',d:'Complete 10 contracts'},
@@ -873,7 +870,7 @@ const DROP_CASE={id:'drop',name:'Weekly Care Package',short:'WEEKLY',price:0,col
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
 let wipeLock=false;
-function freshState(){return{v:13,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
+function freshState(){return{v:14,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
  xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',
  stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,multi:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
 function save(){if(wipeLock)return;
@@ -943,7 +940,7 @@ function claimMission(i){
  SND.buy();toast('Contract complete — +'+fmt(t.r*mult())+' & '+t.xp+' XP','g');
  newMission(i);renderPanel();save();}
 
-/* ============ 7. ITEMS — value = real price × wear × ST ============ */
+/* ============ 7. ITEMS ============ */
 function rollRarity(){const r=Math.random();
  return r<.0026?'gold':r<.009?'covert':r<.041?'classified':r<.2008?'restricted':'milspec';}
 function rollItem(c,rar,fl,st){
@@ -1135,6 +1132,8 @@ function refreshDrop(){
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
+/* v14: knife trade-ups need 5, skin trade-ups need 10 */
+function tuNeed(){return TU.rar==='gold'?5:10;}
 function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderPanel();}
 function renderPanel(){
  $('#invBadge').textContent=S.inv.length;
@@ -1235,8 +1234,10 @@ function viewInv(){
  if(!S.inv.length)return '<div class="empty">'+caseArt(DROP_CASE,96,80)+'<div class="t">Inventory empty</div><div class="s">Open a case or wait for the weekly drop — every skin you keep lands here.</div></div>';
  let h;
  if(TU.on){
-  h='<div id="invHead"><span class="t">Trade-Up: '+TU.sel.length+' / 10'+(TU.rar?' · '+RAR[TU.rar].n:' · pick any rarity')+'</span>'+
-   '<button class="btn '+(TU.sel.length===10?'primary':'')+'" data-tuexec="1" '+(TU.sel.length===10?'':'disabled')+'>Execute</button>'+
+  const need=tuNeed(),knife=TU.rar==='gold';
+  h='<div id="invHead"><span class="t">'+(knife?'Knife Trade-Up: ':'Trade-Up: ')+TU.sel.length+' / '+need+
+   (TU.rar?' · '+RAR[TU.rar].n:' · pick 10 skins — or 5 knives')+'</span>'+
+   '<button class="btn '+(TU.sel.length===need?'primary':'')+'" data-tuexec="1" '+(TU.sel.length===need?'':'disabled')+'>Execute</button>'+
    '<button class="btn" data-tucancel="1">Cancel</button></div>';}
  else{
   const total=S.inv.reduce((a,i)=>a+i.val,0);
@@ -1331,21 +1332,43 @@ function goPrime(){
   ach('prime');SND.reveal(4);
   toast('PRIME MATCHMAKING — income ×'+(1+.5*S.prestige).toFixed(1)+' · the grind starts over','gold');
   renderStage();renderPanel();refreshDrop();hudDirty=true;save();});}
+/* ---- trade-up: 10 skins, or 5 knives (v14) ---- */
 function execTradeUp(){
- if(TU.sel.length!==10)return;
+ const need=tuNeed();
+ if(TU.sel.length!==need)return;
  const items=TU.sel.map(id=>S.inv.find(i=>i.id===id)).filter(Boolean);
- if(items.length!==10){TU.sel=[];TU.on=false;renderPanel();return;}
- const nextR=TU_NEXT[items[0].rar];
- if(!nextR){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();
-  return toast('Rare special items cannot be traded up','r');}
+ if(items.length!==need){TU.sel=[];TU.on=false;renderPanel();return;}
+ const rar=items[0].rar;
  for(const it of items){const i=S.inv.indexOf(it);if(i>=0)S.inv.splice(i,1);}
- const c=CASES[(Math.random()*CASES.length)|0];
  const fl=clampN(items.reduce((a,i)=>a+i.float,0)/items.length+(Math.random()-.5)*.1,0,1);
  const stAll=items.every(i=>i.st);
- const it=rollItem(c,nextR,fl,stAll);
+ let it,flowCaseObj,title;
+ if(rar==='gold'){
+  const res=knifeTradeUp(items,fl,stAll);
+  it=res.it;flowCaseObj=res.c;title='Knife Trade-Up <b>Contract</b>';
+  ach('bladesmith');
+ }else{
+  const c=CASES[(Math.random()*CASES.length)|0];
+  it=rollItem(c,TU_NEXT[rar],fl,stAll);
+  flowCaseObj=c;title='Trade-Up <b>Contract</b>';}
  S.stats.tradeups++;gainXP(60);ach('tradeup');
  TU.on=false;TU.sel=[];TU.rar=null;save();
- openFlow({title:'Trade-Up <b>Contract</b>',c,pre:it,countCase:false});}
+ openFlow({title,c:flowCaseObj,pre:it,countCase:false});}
+/* knife trade-up: 5 knives forge one knife of equal-or-higher tier,
+   finish leans toward the expensive end */
+function knifeTradeUp(items,fl,st){
+ const avg=items.reduce((a,i)=>a+i.val,0)/items.length;
+ const tiers=CASES.map(c=>({c,avg:Object.keys(c.knifePrices).reduce((a,k)=>a+c.knifePrices[k],0)/6}))
+  .sort((a,b)=>a.avg-b.avg);
+ let pool=tiers.filter(t=>t.avg>=avg*.85);
+ if(!pool.length)pool=[tiers[tiers.length-1]];
+ const pick=pool[(Math.random()*pool.length)|0].c;
+ let acc=0,r=Math.random(),sk='vanilla';
+ const wf=[['vanilla',.10],['nightstripe',.15],['doppler',.25],['tiger',.18],['marble',.17],['fade',.15]];
+ for(const f of wf){acc+=f[1];if(r<=acc){sk=f[0];break;}}
+ const price=pick.knifePrices[sk];
+ const val=Math.max(.10,price*WEAR[wearOf(fl)].m*(st?ST_MULT:1));
+ return{c:pick,it:{id:itemSeq++,w:pick.knife,sk,rar:'gold',float:fl,st,val,stK:0}};}
 
 /* ---- inspect ---- */
 let inspId=null;
@@ -1529,7 +1552,6 @@ function runMultiOpen(c,items,total,spent){
  $('#mmSkip').style.display='';
  $('#multiModal').classList.add('show');
  SND.unlock();
- /* tiered reel weight — huge batches get lean, compact reels so 1000 still runs */
  const compact=n>100;
  const NC=n>300?8:(n>100?10:(n>40?12:(n>20?18:26))), WIN=NC-4;
  const stag=S.fast?Math.max(3,Math.min(70,(900/n)|0)):Math.max(6,Math.min(190,(3000/n)|0));
@@ -1541,7 +1563,7 @@ function runMultiOpen(c,items,total,spent){
   let h='';
   for(let k=0;k<NC;k++){
    const cur=k===WIN?it:pool[(Math.random()*pool.length)|0];
-   if(compact){ /* name + rarity bar only — keeps 10k+ cards cheap */
+   if(compact){
     h+='<div class="mrc compact"><div class="s" style="color:'+RAR[cur.rar].c+'">'+SKINS[cur.sk].n+'</div>'+
      '<i style="background:'+RAR[cur.rar].c+'"></i></div>';}
    else{
@@ -1768,7 +1790,7 @@ function init(){
   else if(d.tui){const id=+d.tui,it=S.inv.find(i=>i.id===id);
    if(!it||S.equipped===id||(TU.rar&&it.rar!==TU.rar))return;
    const ix=TU.sel.indexOf(id);
-   if(ix>=0)TU.sel.splice(ix,1);else{if(TU.sel.length>=10)return;TU.sel.push(id);}
+   if(ix>=0)TU.sel.splice(ix,1);else{if(TU.sel.length>=tuNeed())return;TU.sel.push(id);}
    TU.rar=TU.sel.length?S.inv.find(i=>i.id===TU.sel[0]).rar:null;
    renderPanel();}});
  $('#view').addEventListener('change',e=>{
