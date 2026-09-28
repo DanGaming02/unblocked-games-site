@@ -55,7 +55,8 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #hud .stats b{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
 .rbar{width:92px;height:4px;background:#0d1014;border:1px solid var(--line);border-radius:2px;margin-top:4px;overflow:hidden}
 .rbar i{display:block;height:100%;background:var(--amber);transition:width .4s}
-#hud .tools{display:flex;gap:8px}
+#hud .tools{display:flex;gap:8px;align-items:center}
+#saveStamp{font-size:9px;color:#454c58;letter-spacing:.12em;text-transform:uppercase;width:88px}
 #main{position:relative;z-index:2;display:grid;grid-template-columns:1fr 420px;height:calc(100% - 66px)}
 #stage{position:relative;overflow:hidden;cursor:crosshair;touch-action:manipulation}
 #stage .gridbg{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.028) 1px,transparent 1px);background-size:46px 46px}
@@ -63,7 +64,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #xh{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);opacity:.07;pointer-events:none}
 #stageWrap{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);max-width:64%;pointer-events:none;
  display:flex;align-items:center;justify-content:center}
-#stageW{display:flex;justify-content:center;filter:drop-shadow(0 20px 16px rgba(0,0,0,.55))}
+#stageW{display:flex;justify-content:center;filter:drop-shadow(0 20px 16px rgba(0,0,0,.55)}
 #stageR{position:absolute;top:100%;left:50%;transform:translateX(-50%) scaleY(-1);opacity:.13;filter:blur(1px) grayscale(.35);
  -webkit-mask-image:linear-gradient(to top,#000 0%,transparent 65%);mask-image:linear-gradient(to top,#000 0%,transparent 65%)}
 .mote{position:absolute;width:2px;height:2px;border-radius:50%;background:rgba(255,240,200,.5);pointer-events:none;animation:mote linear infinite}
@@ -101,10 +102,10 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #owLock .cd{font-size:46px;font-weight:700;color:var(--amber);line-height:1}
 #panel{display:flex;flex-direction:column;background:rgba(17,20,25,.94);border-left:1px solid var(--line);min-height:0}
 #tabs{display:flex;border-bottom:1px solid var(--line)}
-#tabs button{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--mut);cursor:pointer;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;padding:13px 0;position:relative;transition:color .15s}
+#tabs button{flex:1;background:none;border:none;border-bottom:2px solid transparent;color:var(--mut);cursor:pointer;font-family:inherit;font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;padding:13px 0;position:relative;transition:color .15s}
 #tabs button:hover{color:var(--txt)}
 #tabs button.on{color:var(--amber);border-bottom-color:var(--amber)}
-#tabs .badge{position:absolute;top:6px;right:10px;background:var(--line2);border-radius:8px;font-size:10px;padding:1px 6px;color:var(--txt)}
+#tabs .badge{position:absolute;top:6px;right:8px;background:var(--line2);border-radius:8px;font-size:9px;padding:1px 5px;color:var(--txt)}
 .view{flex:1;overflow-y:auto;min-height:0}
 .sect{padding:12px 16px 6px;font-size:11px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2}
 .row{display:flex;align-items:center;gap:13px;padding:10px 14px;border-bottom:1px solid #1c2128;transition:background .12s}
@@ -155,6 +156,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #invHead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);background:#111419;position:sticky;top:0;z-index:2;flex-wrap:wrap}
 #invHead .t{font-size:12px;color:var(--mut);font-weight:700;letter-spacing:.14em;text-transform:uppercase;flex:1}
 .sel{background:#1c2027;border:1px solid var(--line2);color:var(--txt);font-family:inherit;font-weight:600;font-size:11px;letter-spacing:.05em;padding:5px 6px;border-radius:3px;text-transform:uppercase;cursor:pointer}
+.fbtn{background:#1c2027;border:1px solid var(--line2);color:var(--mut);font-family:inherit;font-weight:700;font-size:10px;letter-spacing:.08em;padding:4px 7px;border-radius:3px;cursor:pointer;text-transform:uppercase}
+.fbtn:hover{border-color:var(--amber);color:var(--amber2)}
+.fbtn.on{background:var(--amber);border-color:transparent;color:#17110a}
 .irow{display:flex;align-items:center;gap:12px;padding:9px 14px;border-bottom:1px solid #1c2128;transition:background .12s}
 .irow:hover{background:rgba(255,255,255,.02)}
 .irow .art{width:92px;flex:none;cursor:pointer}
@@ -170,7 +174,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 .empty .t{font-size:14px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
 .empty .s{font-size:12px;margin-top:6px}
 .achbox{display:flex;flex-wrap:wrap;gap:6px;padding:10px 14px}
-.achi{border:1px solid #1d222a;border-radius:3px;padding:6px 9px;font-size:10px;color:#5a6270;min-width:126px;flex:1}
+.achi{border:1px solid #1d222a;border-radius:3px;padding:6px 9px;font-size:10px;color:#5a6100}
 .achi b{display:block;font-size:12px;letter-spacing:.04em}
 .achi.on{color:var(--mut);border-color:var(--amber)}
 .achi.on b{color:var(--amber)}
@@ -223,7 +227,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #insFlare{position:absolute;top:-40px;left:50%;width:460px;height:460px;transform:translateX(-50%);border-radius:50%;pointer-events:none;opacity:.55}
 #insArt{position:relative;display:flex;justify-content:center;margin:4px 0 2px}
 #insName{position:relative;font-size:21px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#c8ccd4}
-#insSkin{position:relative;font-size:26px;font-weight:700;letter-spacing=".04em"}
+#insSkin{position:relative;font-size:26px;font-weight:700;letter-spacing:.04em}
 .chiprow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:9px 0 4px;position:relative}
 #insVal{position:relative;font-size:18px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
 #insVal small{color:var(--mut);font-size:10px;letter-spacing:.2em;display:block;text-transform:uppercase}
@@ -249,11 +253,11 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #mmTitle b{color:var(--txt)}
 #mmScroll{overflow-y:auto;min-height:0}
 #mmReels{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:12px}
-#mmReels.dense{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+#mmReels.dense{grid-template-columns:repeat(auto-fill,minmax(112px,1fr);gap:8px}
 .mreel{display:flex;flex-direction:column;gap:4px}
 .mrwin{position:relative;height:118px;overflow:hidden;background:#0d1015;border:1px solid var(--line2);border-radius:5px;
  -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
-.mrmark{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--amber);transform:translateX(-50%);box-shadow:0 0 6px rgba(232,163,61,.7);z-index:2}
+.mrmark{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--amber);transform:translateX(-50%);box-shadow:0 0 6px rgba(232,163,0.1)}
 .mrstrip{position:absolute;top:6px;left:0;display:flex;gap:6px;will-change:transform}
 .mrc{width:70px;height:104px;flex:none;background:#171b21;border:1px solid #262b33;border-radius:4px;display:flex;flex-direction:column;align-items:center;padding:6px 3px 0}
 .mrc .im{height:36px;display:flex;align-items:center}
@@ -271,6 +275,25 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #mmFoot{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;font-size:13px;font-weight:600;color:var(--mut)}
 #mmFoot b{font-variant-numeric:tabular-nums}
 #mmBtns{display:flex;gap:12px;justify-content:center}
+/* upgrader (v17) */
+.upgGauge{position:relative;height:30px;background:#1d2127;border:1px solid var(--line2);border-radius:4px;overflow:hidden}
+.upgGauge .ok{position:absolute;left:0;top:0;bottom:0;background:rgba(143,189,106,.22);border-right:1px solid var(--green)}
+.upgGauge .tk{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.07)}
+.upgNeedle{position:absolute;top:-4px;bottom:-4px;width:4px;margin-left:-2px;background:var(--amber;box-shadow:0 0 8px rgba(232,163,61,.8);border-radius:2px}
+.upgC{font-size:13px;font-weight:600;color:var(--mut);display:flex;justify-content:space-between}
+.upgC b{color:var(--txt)}
+.upgBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.upgBtns .btn.on{background:var(--amber);border-color:transparent;color:#17110a}
+.upgItem{display:flex;align-items:center;gap:12px;background:#101419;border:1px solid #1d222a;border-radius:3px;padding:8px 10px}
+.upgItem .art{width:92px;flex:none;display:flex;justify-content:center}
+.upgItem .nm{font-size:14px;font-weight:700}
+.upgItem .sb{font-size:11px;color:var(--mut);font-weight:600}
+.upgItem .val{font-size:14px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
+.upgNote{font-size:10px;color:#5a6270;letter-spacing:.1em;text-transform:uppercase;text-align:center}
+.upgResult{text-align:center;padding:10px;background:#101419;border:1px solid #1d222a;border-radius:4px}
+.upgResult .r{font-size:22px;font-weight:700;letter-spacing:.2em;text-transform:uppercase}
+.upgResult .win{color:var(--green)}
+.upgResult .lose{color:var(--red)}
 #toasts{position:fixed;top:78px;right:16px;z-index:150;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .toast{background:rgba(18,21,27,.96);border:1px solid var(--line2);border-left:3px solid var(--amber);border-radius:3px;padding:9px 14px;font-size:13px;font-weight:600;letter-spacing:.04em;max-width:340px;animation:tIn .25s ease-out;box-shadow:0 6px 18px rgba(0,0,0,.5)}
 .toast.g{border-left-color:var(--green)}.toast.r{border-left-color:var(--red)}.toast.gold{border-left-color:var(--gold)}
@@ -324,6 +347,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
   <button class="btn ibtn" id="sndBtn" title="Sound"></button>
   <button class="btn ibtn" id="saveBtn" title="Save now"></button>
   <button class="btn ibtn danger" id="resetBtn" title="Reset progress"></button>
+  <span id="saveStamp">Saved —</span>
  </div>
 </header>
 
@@ -331,7 +355,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
  <section id="stage">
   <div class="gridbg"></div>
   <svg id="xh" width="640" height="640" viewBox="0 0 640 640" fill="none" stroke="#fff" stroke-width="1.5">
-   <circle cx="320" cy="320" r="300"/><circle cx="320" cy="320" r="180"/><circle cx="320" cy="320" r="60"/>
+   <circle cx="320" cy="320" r="300"/><circle cx="320" cy="320" r="180"/><circle cx="320" cy="320 r="60"/>
    <path d="M320 0v180M320 460v180M0 320h180M460 320h180"/>
   </svg>
   <div class="vig"></div>
@@ -344,7 +368,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
   </div>
   <div id="dropBox" title="Resets every Thursday 18:00 UTC — like CS2">
    <div id="dropArt"></div>
-   <div class="lbl" style="display:flex;justify-content:space-between"><span>Weekly drop</span><span class="num" id="dropNum">—</span></div>
+   <div class="lbl" style="display:flex;justify-content:space-between"><span>Weekly drop</span><span class="num" id="dropNum">—</div>
    <div class="bar"><i id="dropBar"></i></div>
    <button class="btn primary" id="claimBtn">Claim drop</button>
   </div>
@@ -362,6 +386,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
    <button data-t="cases">Cases</button>
    <button data-t="inv">Inventory <span class="badge" id="invBadge">0</span></button>
    <button data-t="mis">Contracts <span class="badge" id="misBadge" style="display:none;background:var(--amber);color:#17110a">!</span></button>
+   <button data-t="upg">Upgrade</button>
   </div>
   <div class="view" id="view"></div>
  </aside>
@@ -443,7 +468,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
 </div>
 
 <div id="toasts"></div>
-<footer>Unofficial CS2 fan project · official art via community CSGO-API mirror · real-market skin pricing · overwatch input protection on PC · progress autosaves</footer>
+<footer>Unofficial CS2 fan project · official art via community CSGO-API mirror · real-market pricing · overwatch input protection on PC · progress autosaves</footer>
 
 <script>
 /* ============ 1. UTILITIES & ICONS ============ */
@@ -462,7 +487,7 @@ const IS_TOUCH=(()=>{
  return false;})();
 const IC={
  vol:'<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 8a5 5 0 0 1 0 8M18.5 5.5a9 9 0 0 1 0 13" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>',
- mute:'<svg width="16" height="16" viewBox="0 0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+ mute:'<svg width="16" height="16" viewBox="0 24 24"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
  save:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>',
  reset:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 4v6h6"/><path d="M3.5 15a9 9 0 1 0 2-9.4L1 10"/></svg>',
  chev:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>',
@@ -566,13 +591,13 @@ function paint(skin,id){
  if(t==='blobs'){const[,cols,n=6]=p,rnd=mulberry(hashStr(skin.n));let cnt='';const T=76;
   for(let i=0;i<n+4;i++){const r=5+rnd()*9,x=rnd()*T,y=rnd()*T;
    cnt+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${cols[i%cols.length]}" opacity=".92"/>`;
-   cnt+=`<circle cx="${((x+T/2)%T).toFixed(1)}" cy="${((y+T/2)%T).toFixed(1)}" r="${(r*.7).toFixed(1)}" fill="${cols[(i+1)%cols.length]}" opacity=".85"/>`;}
+   cnt+=`<circle cx="${((x+T/2)%T).toFixed(1)}" cy="${((y+T/9)%T).toFixed(1)}" r="${(r*.7).toFixed(1)}" fill="${cols[(i+1)%cols.length]}" opacity=".85"/>`;}
   return{defs:`<pattern id="${id}p" width="${T}" height="${T}" patternUnits="userSpaceOnUse">${cnt}</pattern>`,fills:[base,`url(#${id}p)`]};}
  if(t==='dots'){const[,cols,r=3,gp=16]=p;let cnt='';
-  for(let i=0;i<2;i++)for(let j=0;j<2;j++)cnt+=`<circle cx="${6+i*gp/2+j*gp}" cy="${6+j*gp/2+i*gp}" r="${r}" fill="${cols[(i+j)%cols.length]}"/>`;
+  for(let i=0;i<2;i++)for(let j=0;j<2;j++)cnt+=`<circle cx="${6+i*gp/2+j*gp}" cy="${6+j*gp/2+i*gp}" r="${r}" fill="${cols[(i+j)%cols.length]"/>`;
   return{defs:`<pattern id="${id}p" width="${gp}" height="${gp}" patternUnits="userSpaceOnUse">${cnt}</pattern>`,fills:[base,`url(#${id}p)`]};}
  if(t==='zig'){const line=(c,o)=>`<path d="M0 6 L10 16 L20 6 L30 16 L40 6" stroke="${c}" stroke-width="3.4" fill="none" opacity="${o}"/>`;
-  return{defs:`<pattern id="${id}p" width="40" height="40" patternUnits="userSpaceOnUse">${line(p[2],.45)}${line(p[1],1)}</pattern>`,fills:[base,`url(#${id}p)`]};}
+  return{defs:`<pattern id="${id}p" width="40" height="40" patternUnits="userSpaceOnUse">${line(p[2],.45)}${line(p[1],1)</pattern>`,fills:[base,`url(#${id}p)`]};}
  if(t==='split')return{defs:`<pattern id="${id}p" width="260" height="100" patternUnits="userSpaceOnUse"><rect x="130" width="130" height="100" fill="${p[1]}"/></pattern>`,fills:[base,`url(#${id}p)`]};
  if(t==='tri')return{defs:`<pattern id="${id}p" width="260" height="100" patternUnits="userSpaceOnUse"><rect x="88" width="86" height="100" fill="${p[2]}"/><rect x="174" width="90" height="100" fill="${p[1]}"/></pattern>`,fills:[base,`url(#${id}p)`]};
  if(t==='bands')return{defs:`<pattern id="${id}p" width="260" height="100" patternUnits="userSpaceOnUse"><rect y="38" width="260" height="22" fill="${p[1]}"/></pattern>`,fills:[base,`url(#${id}p)`]};
@@ -664,9 +689,9 @@ const WEAPONS={
  deagle:{n:'Desert Eagle',b:pis({L:116,H:30,Y:14,big:1,tx:16})},
  r8:{n:'R8 Revolver',b:{tx:16,sil:[p('M118,26 h80 v13 h-80 z'),p('M118,20 h58 v8 h-58 z'),p('M92,24 h28 v26 h-28 z'),p('M96,26 a13,13 0 0 1 26,0 a13,13 0 0 1 -26,0 z'),p('M48,44 h46 v10 h-46 z')],
   el:[p('M50,54 l24,2 l-10,34 q-1,4 -6,4 h-16 q-5,0 -5,-5 z','#5a4128'),
-   cc(109,33,3,'#14161a'),cc(102,37,2.2,'#14161a'),cc(116,37,2.2,'#14161a'),cc(102,29,2.2,'#14161a'),cc(116,29,2.2,'#14161a'),
+   cc(109,33,3,'#14161a'),cc(102,37,2.2,'#14161a'),cc(116,37,2.2,'#14161a'),cc(102,29,2.2,'#14161a'),cc(116,29,2.2','#14161a'),
    gp('M78,54 v6 a10,10 0 0 0 10,10 h8'),ln(88,56,86,66,'#0f1216',3),
-   ln(92,20,86,13,'#23262c',4),ln(122,29,192,29,'#0f1216',1.5)]}},
+   ln(92,20,86,13,'#23262c',4),ln(122,29,192,29','#0f1216',1.5)]}},
  db:{n:'Dual Berettas',b:{tx:6,sil:[p('M64,28 h84 a3,3 0 0 1 3,3 v14 a3,3 0 0 1 -3,3 h-84 a3,3 0 0 1 -3,-3 v-14 a3,3 0 0 1 3,-3 z'),p('M66,48 h76 a3,3 0 0 1 3,3 v4 a3,3 0 0 1 -3,3 h-76 a3,3 0 0 1 -3,-3 v-4 a3,3 0 0 1 3,-3 z')],
   el:[r(96,12,78,16,2,'#1b1f25'),r(100,28,68,7,1,'#1b1f25'),p('M106,35 l-8,30 q-1,4 3,4 l14,0 q4,0 5,-4 l7,-30 z','#1b1f25'),
    p('M72,58 h34 l-8,34 q-1,4 -6,4 h-20 q-6,0 -6,-5 z'),gp('M94,58 v8 a11,11 0 0 0 11,11 h12 a11,11 0 0 0 11,-11 v-8'),
@@ -675,8 +700,8 @@ const WEAPONS={
  mp5sd:{n:'MP5-SD',b:smg({sup:1,mag:'curved',stock:'tube'})}, mp9:{n:'MP9',b:smg({mag:'grip',stock:'fold',blen:18,tx:8})},
  mp7:{n:'MP7',b:smg({mag:'grip',stock:'tube',blen:18,tx:6})}, bizon:{n:'PP-Bizon',b:smg({drum:1,blen:30,tx:4})},
  negev:{n:'Negev',b:{tx:0,sil:[p('M52,26 h124 a6,6 0 0 1 6,6 v24 a6,6 0 0 1 -6,6 h-124 a6,6 0 0 1 -6,-6 v-24 a6,6 0 0 1 6,-6 z'),p('M96,16 h44 v10 h-44 z'),p('M182,32 h48 v16 h-48 z')],
-  el:[cc(192,40,3,'#14161a'),cc(202,40,3,'#14161a'),cc(212,40,3,'#14161a'),cc(222,40,3,'#14161a'),r(230,36,12,8,1,'#2b3038'),
-   p('M96,62 h48 l8,26 h-64 z'),ln(104,68,142,68,'#0f1216',1.5),
+  el:[cc(192,40,3,'#14161a'),cc(202,40,3,'#14161a'),cc(212,40,3,'#14161a'),cc(222,40,3','#14161a'),r(230,36,12,8,1,'#2b3038'),
+   p('M96,62 h48 l8,26 h-64 z'),ln(104,68,142,68,'#0f1216',1.5'),
    p('M76,62 h18 l-6,25 q-1,4 -6,4 h-8 q-5,0 -4,-5 z','#23262c'),gp('M98,62 v5 a9,9 0 0 0 9,9 h8'),
    r(20,30,32,32,2,'#23262c'),p('M28,38 h16 v16 h-16 z','#15181d'),ln(186,48,196,58,'#23262c',3),ln(196,48,206,58,'#23262c',3),r(120,32,22,7,1,'#14161a')]}},
  nova:{n:'Nova',b:sg({stock:'wood'})}, xm:{n:'XM1014',b:sg({stock:'sk',mag:1,bl:88})},
@@ -690,7 +715,7 @@ const WEAPONS={
  famas:{n:'FAMAS',b:{tx:0,sil:[p('M44,32 h154 a4,4 0 0 1 4,4 v18 a4,4 0 0 1 -4,4 h-154 a4,4 0 0 1 -4,-4 v-18 a4,4 0 0 1 4,-4 z'),p('M94,20 h54 v12 h-54 z')],
   el:[r(198,40,26,7,0,'#2b3038'),p('M118,58 h18 l-5,26 q-1,4 -6,4 h-9 q-5,0 -4,-5 z','#23262c'),
    p('M94,58 h20 l-2,24 h-20 z'),gp('M140,58 v5 a9,9 0 0 0 9,9 h7'),
-   r(150,38,6,10,2,'#14161a'),r(160,38,6,10,2,'#14161a'),ln(188,58,200,66,'#23262c',3),ln(194,58,206,66,'#23262c',3),r(116,36,18,7,1,'#14161a')]}},
+   r(150,38,6,10,2,'#14161a'),r(160,38,6,10,2,'#14161a'),ln(188,58,200,66,'#23262c',3),ln(194,58,206,66','#23262c',3),r(116,36,18,7,1,'#14161a')]}},
  awp:{n:'AWP',b:snp({thumb:1})}, g3sg1:{n:'G3SG1',b:snp({vent:1})}, ssg08:{n:'SSG 08',b:snp({})},
  zeus:{n:'Zeus x27',b:{tx:4,sil:[p('M82,28 h76 a5,5 0 0 1 5,5 v24 a5,5 0 0 1 -5,5 h-76 a5,5 0 0 1 -5,-5 v-24 a5,5 0 0 1 5,-5 z')],
   el:[r(162,33,26,6,1,'#23262c'),r(162,48,26,6,1,'#23262c'),cc(190,36,3.4),cc(190,51,3.4),
@@ -708,13 +733,13 @@ const WEAPONS={
  skeleton:{n:'★ Skeleton Knife',b:{tx:0,sil:[p('M100,42 L198,37 L224,47 L198,55 L100,58 Z')],
   el:[r(44,40,56,7,2,'#1c1f24'),r(44,56,56,7,2,'#1c1f24'),r(50,47,6,9,1,'#2b3038'),r(68,47,6,9,1,'#2b3038'),r(86,47,6,9,1,'#2b3038'),ln(104,46,210,43,'#0f1216',1.6)]}},
  navaja:{n:'★ Navaja Knife',b:{tx:0,sil:[p('M98,42 L200,36 L228,44 L204,52 L98,56 Z')],
-  el:[r(52,43,44,13,6,'#1c1f24'),cc(50,49,4.5,'#2b3038'),cc(94,49,3.4,'#c8a44a'),ln(60,46,90,52,'#0f1216',1.2),ln(60,52,90,46,'#0f1216',1.2),ln(104,47,210,44,'#0f1216',1.5)]}},
+  el:[r(52,43,44,13,6,'#1c1f24'),cc(50,49,4.5,'#2b3038'),cc(94,49,3.4,'#c8a44a'),ln(60,46,90,52,'#0f1216',1.2),ln(60,52,90,46','#0f1216',1.2),ln(104,47,210,44,'#0f1216',1.5)]}},
  broken:{n:'★ Broken Knife',b:{tx:6,sil:[p('M96,42 L146,34 L152,52 L128,60 L96,58 Z')],
   el:[r(52,42,44,16,5,'#1c1f24'),cc(48,50,4.5,'#2b3038'),ln(60,46,68,54,'#0f1216',1.5),ln(70,46,78,54,'#0f1216',1.5),
    ln(140,36,146,48,'#0f1216',1.5),ln(134,44,142,56,'#0f1216',1.5),gp('M100,48 L126,42','#0f1216',1.6)]}},
  stiletto:{n:'★ Stiletto Knife',b:{tx:0,sil:[p('M96,44 L206,38 L232,46 L208,53 L96,56 Z')],
   el:[r(54,44,42,13,6,'#1c1f24'),cc(50,50,4.5,'#2b3038'),cc(96,50,3,'#c8a44a'),
-   ln(64,47,88,52,'#0f1216',1.2),ln(64,52,88,46,'#0f1216',1.2),gp('M100,49 L214,45','#0f1216',1.4)]}}};
+   ln(64,47,88,52,'#0f1216',1.2),ln(64,52,88,46','#0f1216',1.2),gp('M100,49 L214,45','#0f1216',1.4)]}}};
 
 function el2(a){
  const st=' stroke="#0b0d10" stroke-width="1.2"';
@@ -748,12 +773,12 @@ function caseSVG(c,w){
 
 /* ============ 5. GAME DATA — REAL-MARKET PRICING ============ */
 const RAR={milspec:{n:'Mil-Spec',c:'#4b69ff',odds:'79.92%',w:.7992},restricted:{n:'Restricted',c:'#8847ff',odds:'15.98%',w:.1598},
- classified:{n:'Classified',c:'#d32ce6',odds:'3.20%',w:.032},covert:{n:'Covert',c:'#eb4b4b',odds:'0.64%',w:.0064},
+ classified:{n:'Classified',c:'#d32e6',odds:'3.20%',w:.032},covert:{n:'Covert',c:'#eb4b4b',odds:'0.64%',w:.0064},
  gold:{n:'★ Rare Special',c:'#ffd24a',odds:'0.26%',w:.0026}};
 const RORDER=['milspec','restricted','classified','covert','gold'];
 const TU_NEXT={milspec:'restricted',restricted:'classified',classified:'covert',covert:'gold'};
 const WEAR={fn:{n:'Factory New',m:2.0},mw:{n:'Minimal Wear',m:1.35},ft:{n:'Field-Tested',m:1.0},ww:{n:'Well-Worn',m:.85},bs:{n:'Battle-Scarred',m:.7}};
-const WC={fn:'#7fbf5a',mw:'#a8cf6b',ft:'#e8c84a',ww:'#e8974a',bs:'#c85a4a'};
+const WC={fn:'#7fbf5a',mw:'#a8cf6b',ft:'#e8c84a',ww:'#e897a4a',bs:'#c85a4a'};
 function wearOf(f){return f<=.07?'fn':f<=.15?'mw':f<=.38?'ft':f<=.45?'ww':'bs';}
 const ST_MULT=1.8;
 const FINISHES=[
@@ -816,7 +841,7 @@ const CLICKERS=[
  {w:'awp',sk:'dragonlore',cps:11000,cost:14000000,tier:'cov',achid:'dragon'},
  {w:'ak47',sk:'wildlotus',cps:26000,cost:45000000,tier:'cov'},
  {w:'karambit',sk:'fade',cps:70000,cost:120000000,tier:'gold'}];
-const TIERC={con:'#b0c3d9',ind:'#5e98d9',ms:'#4b69ff',res:'#8847ff',cla:'#d32ce6',cov:'#eb4b4b',contra:'#e4ae39',gold:'#ffd24a'};
+const TIERC={con:'#b0c3d9',ind:'#5e98d9',ms:'#4b69ff',res:'#8847ff',cla:'#d32e6',cov:'#eb4b4b',contra:'#e4ae39',gold:'#ffd24a'};
 const AUTOS=[
  {id:'trader',n:'Junk Skin Trader',d:'Sells grey skins in bulk',rate:2.5,cost:600},
  {id:'tradeup',n:'Trade-Up Bot',d:'Contracts ten skins into one',rate:12,cost:7000},
@@ -871,29 +896,31 @@ const DROP_CASE={id:'drop',name:'Weekly Care Package',short:'WEEKLY',price:0,col
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
 let wipeLock=false;
-function freshState(){return{v:16,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
- xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',
- stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,multi:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
+function freshState(){return{v:17,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
+ xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',invFilter:'all',
+ stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,multi:0,missions:0,best:0,unboxSpent:0,unboxValue:0,upgW:0,upgL:0}};}
 function save(){if(wipeLock)return;
- try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));}catch(e){}}
+ try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));
+  const st=$('#saveStamp');if(st)st.textContent='Saved '+new Date().toLocaleTimeString();
+ }catch(e){}}
 let saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,500);}
 function rankIdx(xp){let r=0;for(let i=0;i<RANKS.length;i++)if(xp>=RANKS[i].x)r=i;return r;}
 function load(){try{const raw=localStorage.getItem('cs2clicker');if(!raw)return false;
  S=Object.assign(freshState(),JSON.parse(raw));
- if(typeof S.weapon==='string'){S.wi=Math.max(0,CLICKERS.findIndex(c=>c.w===S.weapon));delete S.weapon;}
+ if(typeof S.weapon==='string'){S.wi=Math.max(0,CLICKERS.findIndex(c=>c.w===S.weapon);delete S.weapon;}
  if(S.owned&&!S.ownedWi){
   S.ownedWi=S.owned.map(w=>{
    let idx=-1;CLICKERS.forEach((c,i)=>{if(c.w===w)idx=i;});
    return idx<0?0:idx;});}
- S.ownedWi=[...new Set(S.ownedWi)].sort((a,b)=>a-b).filter(i=>i<CLICKERS.length);
+ S.ownedWi=[...new Set(S.ownedWi].sort((a,b)=>a-b).filter(i=>i<CLICKERS.length);
  if(S.wi>=CLICKERS.length)S.wi=0;
  if(!S.xp)S.xp=S.stats.clicks+25*(S.stats.cases||0)+5*(S.stats.hs||0);
  S.prestige=S.prestige||0;S.ach=S.ach||{};S.pending=S.pending||null;S.pendingMulti=S.pendingMulti||null;S.fast=!!S.fast;
  if(!Array.isArray(S.recent))S.recent=[];
- S.lastDaily=S.lastDaily||'';S.dailyStreak=S.dailyStreak||0;S.invSort=S.invSort||'new';
+ S.lastDaily=S.lastDaily||'';S.dailyStreak=S.dailyStreak||0;S.invSort=S.invSort||'new';S.invFilter=S.invFilter||'all';
  S.dropClaim=S.dropClaim||0;
  if(!S.dropClaim&&S.dropClicks>=300)S.dropClaim=Date.now()-8*864e5;
- S.stats=Object.assign({tradeups:0,sold:0,drops:0,multi:0,missions:0,unboxSpent:0,unboxValue:0},S.stats);
+ S.stats=Object.assign({tradeups:0,sold:0,drops:0,multi:0,missions:0,unboxSpent:0,unboxValue:0,upgW:0,upgL:0},S.stats);
  S.rank=rankIdx(S.xp);
  if(S.savedAt){const dt=(Date.now()-S.savedAt)/1000;if(dt>90)offlineGain=ratePerSec()*Math.min(dt,3600)*.25;}
  return true;}catch(e){return false;}}
@@ -920,11 +947,11 @@ function recordRecent(it){
  if(S.recent.length>12)S.recent.length=12;}
 
 /* ---- missions ---- */
-function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:k==='multi'?(S.stats.multi||0):0;}
+function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:k==='multi'?(S.stats.multi||0):k==='upgW'?(S.stats.upgW||0):0;}
 function newMission(i){
  const used=S.missions.map(m=>m.i);
  const cands=MISSIONS.map((t,j)=>j).filter(j=>!used.includes(j));
- const j=cands.length?cands[(Math.random()*cands.length)|0]:(Math.random()*MISSIONS.length)|0;
+ const j=cands.length?cands[(Math.random()*cands.length)|0]:(Math.random()*MISSIONS.length)|0);
  S.missions[i]={i:j,start:statOf(MISSIONS[j].k),done:false};}
 function missionProgress(m){return Math.max(0,statOf(MISSIONS[m.i].k)-m.start);}
 function checkMissions(){
@@ -958,10 +985,11 @@ function rollItem(c,rar,fl,st){
  return{id:itemSeq++,w,sk,rar,float:f,st:isSt,val,stK:0};}
 function poolFlat(c){const out=[];
  for(const k of RORDER)for(const e of (c.pool[k]||[]))out.push({w:e[0],sk:e[1],rar:k});
- if(c.knife){out.push({w:c.knife,sk:'fade',rar:'gold'},{w:c.knife,sk:'doppler',rar:'gold'});}
+ if(c.knife){out.push({w:c.knife,sk:'fade',rar:'gold'},{w:c.knife,sk:'doppler',rar:'gold'});
+  out.push({w:c.knife,sk:'fade',rar:'gold'}, {w:c.knife,sk:'fade',rar:'gold'});}
  return out;}
 
-/* ============ 8. OFFICIAL ARTWORK LAYER (v16: 5-step resolver) ============ */
+/* ============ 8. OFFICIAL ARTWORK LAYER (v17) ============ */
 const API_BASES=[
  'https://bymykel.github.io/CSGO-API/api/en/',
  'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/'];
@@ -973,12 +1001,15 @@ const norm=s=>String(s).toLowerCase()
  .replace(/\s+/g,' ')
  .replace(/\s*\|\s*/g,'|')
  .trim();
-/* loose key: also ignores spaces & hyphens, catching name variants */
-const loose=s=>norm(s).replace(/[\s-]/g,'');
+/* v17: loose strips ALL non-alphanumerics */
+const loose=s=>norm(s).replace(/[^a-z0-9]/g,'');
 const KNIVES={karambit:1,talon:1,kukri:1,bayonet:1,skeleton:1,navaja:1,broken:1,stiletto:1};
-/* internal skin id → catalog skin-name variant when they differ */
+const KNIFE_NAMES={};for(const k in KNIVES)KNIFE_NAMES[norm(WEAPONS[k].n)]=1;
 const SKIN_ALIAS={
- ultralight:'Lightweight', acidetched:'Acid Etched', dreamglade:'Dream Glade'};
+ ultralight:['Lightweight'],
+ motorized:['Momentum'],
+ blueply:['Blue Titanium'],
+ acidetched:['Acid Etched']};
 const officialCase=c=>{
  if(!loaded||!artMode)return null;
  if(c.tryNames)for(const n of c.tryNames){const u=IDX.crates[norm(n)];if(u)return u;}
@@ -994,7 +1025,6 @@ function walkJSON(node,cb){
   const img=(typeof node.image==='string'&&node.image)||(typeof node.image_url==='string'&&node.image_url)||null;
   if(img&&typeof node.name==='string')cb(node.name,img,node);
   for(const k in node){const v=node[k];if(v&&typeof v==='object')walkJSON(v,cb);}}}
-/* v16: every catalog entry is now indexed FIVE ways so the resolver almost never misses */
 function indexSkin(name,img,o){
  const k=norm(name);
  IDX.skins[k]=img;
@@ -1024,25 +1054,29 @@ async function loadArt(){
  const cov=coverage();
  toast('Official artwork loaded — matched '+cov.ok+' / '+cov.total+' items','g');
  setArtIcon();renderStage();renderPanel();renderDropArt();}
-/* v16: 5-step resolution — exact → by-skin (same weapon) → loose → bare name (vanilla knives) → any finish of that knife */
+/* v17: full resolution chain, cached — exact → bySkin same-weapon → alias → loose → bare/vanilla → any-finish → any weapon image */
+const RES_CACHE={};
 function officialFor(wid,skid){
  if(!loaded||!artMode)return null;
+ const ck=wid+'|'+skid;
+ if(RES_CACHE[ck]!==undefined)return RES_CACHE[ck];
  const wn=norm(WEAPONS[wid].n);
  const sk=SKINS[skid]||SKINS.vanilla;
- const sn=norm(SKIN_ALIAS[skid]||sk.n);
- let u=IDX.skins[wn+'|'+sn];
- if(u)return u;
- const cands=IDX.bySkin[sn];
- if(cands){const hit=cands.find(c=>c.w===wn);if(hit)return hit.u;}
- u=IDX.loose[loose(wn)+'|'+loose(sn)];
- if(u)return u;
- if(skid==='vanilla'){
-  u=IDX.bare[wn];
-  if(u)return u;
-  if(KNIVES[wid]){
-   for(const f of ['fade','doppler','tiger','marble','nightstripe']){
-    u=IDX.skins[wn+'|'+f];if(u)return u;}}}
- return null;}
+ const isKnife=!!KNIVES[wid];
+ let out=null;
+ out=IDX.skins[wn+'|'+norm(sk.n)];
+ if(!out)out=IDX.loose[loose(wn)+loose(sk.n)];
+ if(!out){const c=IDX.bySkin[norm(sk.n)];if(c){out=(c.find(x=>x.w===wn||(isKnife&&KNIFE_NAMES[x.w])||(!isKnife&&!KNIFE_NAMES[x.w])||{}).u;}}
+ if(!out)for(const a of SKIN_ALIAS[skid]||[]){
+  out=IDX.skins[wn+'|'+norm(a];if(out)break;
+  if(!out){const c=IDX.bySkin[norm(a)];if(c){out=(c.find(x=>x.w===wn)||{}).u;if(out)break;}}
+ if(!out&&skid==='vanilla'){
+  out=IDX.bare[wn];
+  if(!out&&isKnife){for(const f of ['fade','doppler','tiger','marble','nightstripe']){
+   out=IDX.skins[wn+'|'+f;if(out)break;}}}
+ if(!out&&IDX.byWeapon[wn]&&IDX.byWeapon[wn].length)out=IDX.byWeapon[wn][0].u;
+ RES_CACHE[ck]=out||null;
+ return out;}
 function coverage(){
  let ok=0,total=0;const miss=[];
  const test=(w,s)=>{total++;const u=officialFor(w,s);if(u)ok++;else miss.push(WEAPONS[w].n+' | '+SKINS[s].n);};
@@ -1166,13 +1200,14 @@ function refreshDrop(){
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
+const UPG={sel:null,mult:2,busy:false,res:null};
 function tuNeed(){return TU.rar==='gold'?5:10;}
-function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderPanel();}
+function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t);renderPanel();}
 function renderPanel(){
  $('#invBadge').textContent=S.inv.length;
  const dn=S.missions.filter(m=>m.done).length;
  const mb=$('#misBadge');mb.style.display=dn?'':'none';mb.textContent=dn;
- $('#view').innerHTML=TAB==='up'?viewUp():TAB==='cases'?viewCases():TAB==='mis'?viewMiss():viewInv();}
+ $('#view').innerHTML=TAB==='up'?viewUp():TAB==='cases'?viewCases():TAB==='mis'?viewMiss():TAB==='upg'?viewUpg():viewInv();}
 function viewUp(){
  let h='<div class="sect">Weapons — click power · '+S.ownedWi.length+' / '+CLICKERS.length+' owned</div>';
  CLICKERS.forEach((c,i)=>{
@@ -1185,7 +1220,7 @@ function viewUp(){
  const lvls=Object.values(S.auto).reduce((a,b)=>a+b,0);
  h+='<div class="sect">Squad — passive income · '+lvls+' levels</div>';
  for(const a of AUTOS){
-  const lv=S.auto[a.id]||0,cost=Math.round(a.cost*Math.pow(GROWTH,lv)),
+  const lv=S.auto[a.id]||0,cost=Math.round(a.cost*Math.pow(GROWTH,lv),
    cost10=Math.round(a.cost*Math.pow(GROWTH,lv)*(Math.pow(GROWTH,10)-1)/(GROWTH-1));
   h+='<div class="row'+(S.money<cost?' lockrow':'')+'"><div class="info"><div class="nm">'+a.n+'</div>'+
    '<div class="sb">'+a.d+' · next level: '+fmt(a.rate*(lv+1)*mult())+'/s</div></div><div class="act">'+
@@ -1194,24 +1229,17 @@ function viewUp(){
    '<button class="btn" data-ba="'+a.id+'">Hire</button>'+
    '<button class="btn" data-ba10="'+a.id+'" title="Hire 10 levels: '+fmt(cost10)+'">×10</button></div></div></div>';}
  h+='<div class="sect">Training</div>';
- const pc=Math.round(600*Math.pow(2.15,S.perk));
+ const pc=Math.round(600*Math.pow(2.15,S.perk]);
  h+='<div class="row"><div class="info"><div class="nm">Headshot Training</div>'+
   '<div class="sb">+1.5% crit chance &amp; +0.4× crit damage per level · now '+Math.round(critChance()*100)+'% × '+critMult()+'</div></div>'+
   '<div class="act">'+(S.perk>=PERK_MAX?'<div class="lvl">MAX LEVEL</div>':'<div class="price">'+fmt(pc)+'</div><button class="btn" data-bp="1">Train</button>')+'</div></div>';
  const req=primeReq(),ok=S.stats.earned>=req;
- h+='<div class="sect">Prime Matchmaking — prestige</div>';
- h+='<div class="row'+(ok?'':' lockrow')+'"><div class="info"><div class="nm">Go Prime</div>'+
-  '<div class="sb">Wipe weapons, squad &amp; inventory — keep rank, XP and achievements. Income ×'+(1+.5*(S.prestige+1)).toFixed(1)+' after reset.'+
-  (ok?'':' · requires '+fmt(req)+' total earned ('+fmt(S.stats.earned)+' so far)')+'</div></div>'+
-  '<div class="act"><div class="lvl">now ×'+(1+.5*S.prestige).toFixed(1)+'</div>'+
-  '<button class="btn '+(ok?'primary':'')+'" data-prime="1">Go Prime</button></div></div>';
- h+='<div class="sect">Career</div>';
- const roi=S.stats.unboxSpent>0?Math.round(S.stats.unboxValue/S.stats.unboxSpent*100)+'% of '+fmtC(S.stats.unboxSpent):'—';
+ h+='<div class="col"></div>';
+ const roi=S.stats.unboxSpent>0?Math.round(S.stats.unboxValue/S.stats.unboxSpent*100)+'% of '+fmtC(S.stats.unboxSpent:'—';
  const stats=[['Net worth',fmt(S.money+S.inv.reduce((a,i)=>a+i.val,0))],['Total earned',fmt(S.stats.earned)],
   ['Clicks',S.stats.clicks.toLocaleString()],['Headshots',S.stats.hs],
   ['Cases opened',S.stats.cases],['Trade-ups',S.stats.tradeups],['Contracts done',S.stats.missions],
-  ['Login streak',S.dailyStreak+' day'+(S.dailyStreak===1?'':'s')],
-  ['Unboxing ROI',roi],['Income multiplier','×'+mult().toFixed(2)]];
+  ['Upgrades won',S.stats.upgW+' / '+S.stats.upgL];
  h+=stats.map(x=>'<div class="row"><div class="info"><div class="nm">'+x[0]+'</div></div><div class="price" style="color:var(--txt)">'+x[1]+'</div></div>').join('');
  h+='<div class="sect">Achievements — '+Object.keys(S.ach).length+' / '+Object.keys(ACH).length+'</div><div class="achbox">';
  for(const id in ACH)h+='<div class="achi'+(S.ach[id]?' on':'')+'"><b>'+ACH[id].n+'</b><span>'+ACH[id].d+'</span></div>';
@@ -1240,7 +1268,7 @@ function recentHTML(){
   h+='<div class="rrow"><div class="art">'+art(r.w,r.sk,72,32)+'</div>'+
    '<div class="info"><div class="nm">'+WEAPONS[r.w].n+' <span style="color:'+RAR[r.rar].c+'">| '+SKINS[r.sk].n+'</span>'+
    (r.st?' <span class="stt">ST™</span>':'')+'</div>'+
-   '<div class="fw">'+WEAR[wearOf(r.float)].n+' · float '+r.float.toFixed(4)+'</div></div>'+
+   '<div class="fw">'+WEAR[wearOf(r.float).n+' · float '+r.float.toFixed(4)+'</div></div>'+
    '<div class="val">'+fmtC(r.val)+'</div></div>';}
  return h;}
 function oddsHTML(c){
@@ -1254,7 +1282,7 @@ function oddsHTML(c){
   else for(const e of c.pool[k])h+='<div class="pi">'+art(e[0],e[1],56,34)+'<div class="n">'+WEAPONS[e[0]].n+'<small style="color:'+RAR[k].c+'">'+SKINS[e[1]].n+' · '+fmtC(e[2])+'</small></div></div>';
   h+='</div>';}
  return h+'</div><div class="note">Real-market skin prices · FT baseline, FN ×2.0, ST ×1.8 · the house always wins</div>';}
-const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e8974a 38% 45%,#c85a4a 45% 100%)';
+const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e897a4a 45%,#c85a4a 45% 100%)';
 function sortInv(arr){
  const a=[...arr];
  if(S.invSort==='new')a.sort((x,y)=>y.id-x.id);
@@ -1268,7 +1296,7 @@ function viewInv(){
  let h;
  if(TU.on){
   const need=tuNeed(),knife=TU.rar==='gold';
-  h='<div id="invHead"><span class="t">'+(knife?'Knife Trade-Up: ':'Trade-Up: ')+TU.sel.length+' / '+need+
+  h='<div id="invHead"><span class="t">'+(knife?'Knife Trade-Up: ':'Trade-Up: '+TU.sel.length+' / '+need+
    (TU.rar?' · '+RAR[TU.rar].n:' · pick 10 skins — or 5 knives')+'</span>'+
    '<button class="btn '+(TU.sel.length===need?'primary':'')+'" data-tuexec="1" '+(TU.sel.length===need?'':'disabled')+'>Execute</button>'+
    '<button class="btn" data-tucancel="1">Cancel</button></div>';}
@@ -1281,19 +1309,26 @@ function viewInv(){
    '<option value="rar"'+(S.invSort==='rar'?' selected':'')+'>Rarity</option>'+
    '<option value="wear"'+(S.invSort==='wear'?' selected':'')+'>Float</option>'+
    '</select>'+
+   '<div class="fbtn'+(S.invFilter==='all'?' on':'')+'" data-if="all">All</div>'+
+   '<div class="fbtn'+(S.invFilter==='hi'?' on':'')+'" data-if="hi">Classified+</div>'+
+   '<div class="fbtn'+(S.invFilter==='knife'?' on':'')+'" data-if="knife">★</div>'+
    '<button class="btn" data-tumode="1">Trade-Up</button><button class="btn" data-selljunk="1">'+IC.tag+'Sell junk</button></div>';}
- for(const it of sortInv(S.inv)){
+ let list=sortInv(S.inv);
+ if(S.invFilter==='hi')list=list.filter(it=>['classified','covert','gold'].includes(it.rar);
+ if(S.invFilter==='knife')list=list.filter(it=>it.rar==='gold');
+ if(!list.length)return h+'<div class="empty">Nothing matches this filter.</div>';
+ for(const it of list){
   const sel=TU.sel.includes(it.id);
   const canSel=(!TU.rar||it.rar===TU.rar)&&S.equipped!==it.id;
   h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art" data-insp="'+it.id+'" title="Inspect">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
    '<div class="nm">'+WEAPONS[it.w].n+' <span style="color:'+RAR[it.rar].c+'">| '+SKINS[it.sk].n+'</span> '+(it.st?'<span class="stt">ST™ '+it.stK+'</span>':'')+'</div>'+
    '<div class="floatbar" style="'+FBG+'"><i style="left:'+(it.float*100).toFixed(1)+'%"></i></div>'+
-   '<div class="fw">'+WEAR[wearOf(it.float)].n+' · float '+it.float.toFixed(4)+'</div></div>';
+   '<div class="fw">'+WEAR[wearOf(it.float).n+' · float '+it.float.toFixed(4)+'</div></div>';
   if(TU.on){
    h+='<div style="text-align:right"><button class="btn '+(sel?'primary':'')+'" data-tui="'+it.id+'" '+(canSel?'':'disabled')+'>'+(sel?'Selected':'Select')+'</button></div>';}
   else{
    h+='<div style="text-align:right"><div class="val">'+fmtC(it.val)+'</div><div style="display:flex;gap:6px;margin-top:5px;justify-content:flex-end">'+
-    (S.ownedWi.some(i=>CLICKERS[i].w===it.w)&&S.equipped!==it.id?'<button class="btn" data-eqi="'+it.id+'">Equip</button>':'')+
+    (S.ownedWi.some(i=>CLICKERS[i].w===it.w&&S.equipped!==it.id&&S.ownedWi.some(j=>CLICKERS[j].w===it.w)&&S.equipped!==it.id?'<button class="btn" data-eqi="'+it.id+'">Equip</button>':'')+
     '<button class="btn" data-si="'+it.id+'">Sell</button></div></div>';}
   h+='</div>';}
  return h;}
@@ -1304,11 +1339,108 @@ function viewMiss(){
   h+='<div class="row"><div class="info"><div class="nm">'+t.n+'</div>'+
    '<div class="sb">Reward: '+fmt(t.r*mult())+' + '+t.xp+' XP</div>'+
    '<div class="pbar"><i style="width:'+(prog/t.t*100).toFixed(1)+'%"></i></div>'+
-   '<div class="sb">'+(t.k==='earned'?fmt(prog)+' / '+fmt(t.t):Math.floor(prog)+' / '+t.t)+'</div></div>'+
+   '<div class="sb">'+(t.k==='earned'?fmt(prog)+' / '+fmt(t.t):Math.floor(prog)+' / '+t.t+'</div></div>'+
    '<div class="act">'+(m.done?'<button class="btn primary" data-mi="'+i+'">Claim</button>':'<span class="lvl">'+Math.floor(prog/t.t*100)+'%</span>')+'</div></div>';});
  h+='<div class="sect">Career</div><div class="row"><div class="info"><div class="nm">'+S.stats.missions+' contracts completed</div>'+
   '<div class="sb">A new contract is issued every time you claim one</div></div></div>';
  return h;}
+/* ---- upgrader view (v17) ---- */
+function viewUpg(){
+ let h='<div class="sect">Upgrader — feed a skin, double it or lose it</div>';
+ if(UPG.res){
+  h+='<div class="upgResult" style="margin:0 14px 10px"><div class="r '+(UPG.res.win?'win':'lose')+'">'+(UPG.res.win?'SUCCESS':'FAILED')+'</div>'+
+   (UPG.res.win?
+    '<div class="upgItem" style="margin-top:10px"><div class="art">'+art(UPG.res.it.w,UPG.res.it.sk,92,40)+'</div><div class="info"><div class="nm">'+WEAPONS[UPG.res.it.w].n+' <span style="color:'+RAR[UPG.res.it.rar].c+'">| '+SKINS[UPG.res.it.sk].n+'</div><div class="sb">'+WEAR[wearOf(UPG.res.it.st?'ST™':'')+'</div></div><div class="val">'+fmtC(UPG.res.it.val)+'</div></div>':'')+
+   '<div style="margin-top:10px"><button class="btn" data-udone="1">Done</button></div></div>';}
+ if(UPG.busy){
+  h+='<div style="padding:20px"><div class="upgGauge"><div class="ok" style="width:'+UPG.pct+'%"></div><div class="upgNeedle" id="upgNeedle" style="left:0%"></div>'+
+   '<div class="tk" style="left:25%"></div><div class="tk" style="left:50%"></div><div class="tk" style="left:75%"></div></div>'+
+   '<div class="upgC"><span>Success</span><b>'+UPG.pct.toFixed(2)+'%</b><span>Fail</span></div>'+
+   '<div class="upgNote">round in progress…</div></div>';
+  return h;}
+ const it=S.inv.find(i=>i.id===UPG.sel);
+ if(!it){
+  if(!S.inv.length)return h+'<div class="empty">No items to upgrade. Go open some cases.</div>';
+  h+='<div class="sect">Select input item</div>';
+  for(const x of sortInv(S.inv)){
+   h+='<div class="irow" style="cursor:pointer" data-usel="'+x.id"><div class="art">'+art(x.w,x.sk,92,40)+'</div><div class="info"><div class="nm">'+WEAPONS[x.w].n+' <span style="color:'+RAR[x.rar].c+'">| '+SKINS[x.sk].n+'</div><div class="sb">'+WEAR[wearOf(x.float).n+'</div></div><div class="val">'+fmtC(x.val)+'</div></div>';}
+  return h;}
+ const chance=92/UPG.mult;
+ h+='<div style="padding:0 14px;display:flex;flex-direction:column;gap:10px">'+
+  '<div class="upgItem"><div class="art">'+art(it.w,it.sk,92,40)+'</div><div class="info"><div class="nm">'+WEAPONS[it.w].n+' <span style="color:'+RAR[it.rar].c+'">| '+SKINS[it.sk].n+'</div><div class="sb">Input · '+WEAR[wearOf(it.float).n+' · float '+it.float.toFixed(4)+'</div></div><div class="val">'+fmtC(it.val)+'</div></div>'+
+  '<div class="upgBtns">'+[1.5,2,5,10].map(m=>'<button class="btn'+(UPG.mult===m?' on':'')+'" data-um="'+m+'">×'+m+' · '+(92/m).toFixed(1)+'%</button>').join('')+'</div>'+
+  '<div class="upgGauge"><div class="ok" style="width:'+chance+'%"></div><div class="upgNeedle" style="left:0%"></div>'+
+   '<div class="tk" style="left:25%"></div><div class="tk" style="left:50%"></div><div class="tk" style="left:75%"></div></div>'+
+  '<div class="upgC"><span>Success</span><b>'+chance.toFixed(2)+'%</b><span>Fail</span></div>'+
+  '<div class="upgBtns"><button class="btn" data-ucancel2="1">Pick another</button>'+
+   '<button class="btn primary" data-uexe="1">Upgrade</button></div>'+
+  '<div class="upgNote">Chance = 92% ÷ multiplier · reward targets ≈ '+fmtC(it.val*UPG.mult)+'</div>'+
+  '</div>';
+ return h;}
+function allItemsFlat(){
+ if(UPG.ALLC)return UPG.ALLC;
+ const arr=[];
+ for(const c of CASES){
+  for(const k in c.pool)for(const e of c.pool[k])arr.push({w:e[0],sk:e[1],price:e[2],c,rar:k});
+  for(const f in c.knifePrices)arr.push({w:c.knife,sk:f,price:c.knifePrices[f],c,rar:'gold'});
+ }
+ UPG.ALLC=arr;
+ return arr;}
+function makeItem(e){
+ const fl=Math.pow(Math.random(),1.5);
+ const st=Math.random()<.10;
+ const val=Math.max(.10,e.price*WEAR[wearOf(fl)].m*(st?ST_MULT:1);
+ return{id:itemSeq++,w:e.w,sk:e.sk,rar:e.rar,c:e.c,rar:e.rar,float:fl,st,val,stK:0};}
+function rollReward(target){
+ const pool=allItemsFlat().filter(x=>x.price*2.2>=target*.8&&x.price*.7<=target*3);
+ if(!pool.length){const best=allItemsFlat().sort((a,b)=>b.price-a.price).slice(0,5);pool.push(...best);}
+ for(let i=0;i<60;i++){
+  const e=pool[(Math.random()*pool.length)|0];
+  const it=makeItem(e);
+  if(it.val>=target*.8&&it.val<=target*3)return it;}
+ return makeItem(pool[0]);}
+function execUpgrade(){
+ if(UPG.busy)return;
+ const it=S.inv.find(i=>i.id===UPG.sel);
+ if(!it){UPG.sel=null;renderPanel();return;}
+ UPG.busy=true;
+ UPG.pct=92/UPG.mult;
+ UPG.target=it.val*UPG.mult;
+ UPG.input=it;
+ S.inv.splice(S.inv.indexOf(it),1;
+ if(S.equipped===it.id)S.equipped=null;
+ if(it.st&&it.id===S.equipped)S.equipped=null;
+ renderPanel();
+ const need=$('#upgNeedle');
+ if(need){
+  need.style.transition='none';need.style.left='0%';void need.offsetWidth;
+ }
+ SND.buy();
+ const tickI=setInterval(()=>SND.tick(),95);
+ const win=Math.random()<(92/UPG.mult);
+ const land=win?(Math.random()*(UPG.pct-1)+0.5):(UPG.pct+Math.random()*(100-UPG.pct-1)+0.5;
+ setTimeout(()=>{
+  if(need){need.style.transition='left 3.4s cubic-bezier(.1,.85,.1,1)';need.style.left=land+'%';}
+ },50);
+ setTimeout(()=>{clearInterval(tickI);
+  UPG.busy=false;UPG.sel=null;
+  if(win){
+   const rew=rollReward(UPG.target);
+   S.inv.push(rew);
+   S.stats.upgW++;
+   if(UPG.mult>=5)ach('luckydraw');
+   if(S.stats.upgW>=5)ach('cashout');
+   recordRecent(rew);
+   SND.reveal(3);
+   toast('UPGRADE — '+fmtC(UPG.input.val+' → '+fmtC(UPG.target+')','g');
+   UPG.res={win:true,it:rew};
+  }else{
+   S.stats.upgL++;SND.deny();
+   toast('Upgrade failed — input lost','r');
+   UPG.res={win:false};
+  }
+  renderPanel();hudDirty=true;save();
+ },3650);}
 
 /* ============ 10. ACTIONS ============ */
 let denyT=null;
@@ -1349,7 +1481,7 @@ function sellItem(id){const i=S.inv.findIndex(x=>x.id===id);if(i<0)return;
 let cfCb=null;
 function askConfirm(t,b,yes,cb){$('#cfTitle').textContent=t;$('#cfBody').innerHTML=b;$('#cfYes').textContent=yes;cfCb=cb;$('#confirm').classList.add('show');}
 function askSellJunk(){
- const junk=S.inv.filter(i=>(i.rar==='milspec'||i.rar==='restricted')&&i.id!==S.equipped);
+ const junk=S.inv.filter(i=>(i.rar==='milspec'||i.rar==='restricted')&&i.id!==S.equipped;
  if(!junk.length)return toast('No junk to sell');
  const t=junk.reduce((a,i)=>a+i.val,0);
  askConfirm('Sell junk?','Sell '+junk.length+' Mil-Spec / Restricted skins for a total of <b style="color:var(--green)">'+fmtC(t)+'</b>?','Sell',()=>{
@@ -1368,7 +1500,6 @@ function goPrime(){
   ach('prime');SND.reveal(4);
   toast('PRIME MATCHMAKING — income ×'+(1+.5*S.prestige).toFixed(1)+' · the grind starts over','gold');
   renderStage();renderPanel();refreshDrop();hudDirty=true;save();});}
-/* ---- trade-up: 10 skins, or 5 knives ---- */
 function execTradeUp(){
  const need=tuNeed();
  if(TU.sel.length!==need)return;
@@ -1401,8 +1532,8 @@ function knifeTradeUp(items,fl,st){
  const wf=[['vanilla',.10],['nightstripe',.15],['doppler',.25],['tiger',.18],['marble',.17],['fade',.15]];
  for(const f of wf){acc+=f[1];if(r<=acc){sk=f[0];break;}}
  const price=pick.knifePrices[sk];
- const val=Math.max(.10,price*WEAR[wearOf(fl)].m*(st?ST_MULT:1));
- return{c:pick,it:{id:itemSeq++,w:pick.knife,sk,rar:'gold',float:fl,st,val,stK:0}};}
+ const val=Math.max(.10,price*WEAR[wearOf(fl)].m*(st?ST_MULT:1);
+ return{c:pick,it:{id:itemSeq++,w:pick.knife,sk,rar:'gold',float:fl,st,val,stK:0};}}
 
 /* ---- inspect ---- */
 let inspId=null;
@@ -1414,7 +1545,7 @@ function inspectItem(id){
  $('#insArt').innerHTML=art(it.w,it.sk,360,160);
  $('#insName').textContent=WEAPONS[it.w].n;
  $('#insSkin').textContent=SKINS[it.sk].n;$('#insSkin').style.color=R.c;
- $('#insChips').innerHTML='<span class="chip2" style="color:'+WC[wf]+';border-color:'+WC[wf]+'">'+WEAR[wf].n+'</span>'+
+ $('#insChips').innerHTML='<span class="chip2" style="color:'+WC[wf].n+'</span>'+
   '<span class="chip2">float '+it.float.toFixed(4)+'</span>'+
   (it.st?'<span class="chip2 st">StatTrak™ '+it.stK+'</span>':'')+
   '<span class="chip2" style="color:'+R.c+';border-color:'+R.c+'">'+R.n+'</span>';
@@ -1440,7 +1571,7 @@ function updateQTotal(){
  if(!c)return;
  $('#qInput').value=n;
  const total=c.price*n,ok=S.money>=total;
- $('#qTotal').innerHTML='Total: <b style="color:'+(ok?'var(--green)':'var(--red)')+'">'+fmtC(total)+'</b>'+
+ $('#qTotal').innerHTML='Total: <b style="color:'+(ok?'var(--green)':'var(--red')+'">'+fmtC(total)+'</b>'+
   (ok?'':' · you have '+fmt(S.money));
  $('#qGo').textContent='Open '+n;}
 
@@ -1531,14 +1662,14 @@ function reveal(){
  $('#cmClose').style.display='block';
  SND.reveal(tier);
  if(it.rar==='gold')ach('goldpull');
- $('#rvSell').onclick=()=>{earn(it.val);SND.sell();finishOpen('Sold for '+fmtC(it.val),'g');};
+ $('#rvSell').onclick=()=>{earn(it.val);SND.sell();finishOpen('Sold for '+fmtC(it.val)','g');};
  $('#rvKeep').onclick=()=>keepItem(it);}
 function finishOpen(msg,kind){
  const it=pending;
  S.pending=null;
  if(flowCase){S.stats.cases++;gainXP(25);if(S.stats.cases>=25)ach('case25');}
  if(flowPaid)S.stats.unboxValue+=it.val;
- if(it.val>S.stats.best)S.stats.best=it.val;
+ if(it.val>S.stats.best)S.stats.upgW?0:0,S.stats.best=Math.max(S.stats.best,it.val);
  recordRecent(it);
  $('#caseModal').classList.remove('show');
  spinning=false;pending=null;
@@ -1559,7 +1690,7 @@ function multiOpen(cid,n){
  for(const it of items){
   total+=it.val;
   if(it.rar==='gold')ach('goldpull');
-  if(it.val>S.stats.best)S.stats.best=it.val;
+  if(it.val>S.stats.best)S.stats.best=Math.max(S.stats.best,it.val);
   recordRecent(it);}
  S.stats.unboxValue+=total;
  S.stats.cases+=n;
@@ -1590,7 +1721,7 @@ function runMultiOpen(c,items,total,spent){
  const NC=n>300?8:(n>100?10:(n>40?12:(n>20?18:26))), WIN=NC-4;
  const stag=S.fast?Math.max(3,Math.min(70,(900/n)|0)):Math.max(6,Math.min(190,(3000/n)|0));
  const DBASE=S.fast?850:(n>100?3000:(n>20?3400:4200));
- const DRANGE=S.fast?450:(n>100?1600:(n>20?1800:2300));
+ const DRANGE=S.fast?450:(n>100?1600:(n>20?1800:2300);
  const pool=poolFlat(c),now=performance.now();
  const reels=items.map((it,i)=>{
   const strip=$('#mrstrip'+i);
@@ -1629,7 +1760,7 @@ function runMultiOpen(c,items,total,spent){
     const v=x-R.px;R.px=x;
     if(!MMRS.compact)R.strip.style.filter=v>14?'blur('+Math.min(2.5,(v-14)/28).toFixed(1)+'px)':'none';
     R.strip.style.transform='translateX('+(-x)+'px)';
-    const idx=Math.floor((x+R.winW/2-MCW)/MCARD);
+    const idx=Math.floor((x+R.winW/2-MCW)/MCARD;
     if(idx!==R.lastIdx){R.lastIdx=idx;
      if(now-MMRS.lastTick>40){MMRS.lastTick=now;SND.tick();}}
     continue;}
@@ -1652,9 +1783,9 @@ function mmFinish(){
  const best=MMRS.reels.reduce((a,b)=>b.it.val>a.it.val?b:a).it.val;
  MMRS.reels.forEach(R=>{if(R.it.val===best)R.el.classList.add('best');});
  const total=MMRS.total,spent=MMRS.spent,net=total-spent,pct=spent>0?Math.round(total/spent*100):100;
- $('#mmFoot').innerHTML='<span>Spent <b style="color:var(--txt)">'+fmtC(spent)+'</b></span>'+
-  '<span>Pulled <b style="color:var(--green)">'+fmtC(total)+'</b></span>'+
-  '<span>Net <b style="color:'+(net>=0?'var(--green)':'var(--red)')+'">'+(net>=0?'+':'-')+fmtC(Math.abs(net))+' ('+pct+'%)</b></span>';
+ $('#mmFoot').innerHTML='<span>Spent <b style="color:var(--txt)">'+fmtC(spent)+'</span>'+
+  '<span>Pulled <b style="color:var(--green)">'+fmtC(total)+'</span>'+
+  '<span>Net <b style="color:'+(net>=0?'var(--green)':'var(--red')+'">'+(net>=0?'+':'-')+fmtC(Math.abs(net))+' ('+pct+'%)</b></span>';
  $('#mmSell').textContent='Sell all — '+fmtC(total);
  $('#mmFoot').style.display='';
  $('#mmBtns').style.display='';
@@ -1691,10 +1822,14 @@ function owAllowed(now){
  }
  OW.last=now;
  if(OW.deltas.length>=10){
+  let sum=0;for(const d of OW.deltas.push?OW.deltas:[]){}
+ }
+ // simplified:
+ if(OW.deltas.length>=10){
   let sum=0;for(const d of OW.deltas)sum+=d;
   const mean=sum/OW.deltas.length;
-  let v=0;for(const d of OW.deltas)v+=(d-mean)*(d-mean);
-  const sd=Math.sqrt(v/OW.deltas.length);
+  let v=0;for(const d of OW.deltas) v+=(d-mean)*(d-mean);
+  const sd=Math.sqrt(v/OW.deltas.length;
   if((sd<5&&mean<260)||mean<45||OW.window.length>=46)return owStrike(now);
  }
  return true;}
@@ -1718,7 +1853,7 @@ function owStrike(now){
 
 /* ============ 13. EVENTS & INIT ============ */
 function manualClick(x,y){
- if(!IS_TOUCH&&!owAllowed(performance.now()))return;
+ if(!IS_TOUCH&&!owAllowed(performance.now())return;
  doClick(x,y);}
 function stageClick(e){
  const rect=$('#stage').getBoundingClientRect();
@@ -1768,7 +1903,7 @@ function init(){
   S.dailyStreak=(S.lastDaily===yest)?(S.dailyStreak||0)+1:1;
   S.lastDaily=today;
   dailyDay=S.dailyStreak;
-  dailyBonus=Math.round(1000*Math.min(S.dailyStreak,7)*mult());}
+  dailyBonus=Math.round(1000*Math.min(S.dailyStreak,7)*mult();}
  save();
  if(IS_TOUCH)document.querySelector('footer').textContent='Unofficial CS2 fan project · official art via community CSGO-API mirror · real-market pricing · touch device — overwatch off · progress autosaves';
  $('#enterBtn').addEventListener('click',()=>{
@@ -1779,7 +1914,7 @@ function init(){
   if(dailyBonus>0){earn(dailyBonus);SND.buy();
    toast('DAILY BONUS — Day '+dailyDay+' streak · +'+fmt(dailyBonus),'gold');
    if(dailyDay>=7)ach('regular');}
-  if(recovered)setTimeout(()=>toast('Unboxing recovered — '+WEAPONS[recovered.w].n+' | '+SKINS[recovered.sk].n+' returned to your inventory','g'),900);
+  if(recovered)setTimeout(()=>toast('Unboxing recovered — '+WEAPONS[recovered.w].n+' | '+SKINS[recovered].sk).n+' returned to your inventory','g'),900);
   if(recoveredMulti)setTimeout(()=>toast('Multi-open recovered — '+recoveredMulti+' skins returned to your inventory','g'),1400);
   if(hadSave&&S.stats.clicks>0)
    toast('Progress loaded — '+fmt(S.money)+' · '+RANKS[S.rank].n+' · '+S.stats.cases+' cases opened','g');
@@ -1821,12 +1956,12 @@ function init(){
   else if(d.tumode){TU.on=true;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tucancel){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tuexec)execTradeUp();
-  else if(d.tui){const id=+d.tui,it=S.inv.find(i=>i.id===id);
-   if(!it||S.equipped===id||(TU.rar&&it.rar!==TU.rar))return;
-   const ix=TU.sel.indexOf(id);
-   if(ix>=0)TU.sel.splice(ix,1);else{if(TU.sel.length>=tuNeed())return;TU.sel.push(id);}
-   TU.rar=TU.sel.length?S.inv.find(i=>i.id===TU.sel[0]).rar:null;
-   renderPanel();}});
+  else if(d.if){S.invFilter=d.if;save();renderPanel();}
+  else if(d.usel){UPG.sel=+d.usel;renderPanel();}
+  else if(d.um){UPG.mult=+d.um;renderPanel();}
+  else if(d.ucancel2){UPG.sel=null;renderPanel();}
+  else if(d.udone){UPG.res=null;renderPanel();}
+  else if(d.uexe)execUpgrade();});
  $('#view').addEventListener('change',e=>{
   if(e.target.id==='invSort'){S.invSort=e.target.value;save();renderPanel();}});
  $('#claimBtn').addEventListener('click',()=>{
@@ -1881,12 +2016,12 @@ function init(){
    if($('#qtyModal').classList.contains('show'))$('#qtyModal').classList.remove('show');}
   if(e.code==='Space'&&!e.repeat){
    const t=e.target;
-   if(t&&(t.tagName==='BUTTON'||t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+   if(t&&(t.tagName==='BUTTON'||t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)return;
    if(!$('#splash').classList.contains('gone'))return;
    if(document.querySelector('.modal.show'))return;
    e.preventDefault();
    const r=$('#stageW').getBoundingClientRect(),s=$('#stage').getBoundingClientRect();
-   manualClick(r.left-s.left+r.width*(.25+Math.random()*.5),r.top-s.top+r.height*(.25+Math.random()*.5));}});
+   manualClick(r.left-s.left+r.width*(.25+Math.random()*.5),r.top-s.top+r.height*(.25+Math.random()*.5);}});
  window.addEventListener('resize',()=>renderStage());
  window.addEventListener('beforeunload',save);
  window.addEventListener('pagehide',save);
