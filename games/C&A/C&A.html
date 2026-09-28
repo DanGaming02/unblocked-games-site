@@ -43,8 +43,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #hud{position:relative;z-index:5;height:66px;display:flex;align-items:center;gap:22px;padding:0 18px;background:rgba(16,19,24,.92);border-bottom:1px solid var(--line)}
 .lbl{font-size:10px;letter-spacing:.3em;color:var(--mut);text-transform:uppercase}
 #money{font-size:29px;font-weight:700;color:#ff5b4d;line-height:1;font-variant-numeric:tabular-nums}
-#money.deny{color:#fff;animation:shake .3s}
+#money.deny{animation:shake .3s,denyflash .34s}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes denyflash{0%,100%{color:#ff5b4d}30%,70%{color:#fff}}
 #hud .mini{display:flex;gap:16px;font-size:13px;color:var(--mut);font-weight:600;margin-top:2px}
 #hud .mini b{color:var(--txt);font-variant-numeric:tabular-nums}
 #brand{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-width:0}
@@ -222,7 +223,7 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #insFlare{position:absolute;top:-40px;left:50%;width:460px;height:460px;transform:translateX(-50%);border-radius:50%;pointer-events:none;opacity:.55}
 #insArt{position:relative;display:flex;justify-content:center;margin:4px 0 2px}
 #insName{position:relative;font-size:21px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#c8ccd4}
-#insSkin{position:relative;font-size:26px;font-weight:700;letter-spacing:.04em}
+#insSkin{position:relative;font-size:26px;font-weight:700;letter-spacing=".04em"}
 .chiprow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:9px 0 4px;position:relative}
 #insVal{position:relative;font-size:18px;font-weight:700;color:var(--green);font-variant-numeric:tabular-nums}
 #insVal small{color:var(--mut);font-size:10px;letter-spacing:.2em;display:block;text-transform:uppercase}
@@ -870,7 +871,7 @@ const DROP_CASE={id:'drop',name:'Weekly Care Package',short:'WEEKLY',price:0,col
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
 let wipeLock=false;
-function freshState(){return{v:14,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
+function freshState(){return{v:16,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
  xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',
  stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,multi:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
 function save(){if(wipeLock)return;
@@ -960,11 +961,11 @@ function poolFlat(c){const out=[];
  if(c.knife){out.push({w:c.knife,sk:'fade',rar:'gold'},{w:c.knife,sk:'doppler',rar:'gold'});}
  return out;}
 
-/* ============ 8. OFFICIAL ARTWORK LAYER ============ */
+/* ============ 8. OFFICIAL ARTWORK LAYER (v16: 5-step resolver) ============ */
 const API_BASES=[
  'https://bymykel.github.io/CSGO-API/api/en/',
  'https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/'];
-const IDX={skins:{},crates:{}};
+const IDX={skins:{},crates:{},bySkin:{},byWeapon:{},bare:{},loose:{}};
 let artMode=true,apiOK=false,loaded=false;
 const norm=s=>String(s).toLowerCase()
  .replace(/[\u2018\u2019'`\u201c\u201d"]/g,'')
@@ -972,8 +973,12 @@ const norm=s=>String(s).toLowerCase()
  .replace(/\s+/g,' ')
  .replace(/\s*\|\s*/g,'|')
  .trim();
-const wKey=(wid,skid)=>norm(WEAPONS[wid].n)+'|'+norm(SKINS[skid].n);
-const officialFor=(wid,skid)=>(loaded&&artMode)?(IDX.skins[wKey(wid,skid)]||null):null;
+/* loose key: also ignores spaces & hyphens, catching name variants */
+const loose=s=>norm(s).replace(/[\s-]/g,'');
+const KNIVES={karambit:1,talon:1,kukri:1,bayonet:1,skeleton:1,navaja:1,broken:1,stiletto:1};
+/* internal skin id → catalog skin-name variant when they differ */
+const SKIN_ALIAS={
+ ultralight:'Lightweight', acidetched:'Acid Etched', dreamglade:'Dream Glade'};
 const officialCase=c=>{
  if(!loaded||!artMode)return null;
  if(c.tryNames)for(const n of c.tryNames){const u=IDX.crates[norm(n)];if(u)return u;}
@@ -989,11 +994,22 @@ function walkJSON(node,cb){
   const img=(typeof node.image==='string'&&node.image)||(typeof node.image_url==='string'&&node.image_url)||null;
   if(img&&typeof node.name==='string')cb(node.name,img,node);
   for(const k in node){const v=node[k];if(v&&typeof v==='object')walkJSON(v,cb);}}}
+/* v16: every catalog entry is now indexed FIVE ways so the resolver almost never misses */
 function indexSkin(name,img,o){
- IDX.skins[norm(name)]=img;
- if(typeof o.id==='string')IDX.skins[norm(o.id)]=img;
- if(o.weapon&&typeof o.weapon.name==='string')IDX.skins[norm(o.weapon.name+' | '+name)]=img;
- if(typeof o.paint_name==='string')IDX.skins[norm(name+' | '+o.paint_name)]=img;}
+ const k=norm(name);
+ IDX.skins[k]=img;
+ IDX.loose[loose(name)]=img;
+ if(typeof o.id==='string'){IDX.skins[norm(o.id)]=img;IDX.loose[loose(o.id)]=img;}
+ const parts=k.split('|');
+ if(parts.length>1){
+  const w=parts[0].trim(),s=parts.slice(1).join('|').trim();
+  (IDX.bySkin[s]=IDX.bySkin[s]||[]).push({w,u:img});
+  (IDX.byWeapon[w]=IDX.byWeapon[w]||[]).push({s,u:img});
+ }else{IDX.bare[k]=img;}
+ if(o.weapon&&typeof o.weapon.name==='string'&&k.indexOf('|')<0)
+  IDX.skins[norm(o.weapon.name)+'|'+k]=img;
+ if(typeof o.paint_name==='string')
+  IDX.skins[norm(name+' | '+o.paint_name)]=img;}
 async function loadArt(){
  let base=null,data=null;
  for(const b of API_BASES){data=await tryJSON(b,'skins.json',25000);if(data){base=b;break;}}
@@ -1008,17 +1024,35 @@ async function loadArt(){
  const cov=coverage();
  toast('Official artwork loaded — matched '+cov.ok+' / '+cov.total+' items','g');
  setArtIcon();renderStage();renderPanel();renderDropArt();}
+/* v16: 5-step resolution — exact → by-skin (same weapon) → loose → bare name (vanilla knives) → any finish of that knife */
+function officialFor(wid,skid){
+ if(!loaded||!artMode)return null;
+ const wn=norm(WEAPONS[wid].n);
+ const sk=SKINS[skid]||SKINS.vanilla;
+ const sn=norm(SKIN_ALIAS[skid]||sk.n);
+ let u=IDX.skins[wn+'|'+sn];
+ if(u)return u;
+ const cands=IDX.bySkin[sn];
+ if(cands){const hit=cands.find(c=>c.w===wn);if(hit)return hit.u;}
+ u=IDX.loose[loose(wn)+'|'+loose(sn)];
+ if(u)return u;
+ if(skid==='vanilla'){
+  u=IDX.bare[wn];
+  if(u)return u;
+  if(KNIVES[wid]){
+   for(const f of ['fade','doppler','tiger','marble','nightstripe']){
+    u=IDX.skins[wn+'|'+f];if(u)return u;}}}
+ return null;}
 function coverage(){
- const pairs=new Set();
- for(const c of CLICKERS)pairs.add(wKey(c.w,c.sk));
+ let ok=0,total=0;const miss=[];
+ const test=(w,s)=>{total++;const u=officialFor(w,s);if(u)ok++;else miss.push(WEAPONS[w].n+' | '+SKINS[s].n);};
+ for(const c of CLICKERS)test(c.w,c.sk);
  for(const c of CASES){
-  for(const k in c.pool)for(const e of c.pool[k])pairs.add(wKey(e[0],e[1]));
-  for(const f of FINISHES)pairs.add(wKey(c.knife,f[0]));}
- let ok=0;const miss=[];
- pairs.forEach(k=>{if(IDX.skins[k])ok++;else miss.push(k);});
+  for(const k in c.pool)for(const e of c.pool[k])test(e[0],e[1]);
+  for(const f of FINISHES)test(c.knife,f[0]);}
  if(miss.length)console.log('[CS2 art] unmatched (vector fallback):',miss);
  window.CS2ART={idx:IDX,missing:miss};
- return{ok,total:pairs.size};}
+ return{ok,total};}
 window.ART={
  fail(el){el.outerHTML=wsvg(el.dataset.wid,el.dataset.sk,+el.dataset.vw);},
  failCase(el){const c=CASES.find(x=>x.id===el.dataset.cid);
@@ -1132,7 +1166,6 @@ function refreshDrop(){
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
-/* v14: knife trade-ups need 5, skin trade-ups need 10 */
 function tuNeed(){return TU.rar==='gold'?5:10;}
 function setTab(t){TAB=t;document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));renderPanel();}
 function renderPanel(){
@@ -1278,7 +1311,10 @@ function viewMiss(){
  return h;}
 
 /* ============ 10. ACTIONS ============ */
-function deny(msg){SND.deny();const m=$('#money');m.classList.remove('deny');void m.offsetWidth;m.classList.add('deny');toast(msg||'Not enough money','r');}
+let denyT=null;
+function deny(msg){SND.deny();const m=$('#money');m.classList.remove('deny');void m.offsetWidth;m.classList.add('deny');
+ clearTimeout(denyT);denyT=setTimeout(()=>m.classList.remove('deny'),400);
+ toast(msg||'Not enough money','r');}
 function buyWeapon(i){
  const c=CLICKERS[i];
  if(S.ownedWi.includes(i))return;
@@ -1332,7 +1368,7 @@ function goPrime(){
   ach('prime');SND.reveal(4);
   toast('PRIME MATCHMAKING — income ×'+(1+.5*S.prestige).toFixed(1)+' · the grind starts over','gold');
   renderStage();renderPanel();refreshDrop();hudDirty=true;save();});}
-/* ---- trade-up: 10 skins, or 5 knives (v14) ---- */
+/* ---- trade-up: 10 skins, or 5 knives ---- */
 function execTradeUp(){
  const need=tuNeed();
  if(TU.sel.length!==need)return;
@@ -1354,8 +1390,6 @@ function execTradeUp(){
  S.stats.tradeups++;gainXP(60);ach('tradeup');
  TU.on=false;TU.sel=[];TU.rar=null;save();
  openFlow({title,c:flowCaseObj,pre:it,countCase:false});}
-/* knife trade-up: 5 knives forge one knife of equal-or-higher tier,
-   finish leans toward the expensive end */
 function knifeTradeUp(items,fl,st){
  const avg=items.reduce((a,i)=>a+i.val,0)/items.length;
  const tiers=CASES.map(c=>({c,avg:Object.keys(c.knifePrices).reduce((a,k)=>a+c.knifePrices[k],0)/6}))
