@@ -78,8 +78,9 @@ body{background:var(--bg);color:var(--txt);font-family:'Rajdhani',sans-serif;ove
 #plate .pstat b{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
 #dropBox{position:absolute;top:16px;right:16px;width:196px;background:rgba(14,17,21,.9);border:1px solid var(--line);border-radius:4px;padding:10px 12px;cursor:default}
 #dropBox .bar{height:6px;background:#0d1014;border:1px solid var(--line);border-radius:3px;margin:8px 0 2px;overflow:hidden}
-#dropBox .bar i{display:block;height:100%;background:var(--amber);width:0%;transition:width .2s}
-#dropBox .num{font-size:12px;color:var(--mut);font-weight:600}
+#dropBox .bar i{display:block;height:100%;background:var(--amber);width:0%;transition:width .4s}
+#dropBox .num{font-size:12px;color:var(--mut);font-weight:600;font-variant-numeric:tabular-nums}
+#dropArt{display:flex;justify-content:center;margin-bottom:2px}
 #claimBtn{width:100%;margin-top:7px;display:none;animation:pulse 1.2s infinite}
 #claimBtn.ready{display:block}
 .pop{position:absolute;font-weight:700;font-size:20px;color:var(--green);pointer-events:none;text-shadow:0 2px 4px rgba(0,0,0,.7);animation:popUp .78s ease-out forwards;white-space:nowrap;transform:translate(-50%,-50%)}
@@ -337,8 +338,9 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
    <div class="t2">Automated input detected — clicks suspended</div>
    <div class="cd" id="owCd">0.0</div>
   </div>
-  <div id="dropBox">
-   <div class="lbl" style="display:flex;justify-content:space-between"><span>Weekly drop</span><span class="num" id="dropNum">0 / 300</span></div>
+  <div id="dropBox" title="Resets every Thursday 18:00 UTC — like CS2">
+   <div id="dropArt"></div>
+   <div class="lbl" style="display:flex;justify-content:space-between"><span>Weekly drop</span><span class="num" id="dropNum">—</span></div>
    <div class="bar"><i id="dropBar"></i></div>
    <button class="btn primary" id="claimBtn">Claim drop</button>
   </div>
@@ -379,7 +381,7 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
   <div id="qArt"></div>
   <div class="qrow">
    <button class="btn" id="qMinus">−</button>
-   <input id="qInput" type="number" min="1" max="50" value="5">
+   <input id="qInput" type="number" min="1" max="100" value="5">
    <button class="btn" id="qPlus">+</button>
   </div>
   <div class="qpresets">
@@ -388,9 +390,10 @@ footer{position:fixed;left:0;right:0;bottom:0;z-index:4;text-align:center;font-s
    <button class="btn sm" data-q="10">×10</button>
    <button class="btn sm" data-q="25">×25</button>
    <button class="btn sm" data-q="50">×50</button>
+   <button class="btn sm" data-q="100">×100</button>
   </div>
   <div id="qTotal"></div>
-  <div class="qnote">1 – 50 cases per batch · every reel spins at once</div>
+  <div class="qnote">1 – 100 cases per batch · every reel spins at once</div>
   <div class="bb">
    <button class="btn" id="qCancel">Cancel</button>
    <button class="btn primary" id="qGo">Open</button>
@@ -808,7 +811,7 @@ const AUTOS=[
  {id:'org',n:'Esports Org Owner',d:'You own the server now',rate:7500,cost:24000000},
  {id:'buff',n:'Buff163 Arbitrage',d:'Buys low, sells high, offshore',rate:40000,cost:170000000},
  {id:'mm',n:'Steam Market Maker',d:'Every trade goes through you',rate:220000,cost:900000000}];
-const GROWTH=1.9, DROP_NEED=300, PERK_MAX=12;
+const GROWTH=1.9, PERK_MAX=12;
 const RANKS=[
  {n:'Silver I',x:0},{n:'Silver II',x:150},{n:'Silver III',x:350},{n:'Silver IV',x:700},
  {n:'Silver Elite',x:1200},{n:'Silver Elite Master',x:2000},{n:'Gold Nova I',x:3200},{n:'Gold Nova II',x:5000},
@@ -842,17 +845,18 @@ const MISSIONS=[
  {k:'earned',t:80000,n:'Earn $80,000',r:12000,xp:250},
  {k:'sold',t:12,n:'Sell 12 skins',r:7000,xp:180},
  {k:'tradeups',t:1,n:'Complete a trade-up contract',r:15000,xp:300},
- {k:'drops',t:1,n:'Claim a weekly drop',r:5000,xp:150}];
-const DROP_CASE={id:'drop',name:'Weekly Drop',short:'WEEKLY',price:0,scale:6,color:'#a8cf6b',
+ {k:'multi',t:1,n:'Open a 5+ case batch',r:8000,xp:200}];
+const DROP_CASE={id:'drop',name:'Weekly Care Package',short:'WEEKLY',price:0,scale:6,color:'#a8cf6b',
+ tryNames:['Shanghai 2024 Souvenir Package','Copenhagen 2024 Souvenir Package','Antwerp 2022 Souvenir Package','Stockholm 2021 Souvenir Package'],
  pool:{milspec:CASES[0].pool.milspec.concat(CASES[1].pool.milspec).map(e=>[e[0],e[1],1]),
   restricted:CASES[0].pool.restricted,classified:[['glock18','vogue',1]]}};
 
 /* ============ 6. STATE & SAVING ============ */
 let S=null,itemSeq=1,offlineGain=0,hudDirty=true;
 let wipeLock=false;
-function freshState(){return{v:11,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,muted:false,official:true,fast:false,
+function freshState(){return{v:12,money:0,wi:0,ownedWi:[0],auto:{},perk:0,inv:[],equipped:null,dropClicks:0,dropClaim:0,muted:false,official:true,fast:false,
  xp:0,rank:0,prestige:0,ach:{},missions:[],pending:null,pendingMulti:null,recent:[],lastDaily:'',dailyStreak:0,invSort:'new',
- stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
+ stats:{clicks:0,earned:0,hs:0,cases:0,tradeups:0,sold:0,drops:0,multi:0,missions:0,best:0,unboxSpent:0,unboxValue:0}};}
 function save(){if(wipeLock)return;
  try{S.savedAt=Date.now();localStorage.setItem('cs2clicker',JSON.stringify(S));}catch(e){}}
 let saveT=null;function saveSoon(){clearTimeout(saveT);saveT=setTimeout(save,500);}
@@ -870,7 +874,10 @@ function load(){try{const raw=localStorage.getItem('cs2clicker');if(!raw)return 
  S.prestige=S.prestige||0;S.ach=S.ach||{};S.pending=S.pending||null;S.pendingMulti=S.pendingMulti||null;S.fast=!!S.fast;
  if(!Array.isArray(S.recent))S.recent=[];
  S.lastDaily=S.lastDaily||'';S.dailyStreak=S.dailyStreak||0;S.invSort=S.invSort||'new';
- S.stats=Object.assign({tradeups:0,sold:0,drops:0,missions:0,unboxSpent:0,unboxValue:0},S.stats);
+ S.dropClaim=S.dropClaim||0;
+ /* v12 migration: banked click-progress on the old weekly converts to an instant ready drop */
+ if(!S.dropClaim&&S.dropClicks>=300)S.dropClaim=Date.now()-8*864e5;
+ S.stats=Object.assign({tradeups:0,sold:0,drops:0,multi:0,missions:0,unboxSpent:0,unboxValue:0},S.stats);
  S.rank=rankIdx(S.xp);
  if(S.savedAt){const dt=(Date.now()-S.savedAt)/1000;if(dt>90)offlineGain=ratePerSec()*Math.min(dt,3600)*.25;}
  return true;}catch(e){return false;}}
@@ -897,7 +904,7 @@ function recordRecent(it){
  if(S.recent.length>12)S.recent.length=12;}
 
 /* ---- missions ---- */
-function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:0;}
+function statOf(k){return k==='earned'?S.stats.earned:k==='clicks'?S.stats.clicks:k==='hs'?S.stats.hs:k==='cases'?S.stats.cases:k==='sold'?S.stats.sold:k==='tradeups'?S.stats.tradeups:k==='drops'?S.stats.drops:k==='multi'?(S.stats.multi||0):0;}
 function newMission(i){
  const used=S.missions.map(m=>m.i);
  const cands=MISSIONS.map((t,j)=>j).filter(j=>!used.includes(j));
@@ -951,7 +958,10 @@ const norm=s=>String(s).toLowerCase()
  .trim();
 const wKey=(wid,skid)=>norm(WEAPONS[wid].n)+'|'+norm(SKINS[skid].n);
 const officialFor=(wid,skid)=>(loaded&&artMode)?(IDX.skins[wKey(wid,skid)]||null):null;
-const officialCase=c=>(loaded&&artMode&&c.price>0)?(IDX.crates[norm(c.name)]||null):null;
+const officialCase=c=>{
+ if(!loaded||!artMode)return null;
+ if(c.tryNames)for(const n of c.tryNames){const u=IDX.crates[norm(n)];if(u)return u;}
+ return c.price>0?(IDX.crates[norm(c.name)]||null):null;};
 async function tryJSON(base,file,ms){
  try{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),ms||12000);
   const res=await fetch(base+file,{signal:ctl.signal});
@@ -981,7 +991,7 @@ async function loadArt(){
  loaded=true;apiOK=true;
  const cov=coverage();
  toast('Official artwork loaded — matched '+cov.ok+' / '+cov.total+' items','g');
- setArtIcon();renderStage();renderPanel();}
+ setArtIcon();renderStage();renderPanel();renderDropArt();}
 function coverage(){
  const pairs=new Set();
  for(const c of CLICKERS)pairs.add(wKey(c.w,c.sk));
@@ -1007,6 +1017,15 @@ function caseArt(c,vw,maxh){
  if(!url)return caseSVG(c,vw);
  return '<img src="'+url+'" alt="" draggable="false" style="max-height:'+maxh+'px;max-width:100%;object-fit:contain" '+
   'data-cid="'+c.id+'" data-cvw="'+vw+'" onerror="ART.failCase(this)">';}
+function weeklyArtUrl(){
+ if(!loaded||!artMode)return null;
+ for(const n of DROP_CASE.tryNames){const u=IDX.crates[norm(n)];if(u)return u;}
+ return null;}
+function renderDropArt(){
+ const u=weeklyArtUrl();
+ $('#dropArt').innerHTML=u
+  ?'<img src="'+u+'" alt="" draggable="false" style="max-height:58px;max-width:100%;object-fit:contain">'
+  :caseSVG(DROP_CASE,60);}
 function setArtIcon(){
  const b=$('#artBtn');if(!b)return;
  b.innerHTML=IC.art;
@@ -1037,11 +1056,6 @@ function renderStage(){
  $('#plSt').style.display=st?'':'none';if(st)$('#plSt').textContent='ST™ '+eq.stK;
  $('#plCps').textContent=fmt(clickPower());
  $('#plCrit').textContent=Math.round(critChance()*100)+'% × '+critMult();}
-function refreshDrop(){
- const n=Math.min(S.dropClicks,DROP_NEED);
- $('#dropBar').style.width=(n/DROP_NEED*100)+'%';
- $('#dropNum').textContent=n+' / '+DROP_NEED;
- $('#claimBtn').classList.toggle('ready',n>=DROP_NEED);}
 function popAt(x,y,txt,crit){
  const d=document.createElement('div');d.className='pop'+(crit?' crit':'');d.textContent=txt;
  d.style.left=x+'px';d.style.top=y+'px';$('#stage').appendChild(d);
@@ -1080,6 +1094,25 @@ function spawnMotes(){
   m.style.animationDelay=(-Math.random()*20)+'s';
   m.style.opacity=(.2+Math.random()*.3).toFixed(2);
   stg.appendChild(m);}}
+
+/* ---- weekly drop: resets Thursday 18:00 UTC, like CS2 ---- */
+function nextReset(after){
+ const d=new Date(after);
+ let ts=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),18,0,0);
+ ts+=((4-new Date(ts).getUTCDay()+7)%7)*864e5;
+ if(ts<=after)ts+=7*864e5;
+ return ts;}
+function dropReady(){return Date.now()>=nextReset(S.dropClaim||0);}
+function refreshDrop(){
+ const now=Date.now(),at=nextReset(S.dropClaim||0),ready=now>=at;
+ $('#claimBtn').classList.toggle('ready',ready);
+ if(ready){$('#dropNum').textContent='Ready';$('#dropNum').style.color='var(--amber)';
+  $('#dropBar').style.width='100%';}
+ else{const ms=at-now,d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);
+  $('#dropNum').textContent=d+'d '+String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  $('#dropNum').style.color='var(--mut)';
+  const prev=at-7*864e5;
+  $('#dropBar').style.width=clampN((now-prev)/(at-prev)*100,2,100)+'%';}}
 
 /* ---- panel ---- */
 let TAB='up';const openCases=new Set();const TU={on:false,sel:[],rar:null};
@@ -1173,13 +1206,14 @@ function oddsHTML(c){
 const FBG='background:linear-gradient(90deg,#7fbf5a 0 7%,#a8cf6b 7% 15%,#e8c84a 15% 38%,#e8974a 38% 45%,#c85a4a 45% 100%)';
 function sortInv(arr){
  const a=[...arr];
- if(S.invSort==='val')a.sort((x,y)=>y.val-x.val);
+ if(S.invSort==='new')a.sort((x,y)=>y.id-x.id);
+ else if(S.invSort==='val')a.sort((x,y)=>y.val-x.val);
  else if(S.invSort==='rar'){const ro={gold:5,covert:4,classified:3,restricted:2,milspec:1};
   a.sort((x,y)=>ro[y.rar]-ro[x.rar]||y.val-x.val);}
  else if(S.invSort==='wear')a.sort((x,y)=>x.float-y.float);
  return a;}
 function viewInv(){
- if(!S.inv.length)return '<div class="empty">'+caseSVG(DROP_CASE,96)+'<div class="t">Inventory empty</div><div class="s">Open a case or grind the weekly drop — every skin you keep lands here.</div></div>';
+ if(!S.inv.length)return '<div class="empty">'+caseArt(DROP_CASE,96,80)+'<div class="t">Inventory empty</div><div class="s">Open a case or wait for the weekly drop — every skin you keep lands here.</div></div>';
  let h;
  if(TU.on){
   h='<div id="invHead"><span class="t">Trade-Up: '+TU.sel.length+' / 10'+(TU.rar?' · '+RAR[TU.rar].n:' · pick any rarity')+'</span>'+
@@ -1195,7 +1229,7 @@ function viewInv(){
    '<option value="wear"'+(S.invSort==='wear'?' selected':'')+'>Float</option>'+
    '</select>'+
    '<button class="btn" data-tumode="1">Trade-Up</button><button class="btn" data-selljunk="1">'+IC.tag+'Sell junk</button></div>';}
- for(const it of sortInv(S.inv).reverse()){
+ for(const it of sortInv(S.inv)){
   const sel=TU.sel.includes(it.id);
   const canSel=(!TU.rar||it.rar===TU.rar)&&S.equipped!==it.id;
   h+='<div class="irow'+((TU.on&&!canSel)?' dim':'')+'"><div class="art" data-insp="'+it.id+'" title="Inspect">'+art(it.w,it.sk,92,40)+'</div><div class="info">'+
@@ -1313,18 +1347,18 @@ function inspectItem(id){
  $('#insEquip').style.display=canEq?'':'none';
  $('#inspect').classList.add('show');}
 
-/* ---- quantity picker (v11) ---- */
-let qtyCase=null;
+/* ---- quantity picker ---- */
+let qtyCase=null,lastQty=5;
 function openQty(cid){
  const c=CASES.find(x=>x.id===cid);if(!c)return;
  qtyCase=c;
  $('#qTitle').innerHTML='Choose quantity — <b>'+c.name+'</b>';
  $('#qArt').innerHTML=caseArt(c,110);
- $('#qInput').value=5;
+ $('#qInput').value=lastQty;
  updateQTotal();
  $('#qtyModal').classList.add('show');
  setTimeout(()=>{$('#qInput').focus();$('#qInput').select();},50);}
-function qVal(){return clampN(parseInt($('#qInput').value||'1',10)||1,1,50);}
+function qVal(){return clampN(parseInt($('#qInput').value||'1',10)||1,1,100);}
 function updateQTotal(){
  const n=qVal(),c=qtyCase;
  if(!c)return;
@@ -1454,7 +1488,7 @@ function multiOpen(cid,n){
  S.stats.unboxValue+=total;
  S.stats.cases+=n;
  if(c.id==='kilowatt')ach('kilowatt');
- if(n>=5)ach('bulk');
+ if(n>=5){ach('bulk');S.stats.multi=(S.stats.multi||0)+1;}
  if(n>=25)ach('deeppocket');
  if(S.stats.cases>=25)ach('case25');
  gainXP(25*n);
@@ -1474,9 +1508,9 @@ function runMultiOpen(c,items,total,spent){
  $('#multiModal').classList.add('show');
  SND.unlock();
  const n=items.length;
- /* leaner reels for big batches so 50 still runs smooth */
- const NC=n>20?18:26, WIN=NC-6;
- const stag=S.fast?Math.min(70,Math.max(10,(800/n)|0)):Math.min(190,Math.max(25,(2500/n)|0));
+ /* tiered reel weight: leaner reels for huge batches so 100 still runs smooth */
+ const NC=n>40?12:(n>20?18:26), WIN=NC-6;
+ const stag=S.fast?Math.min(70,Math.max(6,(900/n)|0)):Math.min(190,Math.max(15,(2200/n)|0));
  const DBASE=S.fast?850:(n>20?3400:4200), DRANGE=S.fast?450:(n>20?1800:2300);
  const pool=poolFlat(c),now=performance.now();
  const reels=items.map((it,i)=>{
@@ -1497,7 +1531,7 @@ function runMultiOpen(c,items,total,spent){
   return{strip,winW,x0,xT,px:x0,lastIdx:-1,done:false,it,
    t0:now+stag*i, D:DBASE+Math.random()*DRANGE,
    winEl:strip.children[WIN],cap:$('#mrcap'+i),el:$('#mreel'+i)};});
- MMRS={reels,items,total,spent,finished:false,raf:0,lastTick:0};
+ MMRS={reels,items,total,spent,finished:false,raf:0,lastTick:0,lastLand:0};
  (function fr(now){
   if(!MMRS||MMRS.finished)return;
   let all=true;
@@ -1527,7 +1561,7 @@ function mmLand(R){
  if(R.winEl)R.winEl.classList.add('win');
  const wf=wearOf(R.it.float);
  R.cap.innerHTML=WEAR[wf].n+' · <b>'+fmt(R.it.val)+'</b>';
- SND.land();}
+ if(performance.now()-MMRS.lastLand>60){MMRS.lastLand=performance.now();SND.land();}}
 function mmFinish(){
  if(!MMRS||MMRS.finished)return;
  MMRS.finished=true;
@@ -1627,8 +1661,7 @@ function doClick(x,y){
   {transform:'translate(0,0) rotate(0deg)'}],{duration:120,easing:'ease-out'});
  if(crit){muzzle();
   $('#stage').animate([{transform:'translate(0,0)'},{transform:'translate(3px,2px)'},{transform:'translate(-2px,1px)'},{transform:'translate(0,0)'}],{duration:140});}
- if(S.stats.clicks>=5)$('#hint').style.display='none';
- refreshDrop();}
+ if(S.stats.clicks>=5)$('#hint').style.display='none';}
 function setSndIcon(){$('#sndBtn').innerHTML=S.muted?IC.mute:IC.vol;}
 function init(){
  const hadSave=load();
@@ -1653,8 +1686,7 @@ function init(){
   S.dailyStreak=(S.lastDaily===yest)?(S.dailyStreak||0)+1:1;
   S.lastDaily=today;
   dailyDay=S.dailyStreak;
-  dailyBonus=Math.round(1000*Math.min(S.dailyStreak,7)*mult());
-  if(S.dailyStreak>=7)ach('regular');}
+  dailyBonus=Math.round(1000*Math.min(S.dailyStreak,7)*mult());}
  save();
  if(IS_TOUCH)document.querySelector('footer').textContent='Unofficial CS2 fan project · official art via community CSGO-API mirror · touch device — overwatch input protection off · progress autosaves';
  $('#enterBtn').addEventListener('click',()=>{
@@ -1663,7 +1695,8 @@ function init(){
   if(IS_TOUCH)toast('Touch device detected — Overwatch input protection is off','g');
   else toast('Spacebar also fires · Overwatch input protection is on','g');
   if(dailyBonus>0){earn(dailyBonus);SND.buy();
-   toast('DAILY BONUS — Day '+dailyDay+' streak · +'+fmt(dailyBonus),'gold');}
+   toast('DAILY BONUS — Day '+dailyDay+' streak · +'+fmt(dailyBonus),'gold');
+   if(dailyDay>=7)ach('regular');}
   if(recovered)setTimeout(()=>toast('Unboxing recovered — '+WEAPONS[recovered.w].n+' | '+SKINS[recovered.sk].n+' returned to your inventory','g'),900);
   if(recoveredMulti)setTimeout(()=>toast('Multi-open recovered — '+recoveredMulti+' skins returned to your inventory','g'),1400);
   if(hadSave&&S.stats.clicks>0)
@@ -1676,11 +1709,14 @@ function init(){
  try{
   $('#saveBtn').innerHTML=IC.save;$('#resetBtn').innerHTML=IC.reset;
   setSndIcon();setArtIcon();
-  refreshHUD();renderStage();renderPanel();refreshDrop();spawnMotes();
+  refreshHUD();renderStage();renderPanel();refreshDrop();renderDropArt();spawnMotes();
   if(S.stats.clicks>=5)$('#hint').style.display='none';
  }catch(err){console.error('[CS2] render init error:',err);}
  document.querySelectorAll('#tabs button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.t)));
  $('#view').addEventListener('click',e=>{
+  /* v12 FIX: inspect triggers live on artwork clicks (was dead — only buttons were handled) */
+  const ins=e.target.closest('[data-insp]');
+  if(ins){if(!TU.on)inspectItem(+ins.dataset.insp);return;}
   const b=e.target.closest('button');if(!b)return;
   const d=b.dataset;
   if(d.oc)buyOpen(d.oc);
@@ -1701,7 +1737,6 @@ function init(){
   else if(d.si)sellItem(+d.si);
   else if(d.mi)claimMission(+d.mi);
   else if(d.selljunk)askSellJunk();
-  else if(d.insp){if(!TU.on)inspectItem(+d.insp);}
   else if(d.tumode){TU.on=true;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tucancel){TU.on=false;TU.sel=[];TU.rar=null;renderPanel();}
   else if(d.tuexec)execTradeUp();
@@ -1713,9 +1748,10 @@ function init(){
    renderPanel();}});
  $('#view').addEventListener('change',e=>{
   if(e.target.id==='invSort'){S.invSort=e.target.value;save();renderPanel();}});
+ /* v12: weekly claim — time-gated, resets Thursday 18:00 UTC */
  $('#claimBtn').addEventListener('click',()=>{
-  if(S.dropClicks<DROP_NEED||spinning)return;
-  S.dropClicks=0;S.stats.drops++;refreshDrop();save();gainXP(15);
+  if(!dropReady()||spinning)return;
+  S.dropClaim=Date.now();S.stats.drops++;refreshDrop();save();gainXP(15);
   const r=Math.random(),rar=r<.02?'classified':r<.15?'restricted':'milspec';
   openFlow({title:'Weekly <b>Care Package</b>',c:DROP_CASE,rar,countCase:false});});
  $('#skipBtn').addEventListener('click',skipReel);
@@ -1728,7 +1764,6 @@ function init(){
  $('#qPlus').addEventListener('click',()=>{$('#qInput').value=qVal()+1;updateQTotal();});
  $('#qInput').addEventListener('input',updateQTotal);
  $('#qInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#qGo').click();});
- $('#qInput').addEventListener('keyup',e=>{if(e.key==='Enter')return;});
  document.querySelectorAll('.qpresets button').forEach(b=>
   b.addEventListener('click',()=>{$('#qInput').value=b.dataset.q;updateQTotal();}));
  $('#qCancel').addEventListener('click',()=>$('#qtyModal').classList.remove('show'));
@@ -1736,9 +1771,12 @@ function init(){
  $('#qGo').addEventListener('click',()=>{
   const n=qVal(),c=qtyCase;
   $('#qtyModal').classList.remove('show');
-  if(c)multiOpen(c.id,n);});
+  if(!c)return;
+  lastQty=n;
+  if(n===1)buyOpen(c.id);       /* single gets the full-size reel */
+  else multiOpen(c.id,n);});
  $('#artBtn').addEventListener('click',()=>{
-  artMode=!artMode;S.official=artMode;save();setArtIcon();
+  artMode=!artMode;S.official=artMode;save();setArtIcon();renderDropArt();
   if(artMode&&!apiOK){loaded=false;toast('Retrying artwork API…');loadArt();}
   else toast(artMode?'Official artwork mode':'Vector artwork mode','g');
   renderStage();renderPanel();});
@@ -1777,7 +1815,7 @@ function init(){
  let last=performance.now();
  setInterval(()=>{const now=performance.now(),dt=(now-last)/1000;last=now;
   const rr=ratePerSec();if(rr>0)earn(rr*dt);
-  checkMissions();},250);
+  checkMissions();refreshDrop();},250);
  (function loop(){if(hudDirty){refreshHUD();hudDirty=false;}requestAnimationFrame(loop);})();
  setInterval(save,10000);
  loadArt();}
