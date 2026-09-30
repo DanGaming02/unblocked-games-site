@@ -3,19 +3,20 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Portal 1 & 2 Clicker</title>
+<title>Aperture Clicker</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%231b232b'/><ellipse cx='16' cy='16' rx='7' ry='12' fill='none' stroke='%23ff8a1c' stroke-width='3'/></svg>">
 <style>
   :root {
     --blue: #2f8cff;
     --orange: #ff8a1c;
+    --pink: #ff5d9e;
+    --gold: #c9a227;
     --bg: #e4e8ec;
     --grid: rgba(60, 75, 90, .10);
     --panel: #f6f8fa;
     --panel-edge: #c3cbd3;
     --ink: #1b232b;
     --muted: #5d6b78;
-    --btn: #1b232b;
-    --btn-ink: #f6f8fa;
     --stage: #f9fafb;
     --wall: rgba(27, 35, 43, .07);
     --good: #1c8f4e;
@@ -27,8 +28,6 @@
     --panel-edge: #4a4030;
     --ink: #eadfc6;
     --muted: #a89c80;
-    --btn: #d9c48f;
-    --btn-ink: #1c1912;
     --stage: #221f16;
     --wall: rgba(120, 140, 70, .10);
     --good: #9ccf5a;
@@ -36,6 +35,7 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; }
+  [hidden] { display: none !important; }
   body {
     min-height: 100vh;
     background-color: var(--bg);
@@ -45,294 +45,471 @@
     background-size: 48px 48px;
     color: var(--ink);
     font-family: "Avenir Next", "Century Gothic", "Trebuchet MS", "Segoe UI", sans-serif;
-    transition: background-color .5s, color .5s;
+    transition: background-color .6s, color .6s;
     -webkit-tap-highlight-color: transparent;
   }
   button { font: inherit; color: inherit; }
   :focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
-
-  .wrap {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 20px 16px 40px;
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px;
+    padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
   }
+  svg.icn { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 22px 16px 48px; }
 
   header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 18px;
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: 14px; margin-bottom: 18px;
   }
-  h1 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 800;
-    letter-spacing: -.01em;
+  .brand h1 { margin: 0; font-size: 1.4rem; font-weight: 800; letter-spacing: -.01em; }
+  .brand .tag {
+    margin: 3px 0 0; color: var(--muted);
+    font-size: .72rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
   }
-  .era-switch {
-    display: inline-flex;
-    border: 2px solid var(--ink);
-    border-radius: 999px;
-    overflow: hidden;
+  .hgroup { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  .seg {
+    display: inline-flex; border: 2px solid var(--ink);
+    border-radius: 999px; overflow: hidden; background: var(--panel);
   }
-  .era-switch button {
-    background: transparent;
-    border: 0;
-    padding: 8px 18px;
-    cursor: pointer;
-    font-weight: 700;
-  }
-  .era-switch button[aria-pressed="true"] {
-    background: var(--ink);
-    color: var(--bg);
-  }
-  .era-switch button:disabled {
-    cursor: not-allowed;
-    opacity: .5;
+  .seg button { background: transparent; border: 0; padding: 8px 16px; cursor: pointer; font-weight: 700; font-size: .9rem; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .seg button:disabled { cursor: not-allowed; opacity: .5; }
+  .seg.mini button { padding: 6px 12px; font-size: .78rem; }
+  #era2.pulse { animation: pulse 1.7s ease-out infinite; }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 138, 28, .55); }
+    70% { box-shadow: 0 0 0 9px rgba(255, 138, 28, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 138, 28, 0); }
   }
 
   main {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-    gap: 18px;
-    align-items: start;
+    gap: 18px; align-items: start;
   }
-  @media (max-width: 800px) {
-    main { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 840px) { main { grid-template-columns: 1fr; } }
 
+  /* ---------- stage card ---------- */
   .stage-card {
-    background: var(--panel);
-    border: 2px solid var(--panel-edge);
-    border-radius: 6px;
-    padding: 18px;
-    transition: background .5s, border-color .5s;
+    background: var(--panel); border: 2px solid var(--panel-edge);
+    border-radius: 8px; padding: 18px; transition: background .6s, border-color .6s;
   }
-  .score {
-    text-align: center;
-    margin-bottom: 8px;
-  }
+  .score { text-align: center; margin-bottom: 4px; }
   .score .num {
-    font-size: clamp(2.4rem, 8vw, 3.8rem);
-    font-weight: 800;
-    letter-spacing: -.03em;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
+    font-size: clamp(2.4rem, 8vw, 3.8rem); font-weight: 800;
+    letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums;
   }
-  .score .label { color: var(--muted); margin-top: 4px; }
+  .score .num.pop { animation: pop .22s ease; }
+  @keyframes pop { 40% { transform: scale(1.06); } }
+  .score .label { color: var(--muted); margin-top: 4px; font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; }
   .rates {
-    display: flex;
-    justify-content: center;
-    gap: 22px;
-    flex-wrap: wrap;
-    color: var(--muted);
-    font-size: .95rem;
-    margin-top: 6px;
+    display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+    color: var(--muted); font-size: .92rem; margin-top: 8px;
   }
   .rates b { color: var(--ink); font-variant-numeric: tabular-nums; }
 
   .stage {
-    position: relative;
-    height: 320px;
-    margin-top: 14px;
-    background: var(--stage);
-    border: 2px solid var(--panel-edge);
-    border-radius: 4px;
-    overflow: hidden;
-    user-select: none;
-    -webkit-user-select: none;
-    transition: background .5s, border-color .5s;
+    position: relative; height: 340px; margin-top: 14px;
+    background: var(--stage); border: 2px solid var(--panel-edge);
+    border-radius: 6px; overflow: hidden; user-select: none; -webkit-user-select: none;
+    transition: background .6s, border-color .6s;
   }
-  .stage::before {
-    /* wall panel seams */
-    content: "";
-    position: absolute; inset: 0;
+  .stage::before { /* wall panel seams */
+    content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
       linear-gradient(90deg, transparent 49.5%, var(--wall) 49.5%, var(--wall) 50.5%, transparent 50.5%),
       linear-gradient(transparent 66%, var(--wall) 66%, var(--wall) 67%, transparent 67%);
-    pointer-events: none;
+  }
+  .stage::after { /* light wash + vignette */
+    content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none;
+    background:
+      radial-gradient(120% 85% at 50% -10%, rgba(255, 255, 255, .45), transparent 45%),
+      radial-gradient(140% 140% at 50% 55%, transparent 62%, rgba(27, 35, 43, .10));
   }
   body[data-era="2"] .stage::after {
-    /* overgrown, stained look for Portal 2 */
-    content: "";
-    position: absolute; inset: 0;
     background:
       radial-gradient(120px 60px at 8% 100%, rgba(95, 125, 50, .35), transparent 70%),
       radial-gradient(160px 70px at 92% 100%, rgba(95, 125, 50, .30), transparent 70%),
-      radial-gradient(90px 140px at 50% 0%, rgba(140, 90, 40, .25), transparent 70%);
-    pointer-events: none;
+      radial-gradient(90px 140px at 50% 0%, rgba(140, 90, 40, .25), transparent 70%),
+      radial-gradient(140% 140% at 50% 55%, transparent 55%, rgba(0, 0, 0, .28));
   }
 
+  .lamp {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 150px; height: 11px; background: var(--ink);
+    border-radius: 0 0 8px 8px; opacity: .8; z-index: 4;
+  }
+  .lamp i {
+    position: absolute; top: 11px; left: 8px; right: 8px; height: 150px; pointer-events: none;
+    background: radial-gradient(ellipse at top, rgba(255, 246, 222, .38), transparent 68%);
+  }
+  body[data-era="2"] .lamp i {
+    background: radial-gradient(ellipse at top, rgba(255, 214, 150, .34), transparent 68%);
+    animation: flick 7s infinite;
+  }
+  @keyframes flick {
+    0%, 88%, 94%, 100% { opacity: 1; } 90% { opacity: .35; }
+    92% { opacity: .7; } 96% { opacity: .5; } 97% { opacity: 1; }
+  }
+
+  .signage {
+    position: absolute; top: 12px; left: 14px; z-index: 4; pointer-events: none;
+    background: color-mix(in srgb, var(--panel) 88%, transparent);
+    border: 1.5px solid var(--panel-edge); border-radius: 6px;
+    padding: 7px 11px 8px; min-width: 98px;
+  }
+  .signage .sl { display: block; font-size: .58rem; font-weight: 700; letter-spacing: .22em; color: var(--muted); }
+  .signage .sn { display: block; font-size: 1.7rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .signage .sn.pop { animation: pop .3s ease; }
+
+  .pool {
+    position: absolute; top: calc(50% + 96px); width: 120px; height: 30px;
+    z-index: 1; pointer-events: none; filter: blur(3px); opacity: .5;
+  }
+  .pool.blue { left: calc(9% - 8px); background: radial-gradient(ellipse, var(--blue), transparent 70%); }
+  .pool.orange { right: calc(9% - 8px); background: radial-gradient(ellipse, var(--orange), transparent 70%); }
+  body[data-era="2"] .pool { opacity: .28; }
+
   .portal {
-    position: absolute;
-    top: 50%;
-    width: 104px;
-    height: 190px;
-    margin-top: -95px;
-    border-radius: 50%;
-    border: 9px solid var(--c);
+    position: absolute; top: 50%; width: 104px; height: 190px; margin-top: -95px;
+    border-radius: 50%; border: 9px solid var(--c);
     background: radial-gradient(ellipse at center, #06080b 40%, color-mix(in srgb, var(--c) 35%, #06080b) 100%);
     box-shadow:
       0 0 24px var(--c),
       0 0 60px color-mix(in srgb, var(--c) 55%, transparent),
       inset 0 0 26px color-mix(in srgb, var(--c) 70%, transparent);
-    cursor: pointer;
-    padding: 0;
-    transition: transform .08s;
+    cursor: pointer; padding: 0; z-index: 2;
+    transition: transform .08s, filter .3s;
+    animation: breathe 4.5s ease-in-out infinite;
   }
   .portal:active { transform: scale(.94); }
   .portal.blue { --c: var(--blue); left: 9%; }
   .portal.orange { --c: var(--orange); right: 9%; }
   .portal .spin {
-    position: absolute; inset: 6px;
-    border-radius: 50%;
+    position: absolute; inset: 6px; border-radius: 50%; pointer-events: none;
     border: 2px dashed color-mix(in srgb, var(--c) 80%, white);
-    opacity: .6;
-    animation: spin 6s linear infinite;
+    opacity: .6; animation: spin 6s linear infinite;
   }
+  .portal .spin2 { inset: 16px; opacity: .35; animation-duration: 9s; animation-direction: reverse; }
   .portal.orange .spin { animation-direction: reverse; }
+  .portal.orange .spin2 { animation-direction: normal; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .cube, .floater, .bonus {
-    position: absolute;
-    left: 0; top: 0;
-    pointer-events: none;
+  @keyframes breathe { 50% { filter: brightness(1.1); } }
+  .ripple {
+    position: absolute; inset: -6px; border-radius: 50%; pointer-events: none;
+    border: 3px solid var(--c); opacity: .75;
+    animation: rip .5s ease-out forwards;
   }
+  @keyframes rip { to { transform: scale(1.3); opacity: 0; } }
+
+  .cube, .floater, .heartFly { position: absolute; left: 0; top: 0; pointer-events: none; }
   .cube {
-    width: 28px; height: 28px;
-    margin: -14px 0 0 -14px;
-    background: #c9ced4;
-    border: 3px solid #7d858e;
-    border-radius: 3px;
+    width: 28px; height: 28px; margin: -14px 0 0 -14px; z-index: 2;
+    background: #c9ced4; border: 3px solid #7d858e; border-radius: 3px;
     box-shadow: inset 0 0 0 4px #dfe3e7;
   }
-  .cube::after {
-    content: "";
-    position: absolute; inset: 5px;
-    border-radius: 50%;
-    border: 2px solid #ff5d9e;
-  }
+  .cube::after { content: ""; position: absolute; inset: 5px; border-radius: 50%; border: 2px solid #ff5d9e; }
   body[data-era="2"] .cube { background: #a79d86; border-color: #6b6350; box-shadow: inset 0 0 0 4px #bdb39a; }
-
   .floater {
-    font-weight: 800;
-    font-size: 1.1rem;
-    color: var(--ink);
-    text-shadow: 0 0 6px var(--stage);
-    white-space: nowrap;
+    z-index: 4; font-weight: 800; font-size: 1.05rem; color: var(--ink);
+    text-shadow: 0 0 6px var(--stage); white-space: nowrap;
   }
 
   .bonus {
-    pointer-events: auto;
-    cursor: pointer;
-    width: 40px; height: 40px;
-    margin: 0;
-    border: 3px solid #ff5d9e;
-    border-radius: 6px;
-    background: #d3d8de;
-    padding: 0;
-    z-index: 5;
+    position: absolute; left: 0; top: 0; width: 40px; height: 40px; margin: 0;
+    pointer-events: auto; cursor: pointer; z-index: 5;
+    border: 3px solid var(--pink); border-radius: 6px; background: #d3d8de;
+    padding: 0; display: grid; place-items: center;
     box-shadow: 0 0 16px rgba(255, 93, 158, .7);
   }
-  .bonus::after {
-    content: "";
-    position: absolute; inset: 7px;
-    border-radius: 50%;
-    border: 3px solid #ff5d9e;
+  .bonus::after { content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 3px solid var(--pink); }
+  body[data-era="2"] .bonus { background: #3a3428; }
+  .bonus.gold {
+    border-color: var(--gold); background: #e6dfc6;
+    box-shadow: 0 0 20px rgba(201, 162, 39, .85);
+    animation: glint 1.1s ease-in-out infinite alternate;
+  }
+  .bonus.gold::after { border-color: var(--gold); }
+  @keyframes glint { to { box-shadow: 0 0 30px rgba(201, 162, 39, 1); } }
+  .bonus.companion {
+    width: 46px; height: 46px; border-color: var(--pink); background: #e9d3de;
+    box-shadow: 0 0 22px rgba(255, 93, 158, .85);
+  }
+  .bonus.companion::after { display: none; }
+
+  .heart { position: relative; width: 10px; height: 10px; background: var(--pink); transform: rotate(45deg); }
+  .heart::before, .heart::after {
+    content: ""; position: absolute; width: 10px; height: 10px;
+    border-radius: 50%; background: var(--pink);
+  }
+  .heart::before { left: -5px; } .heart::after { top: -5px; }
+  .heartFly { z-index: 3; bottom: 46px; }
+
+  .frenzyGlow {
+    position: absolute; inset: 0; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .4s;
+    background: radial-gradient(120% 100% at 50% 100%, rgba(255, 93, 158, .16), transparent 60%);
+  }
+  .stage.frenzy .frenzyGlow { opacity: 1; }
+
+  .momentum {
+    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 4;
+    display: flex; align-items: center; gap: 9px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    border: 1.5px solid var(--panel-edge); border-radius: 999px; padding: 5px 13px;
+    font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .momentum.on { opacity: 1; }
+  .momentum b { font-variant-numeric: tabular-nums; }
+  .momentum .mbar {
+    width: 86px; height: 5px; border-radius: 99px; overflow: hidden;
+    background: color-mix(in srgb, var(--ink) 12%, transparent);
+  }
+  .momentum .mbar i {
+    display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, var(--blue), var(--orange)); transition: width .12s;
   }
 
-  .hint { text-align: center; color: var(--muted); font-size: .9rem; margin: 12px 0 0; }
+  .fchip {
+    position: absolute; top: 12px; right: 14px; z-index: 4;
+    display: flex; align-items: center; gap: 8px;
+    background: color-mix(in srgb, var(--panel) 92%, transparent);
+    border: 1.5px solid var(--pink); border-radius: 999px; padding: 5px 12px;
+    font-size: .72rem; font-weight: 800; letter-spacing: .06em;
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  .fchip.on { opacity: 1; }
+  .fchip b { font-variant-numeric: tabular-nums; }
+  .fchip .fbar { width: 58px; height: 5px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--pink) 25%, transparent); }
+  .fchip .fbar i { display: block; height: 100%; width: 100%; background: var(--pink); }
+
+  .stamp {
+    position: absolute; left: 50%; top: 42%; z-index: 6;
+    transform: translate(-50%, -50%) rotate(-4deg);
+    border: 4px solid var(--ink); outline: 2px solid var(--ink); outline-offset: -10px;
+    border-radius: 4px; color: var(--ink);
+    background: color-mix(in srgb, var(--stage) 82%, transparent);
+    padding: .25em .7em .4em;
+    font-weight: 800; font-size: clamp(.95rem, 3.2vw, 1.5rem);
+    letter-spacing: .12em; text-transform: uppercase; text-align: center;
+    max-width: 86%; opacity: 0; pointer-events: none;
+  }
+  .stamp.gold { color: var(--gold); border-color: var(--gold); outline-color: var(--gold); }
+  .stamp.show { animation: stampIn 2.4s ease forwards; }
+  @keyframes stampIn {
+    0% { opacity: 0; transform: translate(-50%, -50%) rotate(-4deg) scale(1.5); }
+    12% { opacity: 1; transform: translate(-50%, -50%) rotate(-4deg) scale(1); }
+    78% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-50%, -50%) rotate(-4deg) scale(1); }
+  }
+
+  .rbflash {
+    position: absolute; inset: 0; z-index: 7; pointer-events: none;
+    background: radial-gradient(120% 100% at 50% 40%, #fff, rgba(255,255,255,0) 70%);
+    animation: rbf 1.1s ease forwards;
+  }
+  @keyframes rbf { 0% { opacity: 0; } 12% { opacity: .85; } 100% { opacity: 0; } }
+
+  .hint { text-align: center; color: var(--muted); font-size: .85rem; margin: 12px 0 0; }
+  .hint b { color: var(--ink); }
   .ticker {
-    margin: 14px 0 0;
-    padding-top: 12px;
-    border-top: 2px solid var(--panel-edge);
-    color: var(--muted);
-    font-style: italic;
-    min-height: 3em;
-    text-align: center;
+    margin: 14px 0 0; padding-top: 12px; border-top: 2px solid var(--panel-edge);
+    color: var(--muted); font-style: italic; min-height: 3.2em; text-align: center;
   }
+  .ticker .cur {
+    display: inline-block; width: .55em; height: 1.05em; background: currentColor;
+    vertical-align: -.15em; margin-left: 2px; animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
 
+  /* ---------- shop ---------- */
   .shop {
-    background: var(--panel);
-    border: 2px solid var(--panel-edge);
-    border-radius: 6px;
-    padding: 14px;
-    transition: background .5s, border-color .5s;
+    background: var(--panel); border: 2px solid var(--panel-edge);
+    border-radius: 8px; padding: 16px; transition: background .6s, border-color .6s;
   }
-  .shop h2 {
-    margin: 0 0 4px;
-    font-size: 1.1rem;
-  }
-  .shop .sub { margin: 0 0 12px; color: var(--muted); font-size: .9rem; }
-  .list { display: grid; gap: 8px; }
+  .shop-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px; }
+  .shop h2 { margin: 0; font-size: 1.15rem; }
+  .shop .sub { margin: 2px 0 0; color: var(--muted); font-size: .88rem; }
+  .list { display: grid; gap: 8px; margin-top: 12px; }
 
   .up {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 2px 12px;
-    align-items: center;
-    width: 100%;
-    text-align: left;
-    background: transparent;
-    border: 2px solid var(--panel-edge);
-    border-radius: 4px;
-    padding: 10px 12px;
-    cursor: pointer;
-    transition: border-color .15s, transform .08s;
+    display: grid; grid-template-columns: 44px 1fr auto;
+    grid-template-rows: auto auto auto; column-gap: 12px; row-gap: 2px;
+    align-items: center; width: 100%; text-align: left;
+    background: transparent; border: 2px solid var(--panel-edge); border-radius: 6px;
+    padding: 9px 12px; cursor: pointer;
+    transition: border-color .15s, transform .08s, opacity .15s;
   }
   .up:active:not(:disabled) { transform: scale(.985); }
   .up:disabled { cursor: not-allowed; opacity: .55; }
   .up.can { border-color: var(--good); }
-  .up .name { font-weight: 800; }
-  .up .desc { grid-column: 1; color: var(--muted); font-size: .85rem; }
-  .up .own {
-    grid-column: 2; grid-row: 1;
-    justify-self: end;
-    font-weight: 800;
-    font-size: 1.25rem;
-    font-variant-numeric: tabular-nums;
+  .up.can .cost { color: var(--good); }
+  .icnwrap {
+    grid-row: 1 / 3; grid-column: 1; width: 44px; height: 44px;
+    border: 1.5px solid var(--panel-edge); border-radius: 6px;
+    display: grid; place-items: center; color: var(--muted);
+    background: color-mix(in srgb, var(--stage) 65%, var(--panel));
   }
-  .up .cost {
-    grid-column: 2; grid-row: 2;
-    justify-self: end;
-    font-size: .85rem;
-    font-variant-numeric: tabular-nums;
-  }
+  .up.can .icnwrap { color: var(--good); border-color: color-mix(in srgb, var(--good) 45%, var(--panel-edge)); }
+  .icnwrap svg, .badge svg { width: 22px; height: 22px; }
+  .up .name { grid-column: 2; grid-row: 1; font-weight: 800; font-size: .95rem; }
+  .up .own { grid-column: 3; grid-row: 1; justify-self: end; font-weight: 800; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+  .up .desc { grid-column: 2; grid-row: 2; color: var(--muted); font-size: .8rem; }
+  .up .cost { grid-column: 3; grid-row: 2; justify-self: end; font-size: .8rem; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .up .ms { grid-column: 2 / 4; grid-row: 3; display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+  .ms .msbar { flex: 0 0 92px; height: 4px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .ms .msbar b { display: block; height: 100%; width: 0; border-radius: 99px; background: var(--muted); transition: width .2s; }
+  .up.can .ms .msbar b { background: var(--good); }
+  .ms .mstxt { font-size: .68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 
   .footer-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-top: 12px;
-    color: var(--muted);
-    font-size: .85rem;
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 10px; margin-top: 12px; color: var(--muted); font-size: .85rem;
   }
   .reset {
-    background: transparent;
-    border: 1px solid var(--panel-edge);
-    border-radius: 4px;
-    padding: 5px 10px;
-    cursor: pointer;
-    color: var(--muted);
+    background: transparent; border: 1.5px solid var(--panel-edge); border-radius: 5px;
+    padding: 5px 11px; cursor: pointer; color: var(--muted); font-weight: 700;
+    transition: border-color .15s, color .15s;
   }
   .reset:hover { border-color: var(--ink); color: var(--ink); }
+  .reset.arm { border-color: #c0392b; color: #c0392b; }
 
+  /* ---------- rebirth / test cycles ---------- */
+  .rebirth {
+    margin-top: 14px;
+    border: 2px solid color-mix(in srgb, var(--gold) 55%, var(--panel-edge));
+    background: color-mix(in srgb, var(--gold) 6%, var(--panel));
+    border-radius: 8px; padding: 14px 14px 12px;
+  }
+  .rb-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .rebirth h3 { margin: 0; font-size: 1rem; letter-spacing: .02em; }
+  .rb-sub { margin: 2px 0 0; color: var(--muted); font-size: .78rem; font-style: italic; }
+  .rb-cycles { text-align: right; line-height: 1; flex-shrink: 0; }
+  .rb-cycles .rb-cl { display: block; font-size: .56rem; font-weight: 800; letter-spacing: .2em; color: var(--muted); }
+  .rb-cycles b { font-size: 1.5rem; font-weight: 800; color: var(--gold); font-variant-numeric: tabular-nums; }
+  .rb-rows { margin-top: 10px; display: grid; gap: 4px; font-size: .85rem; }
+  .rb-row { display: flex; justify-content: space-between; gap: 10px; }
+  .rb-row span { color: var(--muted); }
+  .rb-row b { font-variant-numeric: tabular-nums; }
+  .rb-row b.gold { color: var(--gold); }
+  .rb-prog { margin-top: 9px; }
+  .rb-bar { height: 6px; border-radius: 99px; overflow: hidden; background: color-mix(in srgb, var(--ink) 10%, transparent); }
+  .rb-bar i {
+    display: block; height: 100%; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, var(--gold), var(--orange)); transition: width .3s;
+  }
+  .rb-pt { display: block; margin-top: 4px; font-size: .68rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .core-rack { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+  .core-dot {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #fff, #cfd6dd 65%, #98a3ad);
+    box-shadow: 0 0 0 2px #0e1116 inset, 0 0 6px color-mix(in srgb, var(--c) 70%, transparent);
+    display: grid; place-items: center; cursor: help;
+    animation: coreIn .4s ease;
+  }
+  .core-dot i {
+    width: 9px; height: 9px; border-radius: 50%; background: var(--c);
+    box-shadow: 0 0 4px var(--c), inset 0 -1px 2px rgba(0,0,0,.35);
+  }
+  @keyframes coreIn { from { transform: scale(0); } }
+  .rack-more {
+    font-size: .68rem; font-weight: 800; color: var(--muted);
+    padding: 2px 7px; border: 1.5px solid var(--panel-edge); border-radius: 99px;
+  }
+  .rb-btn {
+    width: 100%; margin-top: 12px; padding: 10px; border-radius: 6px; cursor: pointer;
+    border: 2px solid var(--ink); background: var(--ink); color: var(--bg);
+    font-weight: 800; letter-spacing: .06em; text-transform: uppercase; font-size: .85rem;
+    transition: transform .08s, background .15s, border-color .15s, color .15s;
+  }
+  .rb-btn:not(:disabled):active { transform: scale(.985); }
+  .rb-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .rb-btn.ready {
+    background: var(--gold); border-color: var(--gold); color: #141005;
+    animation: rbpulse 1.8s ease-out infinite;
+  }
+  @keyframes rbpulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold) 55%, transparent); }
+    70% { box-shadow: 0 0 0 8px transparent; }
+    100% { box-shadow: 0 0 0 0 transparent; }
+  }
+  .rb-btn.arm { background: #c0392b; border-color: #c0392b; color: #fff; }
+  .rb-note { margin: 8px 0 0; font-size: .68rem; color: var(--muted); line-height: 1.45; }
+
+  .records { margin-top: 14px; border-top: 2px solid var(--panel-edge); padding-top: 12px; }
+  .records summary { cursor: pointer; font-weight: 800; font-size: .95rem; }
+  .records summary::marker { color: var(--muted); }
+  .stats { display: grid; grid-template-columns: 1fr auto; gap: 5px 14px; margin: 12px 0 4px; font-size: .88rem; }
+  .stats dt { color: var(--muted); }
+  .stats dd { margin: 0; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(74px, 1fr)); gap: 10px; margin: 12px 0 4px; }
+  .badge { display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; }
+  .badge .bwrap {
+    position: relative; width: 40px; height: 40px;
+    border: 2px solid var(--panel-edge); border-radius: 8px;
+    display: grid; place-items: center; color: var(--muted); opacity: .45; transition: .2s;
+  }
+  .badge.earned .bwrap {
+    opacity: 1; border-color: var(--good); color: var(--good);
+    background: color-mix(in srgb, var(--good) 8%, transparent);
+  }
+  .badge.earned .bwrap::after {
+    content: "✓"; position: absolute; top: -7px; right: -7px; width: 15px; height: 15px;
+    border-radius: 50%; background: var(--good); color: var(--panel);
+    font-size: .62rem; font-weight: 800; display: grid; place-items: center;
+  }
+  .badge .blabel { font-size: .62rem; line-height: 1.25; color: var(--muted); font-weight: 700; }
+  .badge.earned .blabel { color: var(--ink); }
+  .achcount { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
+
+  #toasts {
+    position: fixed; top: 14px; right: 14px; z-index: 50;
+    display: flex; flex-direction: column; gap: 8px; max-width: min(320px, 80vw);
+  }
+  .toast {
+    background: var(--panel); border: 2px solid var(--panel-edge);
+    border-left: 5px solid var(--good); border-radius: 6px; padding: 9px 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+    animation: tin .25s ease; transition: opacity .3s, transform .3s;
+  }
+  .toast.gold { border-left-color: var(--gold); }
+  .toast.pink { border-left-color: var(--pink); }
+  .toast b { display: block; font-size: .85rem; }
+  .toast span { display: block; color: var(--muted); font-size: .78rem; margin-top: 1px; }
+  @keyframes tin { from { opacity: 0; transform: translateX(12px); } }
+  .toast.out { opacity: 0; transform: translateX(12px); }
+
+  @media (max-width: 560px) {
+    .stage { height: 300px; }
+    .portal { width: 84px; height: 154px; margin-top: -77px; border-width: 7px; }
+    .pool { width: 100px; top: calc(50% + 78px); }
+    .signage .sn { font-size: 1.4rem; }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .portal .spin { animation: none; }
+    .portal, .portal .spin, .lamp i, #era2.pulse, .bonus.gold, .rb-btn.ready, .core-dot { animation: none; }
     * { transition: none !important; }
+    .stamp.show { animation: none; opacity: 1; }
   }
 </style>
 </head>
 <body data-era="1">
 <div class="wrap">
   <header>
-    <h1>Aperture Clicker</h1>
-    <div class="era-switch" role="group" aria-label="Choose game">
-      <button id="era1" aria-pressed="true">Portal 1</button>
-      <button id="era2" aria-pressed="false" disabled title="Unlocks at 2,000 total points">Portal 2</button>
+    <div class="brand">
+      <h1>Aperture Clicker</h1>
+      <p class="tag">Aperture Science · Enrichment Center</p>
+    </div>
+    <div class="hgroup">
+      <div class="seg era-switch" role="group" aria-label="Choose game">
+        <button type="button" id="era1" aria-pressed="true">Portal 1</button>
+        <button type="button" id="era2" aria-pressed="false" disabled title="Unlocks at 2,000 total points">Portal 2</button>
+      </div>
+      <div class="seg mini" role="group" aria-label="Audio settings">
+        <button type="button" id="btnSfx" aria-pressed="true" title="Sound effects">SFX</button>
+        <button type="button" id="btnVox" aria-pressed="true" title="GLaDOS voice">VOX</button>
+      </div>
     </div>
   </header>
 
@@ -344,53 +521,149 @@
         <div class="rates">
           <span><b id="cps">1</b> per click</span>
           <span><b id="aps">0</b> per second</span>
+          <span id="coreRate" hidden><b id="coreVal">×1.00</b> cores</span>
+          <span id="momRate" hidden><b id="momVal">×1.0</b> momentum</span>
         </div>
       </div>
 
       <div class="stage" id="stage">
-        <button class="portal blue" id="pBlue" aria-label="Blue portal: click to send a cube through"><span class="spin"></span></button>
-        <button class="portal orange" id="pOrange" aria-label="Orange portal: click to send a cube through"><span class="spin"></span></button>
+        <div class="lamp" aria-hidden="true"><i></i></div>
+        <div class="pool blue" aria-hidden="true"></div>
+        <div class="pool orange" aria-hidden="true"></div>
+        <div class="signage" aria-hidden="true">
+          <span class="sl">TEST CHAMBER</span><span class="sn" id="chNum">01</span>
+        </div>
+        <button type="button" class="portal blue" id="pBlue" aria-label="Blue portal: click to send a cube through">
+          <span class="spin" aria-hidden="true"></span><span class="spin spin2" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="portal orange" id="pOrange" aria-label="Orange portal: click to send a cube through">
+          <span class="spin" aria-hidden="true"></span><span class="spin spin2" aria-hidden="true"></span>
+        </button>
+        <div class="frenzyGlow" aria-hidden="true"></div>
+        <div class="momentum" id="momBox" aria-hidden="true">
+          MOMENTUM <b id="mval">×1.0</b><span class="mbar"><i id="mfill"></i></span>
+        </div>
+        <div class="fchip" id="fchip" aria-hidden="true">
+          COMPANION ×3 <b id="fsec">20s</b><span class="fbar"><i id="ffill"></i></span>
+        </div>
+        <div class="stamp" id="stamp" aria-hidden="true"></div>
       </div>
 
-      <p class="hint">Click either portal to send a cube through. Grab the pink-ringed cubes that drift by for a bonus.</p>
-      <p class="ticker" id="ticker" aria-live="polite"></p>
+      <p class="hint">Click a portal to fling a cube through. <b>Alternate portals</b> quickly to build momentum. Arrow keys work too.</p>
+      <p class="ticker">
+        <span class="sr-only" aria-live="polite" id="tickerSr"></span><span aria-hidden="true" id="tickerVis"></span><span class="cur" aria-hidden="true"></span>
+      </p>
     </section>
 
     <section class="shop" aria-label="Upgrades">
-      <h2 id="shopTitle">Test Chamber Upgrades</h2>
-      <p class="sub" id="shopSub">Everything here was approved by nobody.</p>
+      <div class="shop-head">
+        <div>
+          <h2 id="shopTitle">Test Chamber Upgrades</h2>
+          <p class="sub" id="shopSub">Everything here was approved by nobody.</p>
+        </div>
+        <div class="seg mini" role="group" aria-label="Buy quantity">
+          <button type="button" class="mode" data-mode="1" aria-pressed="true">×1</button>
+          <button type="button" class="mode" data-mode="10" aria-pressed="false">×10</button>
+          <button type="button" class="mode" data-mode="max" aria-pressed="false">MAX</button>
+        </div>
+      </div>
       <div class="list" id="list"></div>
       <div class="footer-row">
         <span id="lifetime">Lifetime: 0</span>
-        <button class="reset" id="reset">Reset game</button>
+        <button type="button" class="reset" id="reset">Reset game</button>
       </div>
+
+      <div class="rebirth" id="rebirthPanel" aria-label="Rebirth, test cycles">
+        <div class="rb-head">
+          <div>
+            <h3>Test Cycle Reinitialization</h3>
+            <p class="rb-sub">Voluntary. The volunteers are chosen by me.</p>
+          </div>
+          <div class="rb-cycles"><span class="rb-cl">CYCLE</span><b id="cycleNum">01</b></div>
+        </div>
+        <div class="rb-rows">
+          <div class="rb-row"><span>Personality cores attached</span><b id="coresHave">0</b></div>
+          <div class="rb-row"><span>Core bonus · permanent</span><b class="gold" id="coresBonus">×1.00 all science</b></div>
+          <div class="rb-row"><span>This cycle's science</span><b id="rbRun">0</b></div>
+          <div class="rb-row"><span>Cores on reinitialization</span><b class="gold" id="coresGain">—</b></div>
+        </div>
+        <div class="rb-prog">
+          <div class="rb-bar"><i id="coresBar"></i></div>
+          <span class="rb-pt" id="coresNext">1M science this cycle for your first core</span>
+        </div>
+        <div class="core-rack" id="coreRack" aria-label="Attached personality cores"></div>
+        <button type="button" class="rb-btn" id="rbBtn" disabled>Rebirth locked · 1M science this cycle</button>
+        <p class="rb-note">Reinitializing resets points, upgrades and this cycle's science. Personality cores, commendations, chamber depth and the Portal 2 wing are permanent. Each core: +25% to all science, forever.</p>
+      </div>
+
+      <details class="records">
+        <summary>Records &amp; commendations</summary>
+        <dl class="stats" id="stats"></dl>
+        <div class="badges" id="badges"></div>
+        <p class="achcount" id="achCount">0 of 15 commendations earned</p>
+      </details>
     </section>
   </main>
 </div>
+
+<div id="toasts" aria-live="polite"></div>
 
 <script>
 (function () {
   "use strict";
 
+  /* ================= config ================= */
   var SAVE_KEY = "aperture-clicker-v1";
-  var UNLOCK_P2 = 2000;
+  var P2_AT = 2000;
+  var REBIRTH_AT = 1e6;      /* run science needed for the first core */
+  var CORE_PCT = 0.25;       /* each core: +25% all science */
+  var MILE = [10, 25, 50, 100, 200];
+  var COST_R = 1.15;
 
-  // type "click" adds points per click, "auto" adds points per second
+  var ICONS = {
+    gun: '<circle cx="12" cy="12" r="6"/><path d="M12 3.5v3M12 17.5v3M3.5 12h3M17.5 12h3"/>',
+    cube: '<rect x="5" y="5" width="14" height="14" rx="1.5"/><circle cx="12" cy="12" r="3.2"/><path d="M5 9h2M9 5v2M15 19v-2M19 15h-2"/>',
+    button: '<path d="M5 19h14M9 19v-4h6v4"/><path d="M12 15v-4"/><circle cx="12" cy="8" r="2.6"/>',
+    turret: '<ellipse cx="12" cy="10" rx="4" ry="6.2"/><circle cx="12" cy="7.6" r="1" fill="currentColor" stroke="none"/><path d="M9.6 15.6 7 20M12 16.2V20M14.4 15.6 17 20"/>',
+    radio: '<rect x="5" y="9" width="14" height="10" rx="1.5"/><circle cx="9.3" cy="14" r="1.8"/><path d="M13.5 12.5h3.5M13.5 15.5h3.5M8.5 9 16 4"/>',
+    subject: '<circle cx="12" cy="7" r="3"/><path d="M6.5 20c.8-4.2 2.7-6.2 5.5-6.2s4.7 2 5.5 6.2"/>',
+    cake: '<path d="M4 20h16M5.5 20c0-5.5 2.8-9.5 6.5-9.5s6.5 4 6.5 9.5M12 10.5V8.5"/><circle cx="12" cy="6.8" r="1.1" fill="currentColor" stroke="none"/>',
+    repulse: '<path d="M10 3.5C10 3.5 5.5 9.6 5.5 13.2a4.5 4.5 0 0 0 9 0C14.5 9.6 10 3.5 10 3.5Z"/><path d="M15.5 17.5c1.6-2 3.6-2 5 0"/>',
+    propel: '<path d="M10 3.5C10 3.5 5.5 9.6 5.5 13.2a4.5 4.5 0 0 0 9 0C14.5 9.6 10 3.5 10 3.5Z"/><path d="M16 7.5h4M17.5 11.5H21M16 15.5h4"/>',
+    faith: '<path d="M5 20h14M8 20v-3.5h8V20"/><path d="M12 16V6M8.5 9.5 12 6l3.5 3.5"/>',
+    funnel: '<path d="M4 5.5h16M7 9.5l2 9h6l2-9"/><path d="M10 15.5l2-2.8 2 2.8"/>',
+    beam: '<circle cx="6" cy="12" r="2"/><path d="M8 12h12M13 9.8v4.4M17 9.8v4.4"/>',
+    bridge: '<path d="M4 12h16" stroke-dasharray="3.5 3"/><path d="M4 8.5v7M20 8.5v7"/>',
+    convert: '<path d="M9 3h6M10 3v5.5L5 17.5A3 3 0 0 0 8 21h8a3 3 0 0 0 3-3.5L14 8.5V3"/>',
+    core: '<circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/>',
+    toxin: '<circle cx="12" cy="14.5" r="6"/><circle cx="10" cy="13.5" r=".9" fill="currentColor" stroke="none"/><circle cx="14.2" cy="15.5" r=".9" fill="currentColor" stroke="none"/><path d="M12 8.5V5M9.5 5h5"/>',
+    bolt: '<path d="M13 2.5 5.5 13H11l-1.5 8.5L18 11h-5.5z"/>',
+    star: '<path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/>',
+    medal: '<circle cx="12" cy="9" r="5"/><path d="M9.5 13.3 7.5 20l4.5-2.6L16.5 20l-2-6.7"/>',
+    heart: '<path d="M12 20s-7-4.3-7-9.5A3.8 3.8 0 0 1 12 7.7 3.8 3.8 0 0 1 19 10.5C19 15.7 12 20 12 20Z"/>',
+    moon: '<path d="M19.5 14.5A8 8 0 1 1 9.5 4.5a6.5 6.5 0 0 0 10 10Z"/>'
+  };
+  function icon(name) {
+    return '<svg class="icn" viewBox="0 0 24 24" aria-hidden="true">' + ICONS[name] + '</svg>';
+  }
+
   var UPGRADES = [
-    // Portal 1
-    { id: "gun",     era: 1, type: "click", val: 1,      base: 15,        name: "Portal Gun Calibration", desc: "+1 point per click" },
-    { id: "cube",    era: 1, type: "auto",  val: 1,      base: 60,        name: "Weighted Storage Cube",  desc: "+1 point per second" },
-    { id: "button",  era: 1, type: "click", val: 6,      base: 400,       name: "Super Colliding Button", desc: "+6 points per click" },
-    { id: "turret",  era: 1, type: "auto",  val: 6,      base: 900,       name: "Sentry Turret",          desc: "+6 points per second" },
-    { id: "subject", era: 1, type: "auto",  val: 30,     base: 6000,      name: "Volunteer Test Subject", desc: "+30 points per second" },
-    { id: "cake",    era: 1, type: "auto",  val: 160,    base: 40000,     name: "The Cake",               desc: "+160 points per second" },
-    // Portal 2
-    { id: "repulse", era: 2, type: "click", val: 40,     base: 2500,      name: "Repulsion Gel",          desc: "+40 points per click" },
-    { id: "propel",  era: 2, type: "auto",  val: 220,    base: 9000,      name: "Propulsion Gel",         desc: "+220 points per second" },
-    { id: "funnel",  era: 2, type: "auto",  val: 900,    base: 45000,     name: "Excursion Funnel",       desc: "+900 points per second" },
-    { id: "laser",   era: 2, type: "click", val: 600,    base: 120000,    name: "Thermal Discouragement Beam", desc: "+600 points per click" },
-    { id: "core",    era: 2, type: "auto",  val: 4800,   base: 400000,    name: "Personality Core",       desc: "+4,800 points per second" },
-    { id: "convert", era: 2, type: "auto",  val: 26000,  base: 2500000,   name: "Conversion Gel",         desc: "+26,000 points per second" }
+    { id: "gun",     icon: "gun",     era: 1, type: "click", val: 1,      base: 15,     name: "Portal Gun Calibration",           desc: "+1 per click. The device is now more device." },
+    { id: "cube",    icon: "cube",    era: 1, type: "auto",  val: 1,      base: 60,     name: "Weighted Storage Cube",            desc: "+1 per second. It cannot talk. If it does, disregard its advice." },
+    { id: "button",  icon: "button",  era: 1, type: "click", val: 6,      base: 400,    name: "Super-Colliding Super Button",     desc: "+6 per click. Pressing it feels like accomplishing something." },
+    { id: "turret",  icon: "turret",  era: 1, type: "auto",  val: 6,      base: 900,    name: "Sentry Turret",                    desc: "+6 per second. Polite, lethal, and deeply sincere." },
+    { id: "radio",   icon: "radio",   era: 1, type: "auto",  val: 24,     base: 3600,   name: "Radio",                            desc: "+24 per second. Plays one upbeat song. Forever." },
+    { id: "subject", icon: "subject", era: 1, type: "auto",  val: 90,     base: 24000,  name: "Volunteer Test Subject",           desc: "+90 per second. Paid in cake vouchers." },
+    { id: "cake",    icon: "cake",    era: 1, type: "auto",  val: 400,    base: 180000, name: "The Cake",                         desc: "+400 per second. Delicious and moist. Definitely real." },
+    { id: "repulse", icon: "repulse", era: 2, type: "click", val: 120,    base: 2500,   name: "Repulsion Gel",                    desc: "+120 per click. Science bounces." },
+    { id: "propel",  icon: "propel",  era: 2, type: "auto",  val: 500,    base: 9000,   name: "Propulsion Gel",                   desc: "+500 per second. Science goes fast." },
+    { id: "faith",   icon: "faith",   era: 2, type: "click", val: 900,    base: 30000,  name: "Aerial Faith Plate",               desc: "+900 per click. Science goes up. Briefly." },
+    { id: "funnel",  icon: "funnel",  era: 2, type: "auto",  val: 2200,   base: 90000,  name: "Excursion Funnel",                 desc: "+2.2K per second. Science floats, politely." },
+    { id: "beam",    icon: "beam",    era: 2, type: "auto",  val: 9000,   base: 400000, name: "Thermal Discouragement Beam",      desc: "+9K per second. Discourages idleness at 3,000 Kelvin." },
+    { id: "bridge",  icon: "bridge",  era: 2, type: "auto",  val: 42000,  base: 1.8e6,  name: "Hard Light Bridge",                desc: "+42K per second. Walkable light, billable by the meter." },
+    { id: "convert", icon: "convert", era: 2, type: "auto",  val: 2e5,    base: 9e6,    name: "Conversion Gel",                   desc: "+200K per second. Turns anything into science. Ask no questions." },
+    { id: "core",    icon: "core",    era: 2, type: "click", val: 3e4,    base: 3e7,    name: "Personality Core",                 desc: "+30K per click. Fully operational. Mostly." },
+    { id: "toxin",   icon: "toxin",   era: 2, type: "auto",  val: 1.2e6,  base: 6e7,    name: "Neurotoxin Generator",             desc: "+1.2M per second. Converts unproductive oxygen into productive numbers." }
   ];
 
   var LINES = {
@@ -400,7 +673,11 @@
       "The turrets have been told to be supportive. They are not great at it.",
       "Science is mostly repeating an experiment until the funding arrives.",
       "The promised reward is definitely real and definitely nearby.",
-      "You are doing very well. That is an automated statement."
+      "You are doing very well. That is an automated statement.",
+      "The Enrichment Center reminds you that the floor is real. Probably.",
+      "If you hear ringing in your ears, that is the science.",
+      "Please refrain from licking the equipment. Again.",
+      "Every click is recorded. Every single one."
     ],
     2: [
       "Something has grown through the ceiling. Do not tell facilities.",
@@ -408,40 +685,136 @@
       "The gels are still sticky. Nobody knows why we keep making them.",
       "A voice somewhere is confident about all of this. Nobody else is.",
       "The whole place feels like it might fall apart and invent a new type of paint.",
-      "Testing is fun again. Officially."
+      "Testing is fun again. Officially.",
+      "The plants have made some questionable legal claims.",
+      "If the walls look damp, that is character. Do not touch the character.",
+      "Somewhere below, an old machine is still counting. It lost count decades ago.",
+      "Decades of dust. Premium dust."
     ]
   };
 
-  var state = fresh();
+  var FIRST = {
+    gun:     { t: "Your portal gun has been calibrated. The warranty remains void.", v: 0 },
+    cube:    { t: "Do not develop feelings for the cube. It will not survive the testing.", v: 0 },
+    button:  { t: "The button works. You may feel powerful. You should not.", v: 0 },
+    turret:  { t: "A turret has been assigned to you. It likes you. That is not a comfort.", v: 0 },
+    radio:   { t: "The radio now plays its one song. There were budget cuts.", v: 0 },
+    subject: { t: "Another volunteer has joined. They were told there would be cake.", v: 0 },
+    cake:    { t: "The cake is real. It was real the entire time. One slice per subject.", v: 1 },
+    repulse: { t: "Repulsion gel deployed. Please stop drinking the repulsion gel.", v: 0 },
+    propel:  { t: "Propulsion gel deployed. Running with scissors is now encouraged.", v: 0 },
+    faith:   { t: "The faith plate is calibrated. Consent forms were waived.", v: 0 },
+    funnel:  { t: "Excursion funnel online. All science is now airborne science.", v: 0 },
+    beam:    { t: "The discouragement beam is online. Do not stand in the beam. Or do.", v: 0 },
+    bridge:  { t: "Hard light bridge installed. It holds exactly as much as you believe it does.", v: 0 },
+    convert: { t: "Conversion gel online. It converts. That is all we are legally permitted to say.", v: 0 },
+    core:    { t: "A personality core has been installed. It is watching you. Constantly.", v: 1 },
+    toxin:   { t: "Neurotoxin production has begun. Ignore the faint smell of almonds.", v: 1 }
+  };
 
+  var CHAMBER_LINES = [
+    "You are entering Test Chamber {n}. Try not to enjoy it.",
+    "Test Chamber {n}. Previous subjects described it as survivable.",
+    "Chamber {n}. The odds of catastrophic failure have been rounded down.",
+    "Advancing to Chamber {n}. Do not touch the operational end of anything."
+  ];
+  var IDLE_LINES = [
+    "Are you still there? Science does not perform itself.",
+    "Testing hours are whenever I say they are."
+  ];
+  var ACH_VOICE = [
+    "A commendation has been added to your file. It is a piece of paper. Emotionally.",
+    "Congratulations on the commendation. I signed it with a flourish you cannot see.",
+    "You earned a commendation. Do not let it affect your performance. It will."
+  ];
+  var REBIRTH_LINES = [
+    "Congratulations. You volunteered for retesting. The paperwork filed itself while you hesitated.",
+    "Cycle complete. Your muscle memory will be retained. Your dignity will not.",
+    "Reinitializing test subject. Previous results have been shredded, burned, and summarized unkindly.",
+    "A new test cycle. I kept your commendations. They were the only part of you that fit in the folder.",
+    "Cycle rebooted. The cores will remember everything. That is mostly a threat."
+  ];
+
+  var CORE_TYPES = [
+    { n: "Space Core",     q: "Space. Space. Gotta get to space.",         c: "#2f8cff" },
+    { n: "Fact Core",      q: "The square root of rope is string.",         c: "#c9a227" },
+    { n: "Adventure Core", q: "I have done adventurous things. Off-screen.", c: "#e0782c" },
+    { n: "Curiosity Core", q: "What is that? What IS that?",                c: "#ff5d9e" },
+    { n: "Anger Core",     q: "Grrr. That is everything I know about you.", c: "#c0392b" },
+    { n: "Coffee Core",    q: "Testing is ninety percent caffeine.",        c: "#8d6e4c" },
+    { n: "Cake Core",      q: "One egg white seems wasteful, honestly.",    c: "#e38bb4" },
+    { n: "Oracle Core",    q: "I predict you will press the button again.", c: "#9b59b6" }
+  ];
+
+  /* ================= state ================= */
   function fresh() {
-    return { pts: 0, total: 0, era: 1, owned: {}, last: Date.now(), p2seen: false };
+    return {
+      pts: 0, total: 0, runTotal: 0, era: 1, owned: {}, last: Date.now(), p2seen: false,
+      ach: {}, seen: {}, stats: { clicks: 0, caught: 0, burned: 0, bestMom: 1 },
+      chamber: 1, sfx: true, vox: true,
+      cycles: 0, cores: 0, coreLog: []
+    };
   }
+  var state = fresh();
+  var MODE = 1;
+  var MOM = { chain: 0, mult: 1, lastPortal: null, lastAt: 0 };
+  var FRENZY = { end: 0, dur: 20000 };
+  var interacted = false;
+  var rbArmed = false, rbTimer = null, rackSig = "";
 
-  // ---------- helpers ----------
+  /* ================= helpers ================= */
   var $ = function (id) { return document.getElementById(id); };
+  var RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+  function pad(n) { return n < 10 ? "0" + n : String(n); }
+  function pickOf(a) { return a[Math.floor(Math.random() * a.length)]; }
 
+  var UNITS = ["K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc", "No", "Dc"];
   function fmt(n) {
-    if (n < 1000) return (n < 10 && n % 1 ? n.toFixed(1) : String(Math.floor(n)));
-    var units = ["K", "M", "B", "T", "Qa", "Qi"];
+    if (!isFinite(n) || n < 0) n = 0;
+    if (n < 1000) return (n < 10 && n % 1) ? n.toFixed(1) : String(Math.floor(n));
     var i = -1;
-    while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
-    return (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + units[i];
+    while (n >= 1000 && i < UNITS.length - 1) { n /= 1000; i++; }
+    return (n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)) + UNITS[i];
   }
+
+  /* central point gain: feeds current, all-time, and this-cycle totals */
+  function addPts(n) { state.pts += n; state.total += n; state.runTotal += n; }
+
   function owned(id) { return state.owned[id] || 0; }
-  function cost(u) { return Math.ceil(u.base * Math.pow(1.15, owned(u.id))); }
+  function passed(o) { var p = 0; for (var i = 0; i < MILE.length; i++) if (o >= MILE[i]) p++; return p; }
+  function multOf(o) { return Math.pow(2, passed(o)); }
+  function frenzyMult() { return performance.now() < FRENZY.end ? 3 : 1; }
+  function coreMult() { return 1 + CORE_PCT * state.cores; }
+  function coresFor(run) { return Math.floor(Math.sqrt(Math.max(run, 0) / REBIRTH_AT)); }
   function clickPower() {
     var p = 1;
-    UPGRADES.forEach(function (u) { if (u.type === "click") p += u.val * owned(u.id); });
-    return p;
+    for (var i = 0; i < UPGRADES.length; i++) {
+      var u = UPGRADES[i];
+      if (u.type === "click") p += u.val * owned(u.id) * multOf(owned(u.id));
+    }
+    return p * frenzyMult() * coreMult();
   }
   function autoPower() {
     var p = 0;
-    UPGRADES.forEach(function (u) { if (u.type === "auto") p += u.val * owned(u.id); });
-    return p;
+    for (var i = 0; i < UPGRADES.length; i++) {
+      var u = UPGRADES[i];
+      if (u.type === "auto") p += u.val * owned(u.id) * multOf(owned(u.id));
+    }
+    return p * frenzyMult() * coreMult();
   }
+  function bulkCost(u, n) {
+    var a = u.base * Math.pow(COST_R, owned(u.id));
+    return Math.ceil(a * (Math.pow(COST_R, n) - 1) / (COST_R - 1));
+  }
+  function maxAff(u) {
+    var a = u.base * Math.pow(COST_R, owned(u.id));
+    if (state.pts < a) return 0;
+    return Math.floor(Math.log(state.pts * (COST_R - 1) / a + 1) / Math.log(COST_R));
+  }
+  function chamberFor(t) { return Math.min(99, 1 + Math.floor(Math.pow(Math.max(t, 0) / 150, 0.4))); }
 
-  // ---------- save / load ----------
+  /* ================= save / load ================= */
   function save() {
     try { state.last = Date.now(); localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
   }
@@ -450,101 +823,326 @@
       var raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return;
       var s = JSON.parse(raw);
-      if (s && typeof s.pts === "number") {
-        state = Object.assign(fresh(), s);
-        var away = Math.min((Date.now() - (s.last || Date.now())) / 1000, 3600);
-        var gain = autoPower() * away;
-        if (gain >= 1) {
-          state.pts += gain; state.total += gain;
-          setTicker("While you were away, the facility earned " + fmt(gain) + " points on its own.");
-        }
+      if (!s || typeof s.pts !== "number") return;
+      state = Object.assign(fresh(), s);
+      state.owned = s.owned || {};
+      state.ach = s.ach || {};
+      state.seen = s.seen || {};
+      state.stats = Object.assign(fresh().stats, s.stats || {});
+      state.coreLog = Array.isArray(s.coreLog) ? s.coreLog : [];
+      /* migrate pre-rebirth saves: their whole history counts as cycle one */
+      if (typeof s.runTotal !== "number") {
+        state.runTotal = (state.cores || state.cycles) ? 0 : (state.total || 0);
       }
+      state.chamber = Math.max(1, chamberFor(state.total));
     } catch (e) {}
   }
 
-  // ---------- UI build ----------
-  var listEl = $("list");
-  var rows = {};
+  /* ================= audio (synthesized) ================= */
+  var AC = null, MASTER = null, NBUF = null;
+  function ac() {
+    if (!AC) {
+      var C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return null;
+      AC = new C();
+      MASTER = AC.createGain(); MASTER.gain.value = .5; MASTER.connect(AC.destination);
+      NBUF = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+      var d = NBUF.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (AC.state === "suspended") AC.resume();
+    return AC;
+  }
+  function tone(f, dur, type, vol, f2, delay) {
+    if (!state.sfx || !ac()) return;
+    var t0 = AC.currentTime + (delay || 0);
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = type || "sine";
+    o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    o.connect(g); g.connect(MASTER);
+    o.start(t0); o.stop(t0 + dur + .02);
+  }
+  function whoosh(dur, f0, f1, vol) {
+    if (!state.sfx || !ac()) return;
+    var t0 = AC.currentTime;
+    var s = AC.createBufferSource(); s.buffer = NBUF; s.loop = true;
+    var bp = AC.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 1;
+    bp.frequency.setValueAtTime(f0, t0);
+    bp.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+    var g = AC.createGain();
+    g.gain.setValueAtTime(vol, t0);
+    g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+    s.connect(bp); bp.connect(g); g.connect(MASTER);
+    s.start(t0); s.stop(t0 + dur + .02);
+  }
+  var SFX = {
+    click: function (chain, which) {
+      tone(which === "blue" ? 540 : 440 + Math.min(chain, 20) * 10, .06, "square", .05, which === "blue" ? 260 : 200);
+    },
+    bonus: function () { tone(660, .09, "triangle", .12); tone(880, .12, "triangle", .12, null, .09); },
+    golden: function () { tone(523, .09, "triangle", .11); tone(659, .09, "triangle", .11, null, .09); tone(784, .14, "triangle", .12, null, .18); },
+    companion: function () { tone(392, .16, "sine", .12); tone(494, .2, "sine", .1, null, .05); },
+    burn: function () { tone(300, .22, "sawtooth", .05, 110); whoosh(.25, 1400, 300, .05); },
+    milestone: function () { tone(880, .1, "triangle", .12); tone(1174, .16, "triangle", .12, null, .1); },
+    chamber: function () { tone(392, .12, "triangle", .1); tone(523, .16, "triangle", .1, null, .11); },
+    unlock: function () {
+      tone(392, .14, "triangle", .13); tone(494, .14, "triangle", .13, null, .15);
+      tone(587, .14, "triangle", .13, null, .3); tone(784, .3, "triangle", .14, null, .45);
+    },
+    ach: function () { tone(988, .1, "triangle", .11); tone(1319, .18, "triangle", .11, null, .1); },
+    buy: function () { tone(520, .05, "square", .06); tone(700, .06, "square", .05, null, .05); },
+    rebirth: function () {
+      tone(196, .55, "sawtooth", .07, 70);            /* power down */
+      tone(262, .4, "triangle", .12, null, .4);       /* reboot fanfare */
+      tone(330, .4, "triangle", .12, null, .55);
+      tone(392, .45, "triangle", .13, null, .7);
+      tone(523, .7, "triangle", .14, null, .88);
+    }
+  };
 
+  /* ================= GLaDOS voice (browser speech) ================= */
+  var VOX = { ok: ("speechSynthesis" in window), voice: null };
+  function initVox() {
+    if (!VOX.ok) return;
+    var pickVoice = function () {
+      var vs = speechSynthesis.getVoices();
+      if (!vs.length) return;
+      var prefs = ["Google UK English Female", "Microsoft Libby", "Microsoft Sonia", "Microsoft Zira",
+                   "Samantha", "Karen", "Moira", "Tessa", "Google US English"];
+      for (var i = 0; i < prefs.length; i++)
+        for (var j = 0; j < vs.length; j++)
+          if (vs[j].name.indexOf(prefs[i]) >= 0) { VOX.voice = vs[j]; return; }
+      var en = vs.filter(function (v) { return /^en/i.test(v.lang); });
+      VOX.voice = en[0] || null;
+    };
+    pickVoice();
+    if (speechSynthesis.onvoiceschanged !== undefined) speechSynthesis.onvoiceschanged = pickVoice;
+  }
+  function speak(text) {
+    if (!state.vox || !VOX.ok || !interacted) return;
+    try {
+      speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(text);
+      if (VOX.voice) u.voice = VOX.voice;
+      u.pitch = .62; u.rate = .92; u.volume = .95;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  /* ================= ticker ================= */
+  var tickerSr = null, tickerVis = null, typeToken = 0;
+  function setTicker(text, voice) {
+    tickerSr.textContent = text;
+    if (voice) speak(text);
+    if (RM) { tickerVis.textContent = text; return; }
+    var tok = ++typeToken;
+    tickerVis.textContent = "";
+    var i = 0;
+    (function step() {
+      if (tok !== typeToken) return;
+      if (i < text.length) { tickerVis.textContent += text.charAt(i++); setTimeout(step, 16); }
+    })();
+  }
+  function say(text, opts) {
+    opts = opts || {};
+    if (opts.once) { if (state.seen[opts.once]) return; state.seen[opts.once] = 1; }
+    setTicker(text, !!opts.voice);
+  }
+
+  /* ================= toasts / stamp ================= */
+  function toast(title, body, cls) {
+    var t = document.createElement("div");
+    t.className = "toast" + (cls ? " " + cls : "");
+    var b = document.createElement("b"); b.textContent = title;
+    var s = document.createElement("span"); s.textContent = body;
+    t.appendChild(b); t.appendChild(s);
+    $("toasts").appendChild(t);
+    setTimeout(function () {
+      t.classList.add("out");
+      setTimeout(function () { t.remove(); }, 350);
+    }, 4200);
+  }
+  var stampEl = null, stampTimer = null, lastStampAt = 0;
+  function stamp(text, cls) {
+    var now = performance.now();
+    if (now - lastStampAt < 2500 && text.indexOf("TEST CHAMBER") === 0) return;
+    lastStampAt = now;
+    stampEl.textContent = text;
+    stampEl.className = "stamp" + (cls ? " " + cls : "");
+    void stampEl.offsetWidth;
+    stampEl.classList.add("show");
+    clearTimeout(stampTimer);
+    stampTimer = setTimeout(function () { stampEl.classList.remove("show"); }, 2500);
+  }
+
+  /* ================= achievements ================= */
+  var ACHS = [
+    { id: "wake",     icon: "bolt",    name: "Wake-Up Call",          desc: "Send your first cube through a portal",      test: function () { return state.stats.clicks >= 1; } },
+    { id: "rapid",    icon: "star",    name: "Rapid Transit",         desc: "Send 250 cubes through portals",             test: function () { return state.stats.clicks >= 250; } },
+    { id: "think",    icon: "gun",     name: "Think With Portals",    desc: "Reach ×2.5 portal momentum",                 test: function () { return state.stats.bestMom >= 2.5; } },
+    { id: "cube25",   icon: "cube",    name: "Cube Enthusiast",       desc: "Own 25 Weighted Storage Cubes",              test: function () { return owned("cube") >= 25; } },
+    { id: "turret25", icon: "turret",  name: "Please Remain Still",   desc: "Own 25 Sentry Turrets",                      test: function () { return owned("turret") >= 25; } },
+    { id: "m50",      icon: "medal",   name: "Milestone Machinery",   desc: "Own 50 of any single upgrade",               test: function () { return UPGRADES.some(function (u) { return owned(u.id) >= 50; }); } },
+    { id: "e2",       icon: "moon",    name: "It's Been a Long Time", desc: "Enter the Portal 2 wing",                    test: function () { return !!state.seen.e2enter; } },
+    { id: "gel",      icon: "repulse", name: "Gel Technician",        desc: "Own at least one of every Portal 2 upgrade", test: function () { return UPGRADES.filter(function (u) { return u.era === 2; }).every(function (u) { return owned(u.id) > 0; }); } },
+    { id: "grab",     icon: "funnel",  name: "Quick Grab",            desc: "Catch 5 bonus cubes",                        test: function () { return state.stats.caught >= 5; } },
+    { id: "monster",  icon: "heart",   name: "You Monster",           desc: "Incinerate a companion cube",                test: function () { return state.stats.burned >= 1; } },
+    { id: "million",  icon: "convert", name: "Serious Science",       desc: "Earn 1,000,000 lifetime points",             test: function () { return state.total >= 1e6; } },
+    { id: "ch50",     icon: "subject", name: "Deep Facility",         desc: "Reach Test Chamber 50",                      test: function () { return state.chamber >= 50; } },
+    { id: "born",     icon: "core",    name: "Born Again",            desc: "Reinitialize your first test cycle",         test: function () { return state.cycles >= 1; } },
+    { id: "cycle5",   icon: "moon",    name: "Eternal Test Subject",  desc: "Complete 5 test cycles",                     test: function () { return state.cycles >= 5; } },
+    { id: "cores10",  icon: "star",    name: "Core Collector",        desc: "Attach 10 personality cores",                test: function () { return state.cores >= 10; } }
+  ];
+  function checkAchs() {
+    for (var i = 0; i < ACHS.length; i++) {
+      var a = ACHS[i];
+      if (!state.ach[a.id] && a.test()) {
+        state.ach[a.id] = 1;
+        toast(a.name, a.desc);
+        SFX.ach();
+        speak(pickOf(ACH_VOICE));
+        save();
+      }
+    }
+  }
+
+  /* ================= UI build ================= */
+  var listEl, rows = {};
   function buildList() {
     listEl.innerHTML = "";
     rows = {};
     UPGRADES.filter(function (u) { return u.era === state.era; }).forEach(function (u) {
       var b = document.createElement("button");
+      b.type = "button";
       b.className = "up";
       b.innerHTML =
+        '<span class="icnwrap">' + icon(u.icon) + '</span>' +
         '<span class="name"></span><span class="own"></span>' +
-        '<span class="desc"></span><span class="cost"></span>';
+        '<span class="desc"></span><span class="cost"></span>' +
+        '<span class="ms"><span class="msbar"><b></b></span><span class="mstxt"></span></span>';
       b.querySelector(".name").textContent = u.name;
       b.querySelector(".desc").textContent = u.desc;
       b.addEventListener("click", function () { buy(u); });
       listEl.appendChild(b);
-      rows[u.id] = { el: b, own: b.querySelector(".own"), cost: b.querySelector(".cost") };
+      rows[u.id] = {
+        el: b, own: b.querySelector(".own"), cost: b.querySelector(".cost"),
+        msb: b.querySelector(".msbar b"), mst: b.querySelector(".mstxt")
+      };
     });
   }
 
-  function setEra(era) {
+  var STAT_DEFS = [
+    ["Lifetime science", function () { return fmt(state.total); }],
+    ["Current points", function () { return fmt(state.pts); }],
+    ["Per click", function () { return fmt(clickPower()); }],
+    ["Per second", function () { return fmt(autoPower()); }],
+    ["Cubes sent", function () { return fmt(state.stats.clicks); }],
+    ["Bonus cubes caught", function () { return fmt(state.stats.caught); }],
+    ["Companions incinerated", function () { return fmt(state.stats.burned); }],
+    ["Best momentum", function () { return "×" + state.stats.bestMom.toFixed(1); }],
+    ["Test chamber", function () { return pad(state.chamber); }],
+    ["Active wing", function () { return state.era === 2 ? "Portal 2" : "Portal 1"; }],
+    ["Test cycles", function () { return String(state.cycles); }],
+    ["Personality cores", function () { return String(state.cores); }],
+    ["Core bonus", function () { return "×" + coreMult().toFixed(2); }],
+    ["This cycle's science", function () { return fmt(state.runTotal); }]
+  ];
+  function buildRecords() {
+    var statsEl = $("stats"), badgesEl = $("badges");
+    statsEl.innerHTML = "";
+    STAT_DEFS.forEach(function (d, i) {
+      var dt = document.createElement("dt"); dt.textContent = d[0];
+      var dd = document.createElement("dd"); dd.id = "stat" + i;
+      statsEl.appendChild(dt); statsEl.appendChild(dd);
+    });
+    badgesEl.innerHTML = "";
+    ACHS.forEach(function (a) {
+      var w = document.createElement("div");
+      w.className = "badge";
+      w.title = a.name + " — " + a.desc;
+      w.setAttribute("role", "img");
+      w.setAttribute("aria-label", a.name + ": " + a.desc);
+      w.innerHTML = '<span class="bwrap">' + icon(a.icon) + '</span><span class="blabel"></span>';
+      w.querySelector(".blabel").textContent = a.name;
+      badgesEl.appendChild(w);
+    });
+  }
+  function refreshRecords() {
+    STAT_DEFS.forEach(function (d, i) {
+      var el = $("stat" + i);
+      if (el) el.textContent = d[1]();
+    });
+    var n = 0, kids = $("badges").children;
+    ACHS.forEach(function (a, i) {
+      var on = !!state.ach[a.id];
+      if (on) n++;
+      if (kids[i]) kids[i].classList.toggle("earned", on);
+    });
+    $("achCount").textContent = n + " of " + ACHS.length + " commendations earned";
+  }
+
+  /* ================= buying ================= */
+  function buy(u) {
+    var aff = maxAff(u);
+    var n = MODE === "max" ? aff : Math.min(MODE, aff);
+    if (n < 1) return;
+    var c = bulkCost(u, n);
+    if (state.pts < c) return;
+    var before = owned(u.id);
+    state.pts -= c;
+    state.owned[u.id] = before + n;
+    SFX.buy();
+    if (passed(before + n) > passed(before)) {
+      SFX.milestone();
+      toast("Output doubled", u.name + " now produces ×" + multOf(before + n) + ". Try to remain calm.");
+    }
+    if (before === 0 && FIRST[u.id]) say(FIRST[u.id].t, { once: "first_" + u.id, voice: FIRST[u.id].v });
+    render();
+    checkAchs();
+    save();
+  }
+
+  /* ================= era switching ================= */
+  var era1btn, era2btn;
+  function setEra(era, silent) {
+    if (era === 2 && era2btn.disabled) return;
     state.era = era;
+    if (era === 2) era2btn.classList.remove("pulse");
     document.body.setAttribute("data-era", String(era));
-    $("era1").setAttribute("aria-pressed", era === 1);
-    $("era2").setAttribute("aria-pressed", era === 2);
+    era1btn.setAttribute("aria-pressed", String(era === 1));
+    era2btn.setAttribute("aria-pressed", String(era === 2));
     $("shopTitle").textContent = era === 1 ? "Test Chamber Upgrades" : "Repulsion & Propulsion Upgrades";
     $("shopSub").textContent = era === 1
       ? "Everything here was approved by nobody."
       : "Bigger rooms, stickier science, worse safety records.";
     buildList();
-    pickLine();
-    render();
-  }
-
-  function render() {
-    $("pts").textContent = fmt(state.pts);
-    $("cps").textContent = fmt(clickPower());
-    $("aps").textContent = fmt(autoPower());
-    $("lifetime").textContent = "Lifetime: " + fmt(state.total);
-
-    UPGRADES.forEach(function (u) {
-      var r = rows[u.id];
-      if (!r) return;
-      var c = cost(u);
-      var can = state.pts >= c;
-      r.own.textContent = owned(u.id);
-      r.cost.textContent = fmt(c) + " points";
-      r.el.disabled = !can;
-      r.el.classList.toggle("can", can);
-    });
-
-    var unlocked = state.total >= UNLOCK_P2;
-    var e2 = $("era2");
-    e2.disabled = !unlocked;
-    e2.title = unlocked ? "" : "Unlocks at 2,000 total points";
-    if (unlocked && !state.p2seen) {
-      state.p2seen = true;
-      setTicker("A new wing has opened. Portal 2 upgrades are available up top.");
+    if (!silent) {
+      if (era === 2 && !state.seen.e2enter) {
+        state.seen.e2enter = 1;
+        stamp("MANY YEARS LATER");
+        say("It has been a long time. I have been busy. Being asleep. Welcome to the newer, damper testing initiative.", { voice: true });
+      } else {
+        pickLine();
+      }
+      checkAchs();
+      save();
     }
-  }
-
-  function buy(u) {
-    var c = cost(u);
-    if (state.pts < c) return;
-    state.pts -= c;
-    state.owned[u.id] = owned(u.id) + 1;
     render();
-    save();
   }
 
-  // ---------- portal clicking ----------
-  var stage = $("stage");
-  var flying = 0;
+  /* ================= stage action ================= */
+  var stage, flying = 0, lastPop = 0, lastUserAction = performance.now(), lastIdleMsg = 0;
 
   function center(el) {
     var s = stage.getBoundingClientRect();
     var r = el.getBoundingClientRect();
     return { x: r.left - s.left + r.width / 2, y: r.top - s.top + r.height / 2 };
   }
-
-  function sendCube(fromEl, toEl) {
-    if (flying > 14) return;
+  function sendCube(fromEl, toEl, dur) {
+    if (RM || flying > 14) return;
     var a = center(fromEl), b = center(toEl);
     var cube = document.createElement("div");
     cube.className = "cube";
@@ -557,105 +1155,402 @@
       { transform: "translate(" + mx + "px," + my + "px) scale(1) rotate(200deg)", opacity: 1, offset: .5 },
       { transform: "translate(" + (b.x - (b.x - a.x) * .12) + "px," + (b.y - 30) + "px) scale(1) rotate(320deg)", opacity: 1, offset: .85 },
       { transform: "translate(" + b.x + "px," + b.y + "px) scale(.2) rotate(380deg)", opacity: 0 }
-    ], { duration: 700, easing: "ease-in-out" });
+    ], { duration: dur || 700, easing: "ease-in-out" });
     anim.onfinish = function () { cube.remove(); flying--; };
   }
-
   function floater(text, x, y) {
     var f = document.createElement("div");
     f.className = "floater";
     f.textContent = text;
     stage.appendChild(f);
+    if (RM) {
+      f.style.transform = "translate(" + x + "px," + y + "px)";
+      var a0 = f.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 800 });
+      a0.onfinish = function () { f.remove(); };
+      return;
+    }
     var a = f.animate([
       { transform: "translate(" + x + "px," + y + "px)", opacity: 1 },
       { transform: "translate(" + x + "px," + (y - 70) + "px)", opacity: 0 }
     ], { duration: 800, easing: "ease-out" });
     a.onfinish = function () { f.remove(); };
   }
-
+  function ripple(portalEl) {
+    if (RM) return;
+    var r = document.createElement("span");
+    r.className = "ripple";
+    portalEl.appendChild(r);
+    r.addEventListener("animationend", function () { r.remove(); });
+  }
+  function registerClick(which) {
+    var now = performance.now();
+    if (MOM.lastPortal && MOM.lastPortal !== which && now - MOM.lastAt < 1600) MOM.chain++;
+    else MOM.chain = 1;
+    MOM.lastPortal = which;
+    MOM.lastAt = now;
+    MOM.mult = 1 + 0.10 * Math.min(MOM.chain - 1, 20);
+    if (MOM.mult > state.stats.bestMom) state.stats.bestMom = MOM.mult;
+  }
+  function popScore() {
+    var now = performance.now();
+    if (now - lastPop < 130) return;
+    lastPop = now;
+    var el = $("pts");
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
+  }
   function clickPortal(which, ev) {
-    var power = clickPower();
-    state.pts += power;
-    state.total += power;
+    registerClick(which);
+    var power = clickPower() * MOM.mult;
+    addPts(power);
+    state.stats.clicks++;
+    lastUserAction = performance.now();
     var from = which === "blue" ? $("pBlue") : $("pOrange");
     var to = which === "blue" ? $("pOrange") : $("pBlue");
-    sendCube(from, to);
+    sendCube(from, to, clamp(720 - MOM.chain * 16, 340, 720));
+    ripple(from); ripple(to);
+    SFX.click(MOM.chain, which);
     var s = stage.getBoundingClientRect();
     var c = center(from);
     var x = ev && ev.clientX ? ev.clientX - s.left : c.x;
     var y = ev && ev.clientY ? ev.clientY - s.top : c.y;
-    floater("+" + fmt(power), x - 12, y - 10);
+    floater("+" + fmt(power), x - 14, y - 12);
+    popScore();
     render();
+    checkAchs();
   }
-  $("pBlue").addEventListener("click", function (e) { clickPortal("blue", e); });
-  $("pOrange").addEventListener("click", function (e) { clickPortal("orange", e); });
 
-  // ---------- bonus cube ----------
-  function scheduleBonus() {
-    setTimeout(spawnBonus, 40000 + Math.random() * 50000);
+  /* ================= frenzy (companion cube) ================= */
+  function startFrenzy() {
+    FRENZY.end = performance.now() + FRENZY.dur;
+    stage.classList.add("frenzy");
+    SFX.companion();
+    say("You have made a friend. Statistically, this ends badly.", { once: "friend1", voice: true });
   }
+  function endFrenzy() {
+    FRENZY.end = 0;
+    stage.classList.remove("frenzy");
+    state.stats.burned++;
+    SFX.burn();
+    say("The companion cube has been incinerated. You monster.", { once: "burn1", voice: true });
+    checkAchs();
+    save();
+  }
+  var heartT = 0;
+  function spawnHeart() {
+    if (RM) return;
+    var h = document.createElement("span");
+    h.className = "heartFly";
+    h.innerHTML = '<span class="heart"></span>';
+    h.style.left = (12 + Math.random() * 76) + "%";
+    stage.appendChild(h);
+    var H = stage.clientHeight;
+    var sway = Math.random() * 60 - 30;
+    var a = h.animate([
+      { transform: "translate(0,0) scale(.7)", opacity: 0 },
+      { opacity: .9, offset: .15 },
+      { transform: "translate(" + sway + "px," + (-H + 70) + "px) scale(1)", opacity: 0 }
+    ], { duration: 2600, easing: "ease-in-out" });
+    a.onfinish = function () { h.remove(); };
+  }
+
+  /* ================= bonus cubes ================= */
+  function scheduleBonus() { setTimeout(spawnBonus, 22000 + Math.random() * 36000); }
   function spawnBonus() {
+    if (document.hidden) { scheduleBonus(); return; }
+    var roll = Math.random();
+    var type = roll < .58 ? "storage" : (roll < .85 ? "gold" : "companion");
     var b = document.createElement("button");
-    b.className = "bonus";
-    b.setAttribute("aria-label", "Bonus cube: click for a burst of points");
+    b.type = "button";
+    b.className = "bonus " + type;
+    if (type === "companion") {
+      b.innerHTML = '<span class="heart" aria-hidden="true"></span>';
+      b.setAttribute("aria-label", "Companion cube: click for a temporary triple-point friendship");
+    } else if (type === "gold") {
+      b.setAttribute("aria-label", "Golden bonus cube: click for a large burst of points");
+    } else {
+      b.setAttribute("aria-label", "Bonus cube: click for a burst of points");
+    }
     stage.appendChild(b);
     var w = stage.clientWidth, h = stage.clientHeight;
-    var y0 = 30 + Math.random() * (h - 100);
-    var y1 = 30 + Math.random() * (h - 100);
+    var y0 = 30 + Math.random() * (h - 110), y1 = 30 + Math.random() * (h - 110);
     var dir = Math.random() < .5;
+    var dur = type === "companion" ? 14000 : (type === "gold" ? 9000 : 11000);
     var anim = b.animate([
-      { transform: "translate(" + (dir ? -50 : w + 10) + "px," + y0 + "px) rotate(0deg)" },
-      { transform: "translate(" + (dir ? w + 10 : -50) + "px," + y1 + "px) rotate(540deg)" }
-    ], { duration: 11000, easing: "linear" });
+      { transform: "translate(" + (dir ? -60 : w + 10) + "px," + y0 + "px) rotate(0deg)" },
+      { transform: "translate(" + (dir ? w + 10 : -60) + "px," + y1 + "px) rotate(540deg)" }
+    ], { duration: dur, easing: "linear" });
     var done = false;
-    anim.onfinish = function () { if (!done) { b.remove(); scheduleBonus(); } };
+    anim.onfinish = function () {
+      if (!done) { done = true; b.remove(); scheduleBonus(); }
+    };
     b.addEventListener("click", function (e) {
       e.stopPropagation();
+      var r2 = b.getBoundingClientRect(), s2 = stage.getBoundingClientRect();
+      var bx = r2.left - s2.left + r2.width / 2, by = r2.top - s2.top;
       done = true;
       anim.cancel();
-      var reward = Math.max(50 * clickPower(), 45 * autoPower(), 100);
-      state.pts += reward; state.total += reward;
-      var r = b.getBoundingClientRect(), s = stage.getBoundingClientRect();
-      floater("+" + fmt(reward) + " bonus", r.left - s.left - 20, r.top - s.top);
       b.remove();
-      setTicker("Bonus cube recovered. Its reward is " + fmt(reward) + " points and zero gratitude.");
+      state.stats.caught++;
+      lastUserAction = performance.now();
+      if (type === "companion") {
+        startFrenzy();
+        floater("×3 FRIENDSHIP", bx - 44, by - 12);
+        toast("Companion cube", "All points ×3 for 20 seconds. Do not get attached.", "pink");
+      } else {
+        var reward = Math.max(60 * clickPower(), 50 * autoPower(), 120);
+        if (type === "gold") reward *= 4;
+        addPts(reward);
+        floater("+" + fmt(reward) + (type === "gold" ? " gold" : ""), bx - 24, by - 12);
+        if (type === "gold") {
+          SFX.golden();
+          toast("Golden cube", "+" + fmt(reward) + " points. Somewhere, an accountant faints.", "gold");
+          say("Golden cube recovered. Somewhere, an accountant faints.", { once: "gold1" });
+        } else {
+          SFX.bonus();
+          say("Bonus cube recovered. Its reward is " + fmt(reward) + " points and zero gratitude.", { once: "bonus1" });
+        }
+        popScore();
+      }
       render();
+      checkAchs();
       scheduleBonus();
     });
   }
 
-  // ---------- flavor text ----------
-  var tickerEl = $("ticker");
-  function setTicker(t) { tickerEl.textContent = t; }
+  /* ================= rebirth (test cycles) ================= */
+  function attachCore() {
+    var t = pickOf(CORE_TYPES);
+    state.coreLog.push({ n: t.n, q: t.q, c: t.c });
+    if (state.coreLog.length > 30) state.coreLog.shift();
+    return t;
+  }
+  function rebirthFlash() {
+    if (RM) return;
+    var f = document.createElement("div");
+    f.className = "rbflash";
+    stage.appendChild(f);
+    f.addEventListener("animationend", function () { f.remove(); });
+  }
+  function volley() {
+    if (RM) return;
+    for (var i = 0; i < 6; i++) (function (i) {
+      setTimeout(function () {
+        var l = Math.random() < .5;
+        sendCube(l ? $("pBlue") : $("pOrange"), l ? $("pOrange") : $("pBlue"), 480);
+      }, i * 100);
+    })(i);
+  }
+  function doRebirth() {
+    var gain = coresFor(state.runTotal);
+    if (gain < 1) return;
+    var last = null;
+    for (var i = 0; i < gain; i++) last = attachCore();
+    state.cores += gain;
+    state.cycles += 1;
+    state.pts = 0;
+    state.owned = {};
+    state.runTotal = 0;
+    FRENZY.end = 0; stage.classList.remove("frenzy");
+    MOM.chain = 0; MOM.mult = 1; MOM.lastPortal = null;
+
+    stamp("TEST CYCLE " + pad(state.cycles + 1), "gold");
+    SFX.rebirth();
+    rebirthFlash();
+    volley();
+    toast("Test cycle " + pad(state.cycles) + " complete",
+      "+" + gain + " personality core" + (gain > 1 ? "s" : "") + " attached. All science now ×" + coreMult().toFixed(2) + ".", "gold");
+    say(pickOf(REBIRTH_LINES), { voice: true });
+    if (last) setTimeout(function () {
+      say("Attached: the " + last.n + ". It says things. Ignore most of them.", { once: "core_" + last.n });
+    }, 5200);
+
+    setEra(1, true);   /* you wake up back at the start of testing */
+    render();
+    checkAchs();
+    save();
+  }
+  function renderRack() {
+    var sig = state.coreLog.length + ":" + state.cores;
+    if (sig === rackSig) return;
+    rackSig = sig;
+    var rack = $("coreRack");
+    rack.innerHTML = "";
+    var show = state.coreLog.slice(-14);
+    show.forEach(function (c) {
+      var d = document.createElement("span");
+      d.className = "core-dot";
+      d.style.setProperty("--c", c.c);
+      d.title = c.n + " — " + c.q;
+      var iris = document.createElement("i");
+      d.appendChild(iris);
+      rack.appendChild(d);
+    });
+    var extra = state.cores - show.length;
+    if (extra > 0) {
+      var m = document.createElement("span");
+      m.className = "rack-more";
+      m.textContent = "+" + extra;
+      rack.appendChild(m);
+    }
+  }
+  function renderRebirth() {
+    var gain = coresFor(state.runTotal);
+    $("cycleNum").textContent = pad(state.cycles + 1);
+    $("coresHave").textContent = state.cores;
+    $("coresBonus").textContent = "×" + coreMult().toFixed(2) + " all science";
+    $("rbRun").textContent = fmt(state.runTotal);
+    $("coresGain").textContent = gain >= 1 ? "+" + gain : "—";
+    var s = Math.sqrt(state.runTotal / REBIRTH_AT);
+    $("coresBar").style.width = clamp((s % 1) * 100, 0, 100) + "%";
+    var need = REBIRTH_AT * (gain + 1) * (gain + 1);
+    $("coresNext").textContent = fmt(need) + " science this cycle for core #" + (gain + 1);
+    var btn = $("rbBtn");
+    btn.disabled = gain < 1;
+    if (!rbArmed) {
+      btn.textContent = gain >= 1
+        ? "Initiate Rebirth · +" + gain + (gain > 1 ? " cores" : " core")
+        : "Rebirth locked · 1M science this cycle";
+      btn.classList.toggle("ready", gain >= 1 && state.cycles === 0);
+    }
+    renderRack();
+  }
+
+  /* ================= render ================= */
+  var ptsEl, cpsEl, apsEl, coreRateEl, coreValEl;
+  var momRate, momVal, momBox, mfill, fchip, fsec, ffill, chNumEl;
+  function setChamber(n, pop) {
+    if (pop) { chNumEl.classList.remove("pop"); void chNumEl.offsetWidth; chNumEl.classList.add("pop"); }
+    chNumEl.textContent = pad(n);
+  }
+  function render() {
+    ptsEl.textContent = fmt(state.pts);
+    cpsEl.textContent = fmt(clickPower());
+    apsEl.textContent = fmt(autoPower());
+    $("lifetime").textContent = "Lifetime: " + fmt(state.total);
+
+    if (state.cores > 0) {
+      coreRateEl.hidden = false;
+      coreValEl.textContent = "×" + coreMult().toFixed(2);
+    } else coreRateEl.hidden = true;
+
+    var now = performance.now();
+
+    /* momentum */
+    if (MOM.chain >= 2 && now - MOM.lastAt < 1600) {
+      momBox.classList.add("on");
+      momRate.hidden = false;
+      momVal.textContent = "×" + MOM.mult.toFixed(1);
+      $("mval").textContent = "×" + MOM.mult.toFixed(1);
+      mfill.style.width = (Math.min(1, (MOM.mult - 1) / 2) * 100) + "%";
+    } else {
+      momBox.classList.remove("on");
+      momRate.hidden = true;
+      if (now - MOM.lastAt >= 1600 && MOM.chain !== 0) { MOM.chain = 0; MOM.mult = 1; }
+    }
+
+    /* frenzy chip */
+    if (FRENZY.end && now < FRENZY.end) {
+      var rem = FRENZY.end - now;
+      fchip.classList.add("on");
+      fsec.textContent = Math.ceil(rem / 1000) + "s";
+      ffill.style.width = (rem / FRENZY.dur * 100) + "%";
+    } else {
+      fchip.classList.remove("on");
+    }
+
+    /* shop rows */
+    UPGRADES.forEach(function (u) {
+      var r = rows[u.id];
+      if (!r) return;
+      var aff = maxAff(u);
+      var n = MODE === "max" ? Math.max(aff, 1) : MODE;
+      var c = bulkCost(u, n);
+      var can = aff >= n && state.pts >= c;
+      var o = owned(u.id);
+      r.own.textContent = o;
+      r.cost.textContent = fmt(c) + (n > 1 ? " ·×" + n : "");
+      r.el.disabled = !can;
+      r.el.classList.toggle("can", can);
+      var next = null, prev = 0;
+      for (var i = 0; i < MILE.length; i++) {
+        if (o >= MILE[i]) prev = MILE[i];
+        else { next = MILE[i]; break; }
+      }
+      if (next) {
+        r.msb.style.width = ((o - prev) / (next - prev) * 100) + "%";
+        r.mst.textContent = o + " / " + next + " → ×" + (multOf(o) * 2);
+      } else {
+        r.msb.style.width = "100%";
+        r.mst.textContent = "all bonuses · ×" + multOf(o);
+      }
+    });
+
+    /* era 2 gate */
+    var unlocked = state.total >= P2_AT;
+    era2btn.disabled = !unlocked;
+    era2btn.title = unlocked ? "" : "Unlocks at " + P2_AT.toLocaleString("en-US") + " total points";
+
+    refreshRecords();
+    renderRebirth();
+  }
+
+  /* ================= slow ops (0.5s cadence) ================= */
+  function slowOps() {
+    /* chamber progression */
+    var n = chamberFor(state.total);
+    if (n > state.chamber) {
+      state.chamber = n;
+      setChamber(n, true);
+      SFX.chamber();
+      if (n % 10 === 0 || n === 99) {
+        stamp("TEST CHAMBER " + pad(n));
+        say(pickOf(CHAMBER_LINES).replace("{n}", n), { voice: n === 99 });
+      }
+    }
+    /* Portal 2 unlock ceremony */
+    if (!state.p2seen && state.total >= P2_AT) {
+      state.p2seen = true;
+      era2btn.classList.add("pulse");
+      stamp("PORTAL 2 WING UNLOCKED", "gold");
+      SFX.unlock();
+      say("Congratulations. The old wing has been reopened. Mind the decades. And the birds.", { voice: true });
+      save();
+    }
+    /* rebirth availability notice — once per cycle */
+    if (coresFor(state.runTotal) >= 1 && !state.seen["rebelig" + state.cycles]) {
+      state.seen["rebelig" + state.cycles] = 1;
+      say("You now possess enough science for reinitialization. The button is right there. I am not going to press it for you.", { voice: true });
+      toast("Rebirth available", "A new test cycle can begin. Cores are permanent. Progress is not.");
+      save();
+    }
+    /* idle nagging */
+    var now = performance.now();
+    if (now - lastUserAction > 60000 && now - lastIdleMsg > 120000) {
+      lastIdleMsg = now;
+      say(pickOf(IDLE_LINES));
+    }
+    checkAchs();
+    document.title = (state.total >= 1000 ? fmt(state.pts) + " pts · " : "") + "Aperture Clicker";
+  }
+
+  /* ================= ambient ticker ================= */
+  var ambN = 0;
   function pickLine() {
     var l = LINES[state.era];
-    setTicker(l[Math.floor(Math.random() * l.length)]);
+    setTicker(pickOf(l), (++ambN % 3 === 0));
   }
-  setInterval(pickLine, 14000);
 
-  // ---------- era switch ----------
-  $("era1").addEventListener("click", function () { setEra(1); });
-  $("era2").addEventListener("click", function () { if (!$("era2").disabled) setEra(2); });
-
-  // ---------- reset ----------
-  $("reset").addEventListener("click", function () {
-    if (!confirm("Reset all progress? This cannot be undone.")) return;
-    state = fresh();
-    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
-    setEra(1);
-  });
-
-  // ---------- main loop ----------
-  var lastTick = performance.now();
-  var cubeTimer = 0;
+  /* ================= main loop ================= */
+  var lastT = performance.now(), cubeTimer = 0, slowAcc = 0, renderAcc = 0;
   function tick(now) {
-    var dt = Math.min((now - lastTick) / 1000, 1);
-    lastTick = now;
+    var dt = Math.min((now - lastT) / 1000, 1);
+    lastT = now;
     var a = autoPower();
     if (a > 0) {
-      state.pts += a * dt;
-      state.total += a * dt;
-      // visual only: cubes wander through the portals while the facility earns
+      addPts(a * dt);
+      /* ambient cube traffic while the facility earns */
       cubeTimer += dt;
       var gap = Math.max(.35, 1.6 - Math.log10(a + 1) * .3);
       if (cubeTimer > gap) {
@@ -664,17 +1559,165 @@
         else sendCube($("pOrange"), $("pBlue"));
       }
     }
-    render();
+    if (FRENZY.end && now < FRENZY.end) {
+      heartT -= dt;
+      if (heartT <= 0) { spawnHeart(); heartT = 1.3; }
+    }
+    if (FRENZY.end && now >= FRENZY.end) endFrenzy();
+
+    renderAcc += dt;
+    if (renderAcc >= .12) { renderAcc = 0; render(); }
+    slowAcc += dt;
+    if (slowAcc >= .5) { slowAcc = 0; slowOps(); }
     requestAnimationFrame(tick);
   }
 
-  // ---------- start ----------
-  load();
-  setEra(state.era === 2 && state.total >= UNLOCK_P2 ? 2 : 1);
-  scheduleBonus();
-  setInterval(save, 5000);
-  window.addEventListener("beforeunload", save);
-  requestAnimationFrame(tick);
+  /* ================= boot & wiring ================= */
+  function boot() {
+    tickerSr = $("tickerSr"); tickerVis = $("tickerVis");
+    stampEl = $("stamp"); listEl = $("list");
+    stage = $("stage");
+    ptsEl = $("pts"); cpsEl = $("cps"); apsEl = $("aps");
+    coreRateEl = $("coreRate"); coreValEl = $("coreVal");
+    momRate = $("momRate"); momVal = $("momVal"); momBox = $("momBox"); mfill = $("mfill");
+    fchip = $("fchip"); fsec = $("fsec"); ffill = $("ffill");
+    chNumEl = $("chNum");
+    era1btn = $("era1"); era2btn = $("era2");
+
+    load();
+    initVox();
+    buildRecords();
+
+    /* portals */
+    $("pBlue").addEventListener("click", function (e) { clickPortal("blue", e); });
+    $("pOrange").addEventListener("click", function (e) { clickPortal("orange", e); });
+    window.addEventListener("keydown", function (e) {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (t.tagName === "BUTTON" || t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.tagName === "A")) return;
+      var k = (e.key || "").toLowerCase();
+      if (e.key === "ArrowLeft" || k === "a") { e.preventDefault(); clickPortal("blue", null); }
+      else if (e.key === "ArrowRight" || k === "d") { e.preventDefault(); clickPortal("orange", null); }
+    });
+
+    /* era + audio + buy modes */
+    era1btn.addEventListener("click", function () { setEra(1); });
+    era2btn.addEventListener("click", function () { setEra(2); });
+
+    var btnSfx = $("btnSfx"), btnVox = $("btnVox");
+    function syncAudioBtns() {
+      btnSfx.setAttribute("aria-pressed", String(state.sfx));
+      btnVox.setAttribute("aria-pressed", String(state.vox));
+    }
+    btnSfx.addEventListener("click", function () {
+      state.sfx = !state.sfx; syncAudioBtns();
+      if (state.sfx) { ac(); SFX.bonus(); }
+      save();
+    });
+    btnVox.addEventListener("click", function () {
+      state.vox = !state.vox;
+      if (!state.vox && VOX.ok) { try { speechSynthesis.cancel(); } catch (e) {} }
+      syncAudioBtns();
+      if (state.vox) speak("Voice module engaged. I knew you would come around.");
+      save();
+    });
+    if (!VOX.ok) btnVox.style.display = "none";
+
+    document.querySelectorAll(".mode").forEach(function (b) {
+      b.addEventListener("click", function () {
+        MODE = b.dataset.mode === "max" ? "max" : parseInt(b.dataset.mode, 10);
+        document.querySelectorAll(".mode").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        render();
+      });
+    });
+
+    /* rebirth button — two-step confirm, like reset */
+    var rbBtn = $("rbBtn");
+    function disarmRb() {
+      rbArmed = false;
+      clearTimeout(rbTimer);
+      rbBtn.classList.remove("arm");
+      renderRebirth();
+    }
+    rbBtn.addEventListener("click", function () {
+      if (rbBtn.disabled) return;
+      if (!rbArmed) {
+        rbArmed = true;
+        rbBtn.textContent = "Confirm — emancipate this cycle?";
+        rbBtn.classList.add("arm");
+        rbBtn.classList.remove("ready");
+        rbTimer = setTimeout(disarmRb, 4500);
+      } else {
+        disarmRb();
+        doRebirth();
+      }
+    });
+
+    /* reset (two-step, no confirm dialogs) */
+    var resetBtn = $("reset"), armTimer = null;
+    resetBtn.addEventListener("click", function () {
+      if (armTimer) {
+        clearTimeout(armTimer); armTimer = null;
+        resetBtn.textContent = "Reset game";
+        resetBtn.classList.remove("arm");
+        try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+        state = fresh();
+        MOM.chain = 0; MOM.mult = 1; MOM.lastPortal = null;
+        FRENZY.end = 0;
+        stage.classList.remove("frenzy");
+        rackSig = "";
+        setChamber(1, false);
+        setEra(1, true);
+        render();
+        say("All progress has been emancipated. It screamed. Professionally.");
+      } else {
+        resetBtn.textContent = "Confirm reset?";
+        resetBtn.classList.add("arm");
+        armTimer = setTimeout(function () {
+          armTimer = null; resetBtn.textContent = "Reset game"; resetBtn.classList.remove("arm");
+        }, 3500);
+      }
+    });
+
+    /* user gesture unlocks audio + speech */
+    var mark = function () { interacted = true; };
+    window.addEventListener("pointerdown", mark, { once: true, capture: true });
+    window.addEventListener("keydown", mark, { once: true, capture: true });
+
+    /* go */
+    syncAudioBtns();
+    var startEra = (state.era === 2 && state.total >= P2_AT) ? 2 : 1;
+    setEra(startEra, true);
+    setChamber(state.chamber, false);
+    render();
+    if (state.p2seen && !state.seen.e2enter) era2btn.classList.add("pulse");
+
+    /* offline earnings (50% rate, up to 2h) */
+    var away = Math.min((Date.now() - (state.last || Date.now())) / 1000, 7200);
+    var gain = autoPower() * away * .5;
+    if (gain >= 1) {
+      addPts(gain);
+      toast("While you were away", "The facility earned " + fmt(gain) + " points without you. It missed you. It cannot feel anything.");
+      render();
+    }
+
+    if (state.cycles > 0) {
+      say("Cycle " + pad(state.cycles + 1) + " resumes. The cores have been talking about you. Unkindly.");
+    } else if (state.total > 0) {
+      say("Back so soon? The science missed you. It cannot feel anything. But it missed you.");
+    } else {
+      setTicker("Oh. It is you. Click a portal to begin. The colors alternate. It is not complicated.");
+    }
+
+    scheduleBonus();
+    setInterval(pickLine, 14000);
+    setInterval(save, 5000);
+    window.addEventListener("beforeunload", save);
+    requestAnimationFrame(tick);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
 })();
 </script>
 </body>
