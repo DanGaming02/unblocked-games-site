@@ -124,5 +124,11 @@
     "type": "html",
     "path": "games/RLS2.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Emberglade",
+    "type": "html",
+    "path": "games/Emberglade.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
