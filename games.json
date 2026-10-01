@@ -130,5 +130,11 @@
     "type": "html",
     "path": "games/Emberglade.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "How to Fish",
+    "type": "html",
+    "path": "games/HTF.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
