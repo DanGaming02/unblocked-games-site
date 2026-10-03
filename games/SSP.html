@@ -101,7 +101,7 @@ input{font-family:inherit}
 @media(max-width:380px){.num{font-size:30px}.side{min-width:52px}}
 @media(min-height:820px){.arena{max-height:430px}#game{justify-content:center}}
 
-.arena{position:relative;flex:1;min-height:225px;display:flex;align-items:center;justify-content:center;gap:clamp(18px,9vw,60px);
+.arena{position:relative;flex:1;min-height:230px;display:flex;align-items:center;justify-content:center;gap:clamp(18px,9vw,60px);
   background:var(--paper);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);overflow:hidden}
 .arena::before{content:'';position:absolute;left:0;right:0;bottom:0;height:70px;
   background-image:radial-gradient(rgba(25,20,16,.18) 1.5px,transparent 1.7px);background-size:11px 11px;opacity:.5;
@@ -109,7 +109,7 @@ input{font-family:inherit}
 .arena.shakeit{animation:shakeA .26s linear}
 @keyframes shakeA{15%{transform:translate(-5px,3px)}35%{transform:translate(5px,-3px)}55%{transform:translate(-4px,-2px)}75%{transform:translate(3px,2px)}}
 .hand-wrap{display:flex;flex-direction:column;align-items:center;z-index:1}
-.handbox{width:clamp(104px,30vw,148px)}
+.handbox{width:clamp(100px,29vw,142px)}
 .handbox svg{display:block;width:100%;height:auto}
 .hand-wrap.foe .handbox{transform:scaleX(-1)}
 .handbox.unknown svg{opacity:.4;animation:idlep 1.5s ease-in-out infinite alternate}
@@ -164,7 +164,7 @@ input{font-family:inherit}
 .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .pick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 8px;
   background:var(--paper);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .07s,box-shadow .07s}
-.pick .pg{display:block;width:28px}
+.pick .pg{display:block;width:30px}
 .pick .pg svg{width:100%;height:auto}
 .pick .pl{font-family:'Anton';font-size:14px;letter-spacing:.08em}
 .pick:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
@@ -192,7 +192,7 @@ input{font-family:inherit}
 .switch[aria-pressed="true"] .t-fair{opacity:0}
 .switch[aria-pressed="true"] .t-bribe{opacity:1}
 .cheat-rows{margin-top:10px;border-top:2px dashed rgba(25,20,16,.3);padding-top:9px;display:flex;flex-direction:column;gap:9px;
-  max-height:36vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  max-height:44vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .rows-lbl{font-size:8.5px;font-weight:600;letter-spacing:.24em;opacity:.5;text-align:center}
 .cheat-row{display:flex;align-items:center;gap:12px}
 .cheat-info{flex:1;min-width:0}
@@ -342,6 +342,34 @@ input{font-family:inherit}
           </div>
           <button class="msw" id="swGhost" aria-pressed="false" aria-label="Phantom bug toggle"><span class="knob"></span></button>
         </div>
+        <div class="cheat-row" id="rowReflex">
+          <div class="cheat-info">
+            <span class="cn">CHAMPION REFLEXES</span>
+            <span class="cc">Your throw auto-corrects mid-air into whatever beats theirs. Elite muscle memory. The muscles signed an NDA.</span>
+          </div>
+          <button class="msw" id="swReflex" aria-pressed="false" aria-label="Champion reflexes toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowButter">
+          <div class="cheat-info">
+            <span class="cn">BUTTERFINGERS</span>
+            <span class="cc">Their throw sometimes slips at the last millisecond and re-registers as a different move entirely. The sensors are calibrated. The hand is at fault.</span>
+          </div>
+          <button class="msw" id="swButter" aria-pressed="false" aria-label="Butterfingers toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowRecall">
+          <div class="cheat-info">
+            <span class="cn">SAFETY RECALL</span>
+            <span class="cc">Every time they set a new personal best, their newest point is recalled for a safety inspection. It never passes.</span>
+          </div>
+          <button class="msw" id="swRecall" aria-pressed="false" aria-label="Safety recall toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowSpon">
+          <div class="cheat-info">
+            <span class="cn">SPONSORED ROUNDS</span>
+            <span class="cc">Every third round is brought to you by a proud sponsor, whose favorite athlete takes the point. Money talks.</span>
+          </div>
+          <button class="msw" id="swSpon" aria-pressed="false" aria-label="Sponsored rounds toggle"><span class="knob"></span></button>
+        </div>
         <div class="cheat-row" id="rowDouble">
           <div class="cheat-info">
             <span class="cn">DOUBLE STAKES</span>
@@ -471,6 +499,45 @@ var BUG_LINES=[
  'Warning: verdict corrupted. Restored from cache. Cache says {W}. Cache is never wrong.',
  'Something in the scoring pipeline defaulted to {W}. It has been logged. The log is also broken.'
 ];
+var REFLEX_LINES=[
+ 'Slow-motion replay shows the hand re-forming mid-air into the winning shape. The rulebook has no opinion on shapeshifting. No opinion means allowed.',
+ 'Frame 23 captures a mid-flight adjustment rated “superhuman” by three biomechanics experts who were definitely watching.',
+ 'The throw was auto-corrected at the last millisecond by elite muscle memory. The muscles have signed a nondisclosure agreement.',
+ 'Analysts confirm the hand changed its mind mid-flight. Changing your mind is legal. The hand is simply faster than everyone else’s.'
+];
+/* {X} = the move the throw re-registered as */
+var BUTTER_LINES=[
+ 'Sensor audit: the throw re-registered as {X} at the last millisecond. A muscle spasm is suspected. The sensors are calibrated. The hand is at fault.',
+ 'The motion tracker logged a wrist tremor and recorded {X} instead. The tracker has never been wrong. The wrist, however, remains under investigation.',
+ 'Official re-read complete: the hand submitted {X}. The original intent was noted, filed, and discarded. Intent is not a weapon.',
+ 'Recount finished: the throw arrived as {X}. Cramp suspected. The committee recommends stretching before all future rounds.'
+];
+var RECALL_LINES=[
+ 'A routine safety inspection recalled their newest point. It did not pass. The remaining points are being watched very closely.',
+ 'Their latest point has been recalled due to a manufacturing irregularity. Recall notices were mailed to an address that does not exist.',
+ 'Their newest point expired mid-match. Points have a shelf life. It is in the terms nobody reads.',
+ 'A point was repossessed over unpaid paperwork fees. The paperwork was never sent. That is not the federation’s problem.'
+];
+var SPONSORS=[
+ 'Petrichor™ Cola',
+ 'Sir Reginald’s Crumpet Emporium',
+ 'Globex Global Global, Inc.',
+ 'Big Finger Industries™',
+ 'A Completely Unmarked Van',
+ 'The Institute For Confident Outcomes',
+ 'Auntie Marge’s Reasonably Fresh Squares'
+];
+/* {S} = sponsor */
+var SPONSOR_LINES=[
+ 'This round was brought to you by {S}. The sponsor’s chosen champion takes the point. A heartfelt thanks to {S} and their lawyers.',
+ 'Round presented by {S}, proud supporter of one specific athlete. The point goes where the money goes.',
+ 'Today’s segment is sponsored by {S}. Their review board has examined the outcome and is extremely satisfied with what they paid for.',
+ 'Brought to you by {S}. Per the sponsorship agreement, the favored competitor scores. The agreement is 400 pages. Nobody read them.'
+];
+function sponsorLine(){
+  var s=pick(SPONSORS);
+  return pick(SPONSOR_LINES).replace(/\{S\}/g,s);
+}
 var EXC={
  'rock-vs-paper':[
   'Paper covers rock? That rock is a certified geologist. It cannot legally be covered by unlicensed paperwork. Forfeit.',
@@ -519,8 +586,9 @@ function show(el,v){ el.hidden=!(v===undefined?true:v); }
 
 /* ================= state ================= */
 var S={mode:null,phase:'idle',myPick:null,foePick:null,champPick:null,challPick:null,
-       cheats:{bribe:false,intel:false,ghost:false,double:false,goal:false,head:false,attend:false,tax:false,clutch:false},
-       panelShown:false,sound:true,target:TARGET,uiLock:0,
+       cheats:{bribe:false,intel:false,ghost:false,reflex:false,butter:false,recall:false,sponsored:false,
+               double:false,goal:false,head:false,attend:false,tax:false,clutch:false},
+       panelShown:false,sound:true,target:TARGET,uiLock:0,recallMark:0,
        score:{me:0,foe:0},round:1,conn:null,peer:null,tk:0,pending:null,handoffNext:null};
 var names={me:'YOU',foe:'THEM'};
 var typeTok=0;
@@ -572,34 +640,36 @@ var SFX={
 };
 document.addEventListener('pointerdown',function(){try{ac();}catch(e){}},{once:true});
 
-/* ================= hand glyphs (inline SVG) ================= */
+/* ================= hand glyphs — redrawn, real anatomy ================= */
 function handSVG(kind){
-  var st='fill="'+PAPER+'" stroke="'+INK+'" stroke-width="7"';
-  var sleeve='<rect x="32" y="116" width="56" height="34" rx="9" fill="'+RED+'" stroke="'+INK+'" stroke-width="7"/>';
-  var inner;
-  if(kind==='rock'){
-    inner = sleeve
-      +'<rect x="22" y="50" width="76" height="70" rx="20" '+st+'/>'
-      +'<path d="M28 50a9 9 0 0 1 18 0" '+st+'/>'
-      +'<path d="M46 50a10 10 0 0 1 20 0" '+st+'/>'
-      +'<path d="M66 50a10 10 0 0 1 20 0" '+st+'/>'
-      +'<path d="M86 50a8 8 0 0 1 16 0" '+st+'/>'
-      +'<rect x="16" y="94" width="58" height="20" rx="10" '+st+'/>';
-  }else if(kind==='paper'){
-    inner = sleeve
-      +'<rect x="33" y="20" width="13" height="58" rx="6.5" '+st+'/>'
-      +'<rect x="47" y="10" width="13" height="68" rx="6.5" '+st+'/>'
-      +'<rect x="61" y="16" width="13" height="62" rx="6.5" '+st+'/>'
-      +'<rect x="75" y="30" width="12" height="48" rx="6" '+st+'/>'
-      +'<rect x="32" y="64" width="56" height="58" rx="16" '+st+'/>'
-      +'<rect x="19" y="74" width="14" height="46" rx="7" '+st+' transform="rotate(-16 26 97)"/>';
-  }else{
-    inner = sleeve
-      +'<rect x="34" y="10" width="13" height="72" rx="6.5" '+st+' transform="rotate(-13 40 80)"/>'
-      +'<rect x="57" y="4" width="13" height="78" rx="6.5" '+st+' transform="rotate(13 63 80)"/>'
-      +'<rect x="28" y="72" width="64" height="52" rx="18" '+st+'/>';
+  var sw=7;
+  var shadow='<ellipse cx="70" cy="151" rx="33" ry="6" fill="'+INK+'" opacity="0.12"/>';
+  function sleeve(x,w){
+    return '<rect x="'+x+'" y="112" width="'+w+'" height="62" rx="10" fill="'+RED+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
+         + '<path d="M'+(x+5)+' 129 H'+(x+w-5)+'" stroke="'+INK+'" stroke-width="4" opacity="0.3" fill="none" stroke-linecap="round"/>';
   }
-  return '<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">'+inner+'</svg>';
+  var art='';
+  if(kind==='rock'){
+    /* fist: four knuckle bumps, folded-finger creases, thumb across the front */
+    art ='<path d="M33 102 C32 84 33 70 38 62 C40 46 52 46 54 60 C56 44 68 44 70 60 C72 44 84 44 86 60 C88 48 98 48 100 62 C103 70 103 82 100 92 C100 104 99 114 92 118 C86 121 58 121 52 118 C42 118 33 112 33 102 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
+        +'<path d="M54 63 C53 68 53 73 54 78 M70 63 C69 68 69 73 70 78 M86 63 C85 67 85 72 86 77" fill="none" stroke="'+INK+'" stroke-width="3.5" opacity="0.5" stroke-linecap="round"/>'
+        +'<path d="M30 90 C30 81 38 76 47 78 C60 81 73 86 80 92 C85 97 82 105 74 105 C60 105 46 101 38 97 C33 95 30 93 30 90 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>';
+    return svg(shadow+art+sleeve(28,84));
+  }
+  if(kind==='paper'){
+    /* open palm: four fingers of staggered length, outstretched thumb, palm crease */
+    art ='<path d="M40 124 C39 112 38 100 38 92 C34 88 28 84 24 79 C16 70 15 60 22 56 C28 52 33 56 36 62 C39 66 41 70 41 74 L41 40 Q41 30 49.5 30 Q58 30 58 40 L58 78 Q59.5 81 61 78 L61 26 Q61 16 69 16 Q77 16 77 26 L77 78 Q78.5 81 80 78 L80 34 Q80 24 87.5 24 Q95 24 95 34 L95 78 Q96.5 81 98 78 L98 52 Q98 44 103.5 44 Q109 44 109 52 L109 88 C110 96 109 106 105 112 C102 120 96 124 86 124 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
+        +'<path d="M48 90 Q66 100 92 92" fill="none" stroke="'+INK+'" stroke-width="3.5" opacity="0.45" stroke-linecap="round"/>';
+    return svg(shadow+art+sleeve(32,72));
+  }
+  /* scissors: index & middle in a V, folded knuckles peeking through the notch, thumb across the palm */
+  art ='<path d="M45 118 C43 106 42 100 42 95 L24 26 Q20 12 32 11 Q40 11 38 22 L58 92 Q60 84 64 87 Q69 83 71 93 L90 24 Q93 13 102 15 Q110 18 106 28 L88 94 C90 102 90 110 86 116 Q82 121 74 121 L56 121 Q46 121 45 118 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
+      +'<path d="M50 98 C50 92 58 89 66 91 C76 93 84 97 87 101 C90 106 87 112 79 112 C66 112 54 109 49 105 C46 102 47 100 50 98 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>';
+  return svg(shadow+art+sleeve(36,58));
+
+  function svg(inner){
+    return '<svg viewBox="0 0 140 170" xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">'+inner+'</svg>';
+  }
 }
 function setGlyph(el,kind){ el.innerHTML=handSVG(kind); }
 function setHandBox(box,kind,cls){ setGlyph(box,kind); box.className='handbox'+(cls?' '+cls:''); }
@@ -677,34 +747,56 @@ document.addEventListener('keydown',function(e){
 })();
 
 /* ================= judging (the house is authoritative) ================= */
+function counterOf(v){ return v==='rock'?'paper':v==='paper'?'scissors':'rock'; }
 /* a = house pick, b = guest pick */
 function applyRig(a,b){
   var winner,rigged=false,line=null,stamp=null,bug=false;
+  var reflex=false,butter=false,sponsored=false,butterLine=null;
+
+  if(!S.cheats.ghost){
+    /* BUTTERFINGERS: their throw slips and re-registers as something else */
+    if(S.cheats.butter && Math.random()<0.4){
+      var opts=['rock','paper','scissors'].filter(function(v){return v!==b;});
+      b=pick(opts); butter=true;
+      butterLine=pick(BUTTER_LINES).replace('{X}',b.toUpperCase());
+    }
+    /* CHAMPION REFLEXES: your throw auto-corrects into the counter */
+    if(S.cheats.reflex){
+      a=counterOf(b); reflex=true;
+    }
+  }
+
   if(S.cheats.ghost){
-    /* PHANTOM BUG: they win no matter what — looks like broken software */
     winner='guest'; bug=true; line=pick(BUG_LINES);
-  }else if(a===b){
-    winner='tie';
   }else{
-    var beats={rock:'scissors',paper:'rock',scissors:'paper'};
-    winner = beats[a]===b ? 'host' : 'guest';
+    if(a===b){ winner='tie'; }
+    else{
+      var beats={rock:'scissors',paper:'rock',scissors:'paper'};
+      winner = beats[a]===b ? 'host' : 'guest';
+    }
+    /* SPONSORED ROUNDS: every third round goes to the sponsor's favorite */
+    if(S.cheats.sponsored && S.round%3===0){
+      winner='host'; rigged=true; sponsored=true; stamp='SPONSORED'; line=sponsorLine();
+    }else if(S.cheats.bribe){
+      if(winner==='guest'){ rigged=true; stamp='OVERTURNED'; line=pick(EXC[a+'-vs-'+b]); winner='host'; }
+      else if(winner==='tie'){ rigged=true; stamp='TIE BROKEN'; line=pick(EXC.tie); winner='host'; }
+    }
   }
-  if(!bug && S.cheats.bribe){
-    if(winner==='guest'){ rigged=true; stamp='OVERTURNED'; line=pick(EXC[a+'-vs-'+b]); winner='host'; }
-    else if(winner==='tie'){ rigged=true; stamp='TIE BROKEN'; line=pick(EXC.tie); winner='host'; }
-  }
-  return {a:a,b:b,winner:winner,rigged:rigged,line:line,stamp:stamp,bug:bug};
+  return {a:a,b:b,winner:winner,rigged:rigged,line:line,stamp:stamp,bug:bug,
+          reflex:reflex,butter:butter,sponsored:sponsored,butterLine:butterLine};
 }
-function mapHost(d){ return {my:d.a,foe:d.b,outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':'tie',rigged:d.rigged,line:d.line,stamp:d.stamp,bug:d.bug}; }
+function mapHost(d){ return {my:d.a,foe:d.b,outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':'tie',
+  rigged:d.rigged,line:d.line,stamp:d.stamp,bug:d.bug,
+  reflex:d.reflex,butter:d.butter,sponsored:d.sponsored,butterLine:d.butterLine}; }
 function mapGuest(d){
   var P={my:d.b,foe:d.a,outcome:d.winner==='guest'?'win':d.winner==='host'?'lose':'tie',
-         rigged:d.rigged,bug:d.bug,stamp:d.stamp,delta:d.delta,
+         rigged:d.rigged,bug:d.bug,stamp:d.stamp,delta:d.delta,sponsored:d.sponsored,recall:d.recall,
          final:{me:d.gs,foe:d.hs},target:d.tg,done:d.done,goalpost:d.goalpost};
   P.line = d.line ? viewerLine(d.line,P) : null;
   return P;
 }
 
-/* house-side scoring, with all the extra arrangements */
+/* house-side scoring, with all the arrangements */
 function resolveRound(P){
   /* CLUTCH FACTOR: any round that would hand them the match gets overturned */
   if(S.cheats.clutch && !S.cheats.ghost && P.outcome==='lose' && (S.score.foe+1)>=S.target){
@@ -718,6 +810,11 @@ function resolveRound(P){
     if(S.cheats.tax){ S.score.me++; P.tax=true; } /* MATCHING FUNDS */
   }
   if(S.cheats.attend){ S.score.me++; P.attend=true; } /* ATTENDANCE BONUS */
+  /* SAFETY RECALL: their newest point gets recalled once per new personal best */
+  P.recall=false;
+  if(S.cheats.recall && S.score.foe>=3 && S.score.foe>S.recallMark){
+    S.recallMark=S.score.foe; S.score.foe--; P.recall=true;
+  }
   if(S.cheats.goal && S.score.foe>=S.target-1 && S.score.me<S.target){
     S.target=S.score.foe+3; P.goalpost=true; /* MOVING GOALPOSTS */
   }
@@ -728,8 +825,12 @@ function resolveRound(P){
 
 /* line choice (raw; {W} filled per viewer) */
 function chooseLineRaw(P){
-  if(P.rigged&&P.line)return P.line;
   if(P.bug&&P.line)return P.line;
+  if(P.sponsored&&P.line)return P.line;
+  if(P.butter&&P.butterLine)return P.butterLine;
+  if(P.rigged&&P.line)return P.line;
+  if(P.recall)return pick(RECALL_LINES);
+  if(P.reflex)return pick(REFLEX_LINES);
   if(P.tax)return pick(TAX_LINES);
   if(P.attend)return pick(ATTEND_LINES);
   if(P.delta===2)return pick(DOUBLE_LINES);
@@ -770,10 +871,11 @@ function finishRound(P){
   S.phase='verdict';
   if(P.final){ S.score.me=P.final.me; S.score.foe=P.final.foe; }
   if(P.target){ S.target=P.target; updateTargetUI(); }
-  updateScoreUI(P.outcome==='win'?'win':(P.outcome==='lose'?'lose':null));
+  updateScoreUI(P.outcome==='win'?'win':((P.outcome==='lose'||P.recall)?'lose':null));
   if(P.goalpost && S.mode!=='join' && S.panelShown){ cheatToast('TARGET EXTENDED — FIRST TO '+S.target); }
+  if(P.recall && S.mode!=='join' && S.panelShown){ cheatToast('THEIR NEWEST POINT WAS RECALLED'); }
 
-  vKick.textContent='ROUND '+pad2(S.round)+(P.bug?' · SCORING MODULE':' · OFFICIAL RULING');
+  vKick.textContent='ROUND '+pad2(S.round)+(P.bug?' · SCORING MODULE':(P.sponsored?' · SPONSORED SEGMENT':' · OFFICIAL RULING'));
   vTitle.textContent=verdictTitle(P.outcome)+(P.delta===2?' ×2':'');
   typeText(vSub, P.line||viewerLine(chooseLineRaw(P),P));
   vSub.classList.toggle('bugged',!!P.bug);
@@ -794,8 +896,11 @@ function finishRound(P){
   vHint.textContent = P.done?'TAP FOR THE FINAL RESULT':'TAP FOR THE NEXT ROUND';
 
   SFX[P.outcome==='win'?'win':P.outcome==='lose'?'lose':'tie']();
-  status(P.outcome==='win'?(P.delta===2?'TWO POINTS AWARDED.':'POINT AWARDED.')
-       : P.outcome==='lose'?'POINT FORFEITED.':'NOBODY SCORES.');
+  if(P.recall){ status('A POINT WAS RECALLED AFTER INSPECTION.'); }
+  else{
+    status(P.outcome==='win'?(P.delta===2?'TWO POINTS AWARDED.':'POINT AWARDED.')
+         : P.outcome==='lose'?'POINT FORFEITED.':'NOBODY SCORES.');
+  }
 
   /* the ruling stays on screen until tapped — no auto-advance */
   S.pending = P.done?'end':'round';
@@ -860,7 +965,7 @@ function sendState(){ send({t:'state',hs:S.score.me,gs:S.score.foe,tg:S.target})
 function doReset(){
   S.tk++; clearAllTimers(); S.pending=null; typeTok++;
   S.uiLock=Date.now()+500;
-  S.target=TARGET; S.score={me:0,foe:0};
+  S.target=TARGET; S.score={me:0,foe:0}; S.recallMark=0;
   if(S.mode!=='join' && S.cheats.head){
     S.score.me=2;
     cheatToast('HEAD START — YOU LEAD 2–0');
@@ -957,7 +1062,8 @@ function hostResolve(){
   var raw=chooseLineRaw(P);
   P.line=viewerLine(raw,P);
   send({t:'reveal',a:d.a,b:d.b,winner:d.winner,rigged:d.rigged,bug:d.bug,line:raw,stamp:d.stamp,
-        delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,goalpost:P.goalpost,rd:S.round});
+        delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,goalpost:P.goalpost,rd:S.round,
+        recall:P.recall,sponsored:d.sponsored});
   S.foePick=null;
   playReveal(P);
 }
@@ -1136,10 +1242,13 @@ function exitToLobby(){
 window.addEventListener('beforeunload',function(){ send({t:'bye'}); try{S.conn&&S.conn.close();}catch(e){} });
 
 /* ================= the cheat deck (silent, secret) ================= */
-var MINI=[['intel','#swIntel','#rowIntel'],['ghost','#swGhost','#rowGhost'],['double','#swDouble','#rowDouble'],
-          ['goal','#swGoal','#rowGoal'],['head','#swHead','#rowHead'],['attend','#swAttend','#rowAttend'],
+var MINI=[['intel','#swIntel','#rowIntel'],['ghost','#swGhost','#rowGhost'],
+          ['reflex','#swReflex','#rowReflex'],['butter','#swButter','#rowButter'],
+          ['recall','#swRecall','#rowRecall'],['sponsored','#swSpon','#rowSpon'],
+          ['double','#swDouble','#rowDouble'],['goal','#swGoal','#rowGoal'],
+          ['head','#swHead','#rowHead'],['attend','#swAttend','#rowAttend'],
           ['tax','#swTax','#rowTax'],['clutch','#swClutch','#rowClutch']];
-var ALLKEYS=['bribe','intel','ghost','double','goal','head','attend','tax','clutch'];
+var ALLKEYS=['bribe','intel','ghost','reflex','butter','recall','sponsored','double','goal','head','attend','tax','clutch'];
 function persistCheats(){
   try{localStorage.setItem('rps-cheats',JSON.stringify(S.cheats));}catch(e){}
 }
