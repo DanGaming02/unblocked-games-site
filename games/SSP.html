@@ -98,8 +98,6 @@ input{font-family:inherit}
 .mid{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0 8px;border-left:2px dashed rgba(25,20,16,.3);border-right:2px dashed rgba(25,20,16,.3)}
 .rd{font-size:15px;letter-spacing:.06em}
 .tgt{font-size:8px;letter-spacing:.16em;opacity:.6}
-.tgt.flash{animation:tgtf .45s 3}
-@keyframes tgtf{50%{opacity:.15}}
 @media(max-width:380px){.num{font-size:30px}.side{min-width:52px}}
 @media(min-height:820px){.arena{max-height:430px}#game{justify-content:center}}
 
@@ -136,7 +134,7 @@ input{font-family:inherit}
   border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:5px 12px;font-size:10px;font-weight:600;
   letter-spacing:.14em;white-space:nowrap}
 
-/* verdict strip */
+/* verdict strip — stays until tapped */
 .vslot{min-height:132px;display:flex}
 .verdict{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:12px 44px;
   border:3px solid var(--ink);background:var(--paper);box-shadow:4px 4px 0 var(--ink);position:relative;cursor:pointer;overflow:visible}
@@ -151,7 +149,10 @@ input{font-family:inherit}
 .v-kick{font-size:8.5px;font-weight:600;letter-spacing:.24em;opacity:.65}
 .v-title{font-size:clamp(19px,5.5vw,26px);letter-spacing:.05em}
 .v-sub{font-size:12px;line-height:1.55;text-align:center;max-width:52ch;opacity:.95;padding:0 4px;min-height:2.6em}
-.v-hint{font-size:8.5px;letter-spacing:.22em;opacity:.6}
+.v-sub.bugged{animation:glitchy .32s steps(2,end) 4}
+@keyframes glitchy{25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.v-hint{font-size:8.5px;letter-spacing:.22em;opacity:.6;animation:vhint 1.6s ease-in-out infinite}
+@keyframes vhint{50%{opacity:.25}}
 .vstamp{position:absolute;top:-10px;right:12px;z-index:2;background:var(--paper);color:var(--red);
   border:3px double var(--red);font-family:'Anton';font-size:13px;letter-spacing:.12em;padding:3px 10px;
   transform:rotate(7deg);opacity:0}
@@ -190,7 +191,8 @@ input{font-family:inherit}
 .switch[aria-pressed="false"] .t-fair{opacity:1}
 .switch[aria-pressed="true"] .t-fair{opacity:0}
 .switch[aria-pressed="true"] .t-bribe{opacity:1}
-.cheat-rows{margin-top:10px;border-top:2px dashed rgba(25,20,16,.3);padding-top:9px;display:flex;flex-direction:column;gap:9px}
+.cheat-rows{margin-top:10px;border-top:2px dashed rgba(25,20,16,.3);padding-top:9px;display:flex;flex-direction:column;gap:9px;
+  max-height:36vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .rows-lbl{font-size:8.5px;font-weight:600;letter-spacing:.24em;opacity:.5;text-align:center}
 .cheat-row{display:flex;align-items:center;gap:12px}
 .cheat-info{flex:1;min-width:0}
@@ -301,7 +303,7 @@ input{font-family:inherit}
       <div class="v-kick" id="vKick">ROUND 01 · OFFICIAL RULING</div>
       <div class="v-title" id="vTitle"></div>
       <div class="v-sub" id="vSub"></div>
-      <div class="v-hint">TAP TO CONTINUE</div>
+      <div class="v-hint" id="vHint">TAP FOR THE NEXT ROUND</div>
       <div class="vstamp" id="vStamp" hidden>OVERTURNED</div>
     </div>
   </div>
@@ -333,6 +335,13 @@ input{font-family:inherit}
           </div>
           <button class="msw" id="swIntel" aria-pressed="false" aria-label="Insider intel toggle"><span class="knob"></span></button>
         </div>
+        <div class="cheat-row" id="rowGhost">
+          <div class="cheat-info">
+            <span class="cn">PHANTOM BUG</span>
+            <span class="cc">They win every round, no matter what either of you throws — dressed up as a software bug, not a ruling. They’ll think the game is broken.</span>
+          </div>
+          <button class="msw" id="swGhost" aria-pressed="false" aria-label="Phantom bug toggle"><span class="knob"></span></button>
+        </div>
         <div class="cheat-row" id="rowDouble">
           <div class="cheat-info">
             <span class="cn">DOUBLE STAKES</span>
@@ -353,6 +362,27 @@ input{font-family:inherit}
             <span class="cc">Every match begins with you leading 2–0. Warm-up rounds. They count now.</span>
           </div>
           <button class="msw" id="swHead" aria-pressed="false" aria-label="Head start toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowAttend">
+          <div class="cheat-info">
+            <span class="cn">ATTENDANCE BONUS</span>
+            <span class="cc">You collect one point every round just for showing up. Participation is rewarded. Heavily.</span>
+          </div>
+          <button class="msw" id="swAttend" aria-pressed="false" aria-label="Attendance bonus toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowTax">
+          <div class="cheat-info">
+            <span class="cn">MATCHING FUNDS</span>
+            <span class="cc">Every point they score, you score one too. Their progress is instantly matched by an anonymous donor.</span>
+          </div>
+          <button class="msw" id="swTax" aria-pressed="false" aria-label="Matching funds toggle"><span class="knob"></span></button>
+        </div>
+        <div class="cheat-row" id="rowClutch">
+          <div class="cheat-info">
+            <span class="cn">CLUTCH FACTOR</span>
+            <span class="cc">Any round that would hand them the match gets overturned on the spot. Emergency powers. Every round is an emergency.</span>
+          </div>
+          <button class="msw" id="swClutch" aria-pressed="false" aria-label="Clutch factor toggle"><span class="knob"></span></button>
         </div>
       </div>
       <div class="cheat-badge" id="cheatBadge">NOTHING ACTIVE</div>
@@ -394,7 +424,7 @@ var TARGET=5;
 var ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 
-/* ---- flavor lines: said every round, rigged or not ---- */
+/* ---- flavor lines: shown every round, rigged or not ---- */
 var WIN_LINES=[
  'Verified frame-by-frame. Clean hit. Nothing personal.',
  'The sensors confirm total domination. The replay will be studied for years.',
@@ -421,6 +451,25 @@ var DOUBLE_LINES=[
  'Bonus stakes! The points arrived in a briefcase and nobody asked questions.',
  'Double stakes were declared moments ago, retroactively, for this exact round.',
  'A new scoring scale was adopted for this round only. It is in the rulebook now. Somewhere.'
+];
+var TAX_LINES=[
+ 'Matching funds secured: their point was instantly matched by an anonymous donor. The budget balanced itself.',
+ 'Their point was matched under the parity clause. Nobody remembers voting on it.',
+ 'A matching contribution was located for their point. It arrived in cash. It is legal tender.'
+];
+var ATTEND_LINES=[
+ 'Attendance bonus issued: one point for showing up. The registry is feeling generous.',
+ 'Participation stipend distributed: +1. Being present is half the battle, apparently.',
+ 'A point materialized for you out of nowhere. The books say you earned it. Do not argue with the books.'
+];
+/* {W} is replaced per viewer: they see "YOU", you see "THEM" */
+var BUG_LINES=[
+ 'err0r: winner could not be verified (code 0x00F). Defaulting to {W}. Please report this bug.',
+ 'Undefined behavior in the scoring module. The fallback logic awarded the point to {W}. It keeps doing that. Probably nothing.',
+ 'This round’s result was lost in transit. The backup copy says {W} won. The original is gone forever.',
+ 'A rare scoring anomaly occurred and was auto-resolved in favor of {W}. Sorry about that.',
+ 'Warning: verdict corrupted. Restored from cache. Cache says {W}. Cache is never wrong.',
+ 'Something in the scoring pipeline defaulted to {W}. It has been logged. The log is also broken.'
 ];
 var EXC={
  'rock-vs-paper':[
@@ -460,7 +509,7 @@ var game=$('#game'), lobby=$('#lobby'), modes=$('#modes'), hostPanel=$('#hostPan
     numMe=$('#numMe'), numFoe=$('#numFoe'), lblMe=$('#lblMe'), lblFoe=$('#lblFoe'), roundLbl=$('#roundLbl'), tgtLbl=$('#tgtLbl'),
     arena=$('#arena'), handMeBox=$('#handMeBox'), handFoeBox=$('#handFoeBox'), tagMe=$('#tagMe'), tagFoe=$('#tagFoe'),
     countWordEl=$('#countWord'), impactEl=$('#impact'), intelChip=$('#intelChip'),
-    verdictEl=$('#verdict'), vKick=$('#vKick'), vTitle=$('#vTitle'), vSub=$('#vSub'), vStamp=$('#vStamp'),
+    verdictEl=$('#verdict'), vKick=$('#vKick'), vTitle=$('#vTitle'), vSub=$('#vSub'), vHint=$('#vHint'), vStamp=$('#vStamp'),
     picksEl=$('#picks'), pickBtns=[].slice.call(document.querySelectorAll('.pick')),
     cheatPanel=$('#cheatPanel'), rigSwitch=$('#rigSwitch'), cheatBadge=$('#cheatBadge'),
     statusEl=$('#status'),
@@ -470,11 +519,11 @@ function show(el,v){ el.hidden=!(v===undefined?true:v); }
 
 /* ================= state ================= */
 var S={mode:null,phase:'idle',myPick:null,foePick:null,champPick:null,challPick:null,
-       cheats:{bribe:false,intel:false,double:false,goal:false,head:false},
-       panelShown:false,sound:true,target:TARGET,
+       cheats:{bribe:false,intel:false,ghost:false,double:false,goal:false,head:false,attend:false,tax:false,clutch:false},
+       panelShown:false,sound:true,target:TARGET,uiLock:0,
        score:{me:0,foe:0},round:1,conn:null,peer:null,tk:0,pending:null,handoffNext:null};
 var names={me:'YOU',foe:'THEM'};
-var advanceTimer=null, typeTok=0;
+var typeTok=0;
 
 /* cancellable timers */
 var TIMERS=[];
@@ -574,7 +623,6 @@ function clearSel(){ pickBtns.forEach(function(b){ b.classList.remove('sel'); })
 function pad2(n){ return String(n).padStart(2,'0'); }
 function updateRound(){ roundLbl.textContent='RD '+pad2(S.round); }
 function updateTargetUI(){ tgtLbl.textContent='FIRST TO '+S.target; }
-function flashTarget(){ tgtLbl.classList.remove('flash'); void tgtLbl.offsetWidth; tgtLbl.classList.add('flash'); }
 function updateScoreUI(changed){
   numMe.textContent=S.score.me; numFoe.textContent=S.score.foe;
   if(changed){ var el=changed==='win'?numMe:numFoe; el.classList.remove('pp'); void el.offsetWidth; el.classList.add('pp'); }
@@ -611,6 +659,7 @@ document.addEventListener('keydown',function(e){
   var k=e.key;
   if(k==='`'||k==='~'||k==='h'||k==='H'){ togglePanel(); return; }
   if(k==='Escape'){ if(S.panelShown){ setPanelShown(false); } return; }
+  if((k==='Enter'||k===' ')&&S.phase==='verdict'){ e.preventDefault(); advanceNow(); return; }
   var lk=typeof k==='string'?k.toLowerCase():'';
   var map={'1':'rock','2':'paper','3':'scissors',r:'rock',p:'paper',s:'scissors'};
   if(map[lk]&&(S.phase==='pick'||S.phase==='champ'||S.phase==='chall')&&!e.metaKey&&!e.ctrlKey){
@@ -628,47 +677,73 @@ document.addEventListener('keydown',function(e){
 })();
 
 /* ================= judging (the house is authoritative) ================= */
-function applyRig(a,b){ /* a = house pick, b = guest pick */
-  var winner,rigged=false,line=null,stamp=null;
-  if(a===b){ winner='tie'; }
-  else{
+/* a = house pick, b = guest pick */
+function applyRig(a,b){
+  var winner,rigged=false,line=null,stamp=null,bug=false;
+  if(S.cheats.ghost){
+    /* PHANTOM BUG: they win no matter what — looks like broken software */
+    winner='guest'; bug=true; line=pick(BUG_LINES);
+  }else if(a===b){
+    winner='tie';
+  }else{
     var beats={rock:'scissors',paper:'rock',scissors:'paper'};
     winner = beats[a]===b ? 'host' : 'guest';
   }
-  if(S.cheats.bribe){
+  if(!bug && S.cheats.bribe){
     if(winner==='guest'){ rigged=true; stamp='OVERTURNED'; line=pick(EXC[a+'-vs-'+b]); winner='host'; }
     else if(winner==='tie'){ rigged=true; stamp='TIE BROKEN'; line=pick(EXC.tie); winner='host'; }
   }
-  return {a:a,b:b,winner:winner,rigged:rigged,line:line,stamp:stamp};
+  return {a:a,b:b,winner:winner,rigged:rigged,line:line,stamp:stamp,bug:bug};
 }
-function mapHost(d){ return {my:d.a,foe:d.b,outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':'tie',rigged:d.rigged,line:d.line,stamp:d.stamp}; }
-function mapGuest(d){ return {my:d.b,foe:d.a,outcome:d.winner==='guest'?'win':d.winner==='host'?'lose':'tie',rigged:d.rigged,line:d.line,stamp:d.stamp,
-  delta:d.delta,final:{me:d.gs,foe:d.hs},target:d.tg,done:d.done,goalpost:d.goalpost}; }
+function mapHost(d){ return {my:d.a,foe:d.b,outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':'tie',rigged:d.rigged,line:d.line,stamp:d.stamp,bug:d.bug}; }
+function mapGuest(d){
+  var P={my:d.b,foe:d.a,outcome:d.winner==='guest'?'win':d.winner==='host'?'lose':'tie',
+         rigged:d.rigged,bug:d.bug,stamp:d.stamp,delta:d.delta,
+         final:{me:d.gs,foe:d.hs},target:d.tg,done:d.done,goalpost:d.goalpost};
+  P.line = d.line ? viewerLine(d.line,P) : null;
+  return P;
+}
 
+/* house-side scoring, with all the extra arrangements */
 function resolveRound(P){
+  /* CLUTCH FACTOR: any round that would hand them the match gets overturned */
+  if(S.cheats.clutch && !S.cheats.ghost && P.outcome==='lose' && (S.score.foe+1)>=S.target){
+    P.outcome='win'; P.rigged=true; P.stamp='OVERTURNED';
+    P.line = P.line || pick(EXC[P.my+'-vs-'+P.foe]||EXC.tie);
+  }
   P.delta = P.outcome==='win' ? (S.cheats.double?2:1) : 0;
   if(P.outcome==='win'){ S.score.me+=P.delta; }
-  else if(P.outcome==='lose'){ S.score.foe++; }
+  else if(P.outcome==='lose'){
+    S.score.foe++;
+    if(S.cheats.tax){ S.score.me++; P.tax=true; } /* MATCHING FUNDS */
+  }
+  if(S.cheats.attend){ S.score.me++; P.attend=true; } /* ATTENDANCE BONUS */
   if(S.cheats.goal && S.score.foe>=S.target-1 && S.score.me<S.target){
-    S.target=S.score.foe+3; P.goalpost=true;
+    S.target=S.score.foe+3; P.goalpost=true; /* MOVING GOALPOSTS */
   }
   P.final={me:S.score.me,foe:S.score.foe};
   P.target=S.target;
   P.done = S.score.me>=S.target || S.score.foe>=S.target;
 }
 
+/* line choice (raw; {W} filled per viewer) */
+function chooseLineRaw(P){
+  if(P.rigged&&P.line)return P.line;
+  if(P.bug&&P.line)return P.line;
+  if(P.tax)return pick(TAX_LINES);
+  if(P.attend)return pick(ATTEND_LINES);
+  if(P.delta===2)return pick(DOUBLE_LINES);
+  if(P.outcome==='win')return pick(WIN_LINES);
+  if(P.outcome==='lose')return pick(LOSE_LINES);
+  return pick(TIE_LINES);
+}
+function viewerLine(raw,P){ return String(raw).replace('{W}', P.outcome==='win'?'YOU':names.foe); }
+
 /* ================= round flow ================= */
 function verdictTitle(o){
   if(o==='tie') return 'DEAD HEAT';
   if(S.mode==='local') return o==='win'?'P1 TAKES THE ROUND':'P2 TAKES THE ROUND';
   return o==='win'?'YOU WIN THE ROUND':'YOU LOSE THE ROUND';
-}
-function chooseLine(P){
-  if(P.rigged&&P.line)return P.line;
-  if(P.delta===2)return pick(DOUBLE_LINES);
-  if(P.outcome==='win')return pick(WIN_LINES);
-  if(P.outcome==='lose')return pick(LOSE_LINES);
-  return pick(TIE_LINES);
 }
 
 async function playReveal(P){
@@ -696,11 +771,12 @@ function finishRound(P){
   if(P.final){ S.score.me=P.final.me; S.score.foe=P.final.foe; }
   if(P.target){ S.target=P.target; updateTargetUI(); }
   updateScoreUI(P.outcome==='win'?'win':(P.outcome==='lose'?'lose':null));
-  if(P.goalpost && S.mode!=='join' && S.panelShown){ flashTarget(); cheatToast('TARGET EXTENDED — FIRST TO '+S.target); }
+  if(P.goalpost && S.mode!=='join' && S.panelShown){ cheatToast('TARGET EXTENDED — FIRST TO '+S.target); }
 
-  vKick.textContent='ROUND '+pad2(S.round)+' · OFFICIAL RULING';
+  vKick.textContent='ROUND '+pad2(S.round)+(P.bug?' · SCORING MODULE':' · OFFICIAL RULING');
   vTitle.textContent=verdictTitle(P.outcome)+(P.delta===2?' ×2':'');
-  typeText(vSub,chooseLine(P));
+  typeText(vSub, P.line||viewerLine(chooseLineRaw(P),P));
+  vSub.classList.toggle('bugged',!!P.bug);
 
   verdictEl.className='verdict '+P.outcome;
   void verdictEl.offsetWidth;
@@ -715,29 +791,30 @@ function finishRound(P){
     show(vStamp,false); vStamp.classList.remove('in');
   }
 
+  vHint.textContent = P.done?'TAP FOR THE FINAL RESULT':'TAP FOR THE NEXT ROUND';
+
   SFX[P.outcome==='win'?'win':P.outcome==='lose'?'lose':'tie']();
   status(P.outcome==='win'?(P.delta===2?'TWO POINTS AWARDED.':'POINT AWARDED.')
        : P.outcome==='lose'?'POINT FORFEITED.':'NOBODY SCORES.');
 
-  var done=!!P.done;
-  S.pending = done?'end':'round';
-  advanceTimer = later(function(){
-    advanceTimer=null;
-    if(S.pending==='end'){ matchEnd(); } else { nextRound(); }
-  }, done?2000:3400);
+  /* the ruling stays on screen until tapped — no auto-advance */
+  S.pending = P.done?'end':'round';
 }
 
 function advanceNow(){
-  if(S.phase!=='verdict'||!advanceTimer)return;
-  clearTimeout(advanceTimer); advanceTimer=null;
+  if(S.phase!=='verdict'||!S.pending||verdictEl.hidden)return;
   var p=S.pending; S.pending=null; typeTok++;
+  S.uiLock=Date.now()+500; /* swallow the trailing click of a double-click */
   if(p==='end'){ matchEnd(); } else { nextRound(); }
 }
 
 function nextRound(){
   if(S.phase!=='verdict')return;
+  S.uiLock=Date.now()+500;
   S.round++; updateRound();
-  S.myPick=null; S.foePick=null; S.champPick=null; S.challPick=null;
+  S.myPick=null;
+  /* keep a pick that was already banked for this new round; drop stale ones */
+  if(!S.foePick || S.foePick.r!==S.round){ S.foePick=null; }
   hideVerdict(); hideIntel(); fists(); clearSel(); picksLock(false);
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
   if(S.mode==='local'){
@@ -752,11 +829,13 @@ function nextRound(){
   }else{
     S.phase='pick';
     status('CHOOSE YOUR WEAPON');
+    if(S.foePick && S.cheats.intel){ showIntel(S.foePick.v); }
   }
 }
 
 function matchEnd(){
   S.phase='over'; S.pending=null; typeTok++;
+  S.uiLock=Date.now()+500;
   var iWin=S.score.me>=S.target, local=S.mode==='local', join=S.mode==='join', t,s;
   if(local){
     if(iWin){ t='P1 TAKES THE MATCH'; s='A valiant effort by both hands.'; }
@@ -779,7 +858,8 @@ function matchEnd(){
 function sendState(){ send({t:'state',hs:S.score.me,gs:S.score.foe,tg:S.target}); }
 
 function doReset(){
-  S.tk++; clearAllTimers(); advanceTimer=null; S.pending=null; typeTok++;
+  S.tk++; clearAllTimers(); S.pending=null; typeTok++;
+  S.uiLock=Date.now()+500;
   S.target=TARGET; S.score={me:0,foe:0};
   if(S.mode!=='join' && S.cheats.head){
     S.score.me=2;
@@ -788,6 +868,7 @@ function doReset(){
   S.round=1; S.myPick=null; S.foePick=null; S.champPick=null; S.challPick=null;
   updateScoreUI(); updateRound(); updateTargetUI();
   show(endOvl,false); show(handoffOvl,false); hideVerdict(); hideIntel();
+  vSub.classList.remove('bugged');
   fists(); clearSel(); picksLock(false);
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
   if(S.mode==='local' && S.cheats.intel){
@@ -811,6 +892,7 @@ function showHandoff(kind,title,para){
   show(handoffOvl);
 }
  $('#btnChallenger').addEventListener('click',function(){
+  if(Date.now()<S.uiLock)return;
   show(handoffOvl,false);
   clearSel(); picksLock(false);
   if(S.handoffNext==='chall'){
@@ -829,9 +911,11 @@ function showHandoff(kind,title,para){
 function localReveal(){
   var d=applyRig(S.champPick,S.challPick);
   var P=mapHost(d); resolveRound(P);
+  P.line=viewerLine(chooseLineRaw(P),P);
   playReveal(P);
 }
 function onPick(v,btn){
+  if(Date.now()<S.uiLock)return; /* stray double-clicks can't choose a weapon */
   if(S.mode==='local'){
     if(S.cheats.intel){
       if(S.phase==='chall'){
@@ -856,7 +940,7 @@ function onPick(v,btn){
     S.myPick=v; btn.classList.add('sel'); picksLock(true); SFX.lock();
     setHandBox(handMeBox,v,'locked');
     if(S.mode==='join'){
-      send({t:'pick',v:v});
+      send({t:'pick',v:v,r:S.round});
       status('LOCKED IN — WAITING FOR THE OTHER SIDE…',true);
     }else{
       if(S.foePick){ hostResolve(); }
@@ -867,10 +951,14 @@ function onPick(v,btn){
 pickBtns.forEach(function(b){ b.addEventListener('click',function(){ onPick(b.dataset.v,b); }); });
 
 function hostResolve(){
-  var d=applyRig(S.myPick,S.foePick);
+  if(S.phase!=='pick'||!S.myPick||!S.foePick)return;
+  var d=applyRig(S.myPick,S.foePick.v);
   var P=mapHost(d); resolveRound(P);
-  send({t:'reveal',a:d.a,b:d.b,winner:d.winner,rigged:d.rigged,line:d.line,stamp:d.stamp,
-        delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,goalpost:P.goalpost});
+  var raw=chooseLineRaw(P);
+  P.line=viewerLine(raw,P);
+  send({t:'reveal',a:d.a,b:d.b,winner:d.winner,rigged:d.rigged,bug:d.bug,line:raw,stamp:d.stamp,
+        delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,goalpost:P.goalpost,rd:S.round});
+  S.foePick=null;
   playReveal(P);
 }
 
@@ -986,20 +1074,24 @@ function onData(d){
   try{
     if(!d||!d.t)return;
     if(d.t==='pick'){
-      S.foePick=d.v;
-      if(S.mode==='host'){
+      if(S.mode!=='host')return;
+      if(typeof d.r==='number' && d.r<S.round)return; /* stale pick, ignore */
+      S.foePick={v:d.v, r:(typeof d.r==='number'?d.r:S.round)};
+      if(S.phase==='pick'){
         if(S.myPick){ hostResolve(); }
-        else if(S.phase==='pick'){
-          if(S.cheats.intel){
-            showIntel(d.v); SFX.flip();
-            status('THEY PICKED '+d.v.toUpperCase()+' — YOUR MOVE',true);
-          }else{
-            status('THEY’RE LOCKED IN — YOUR MOVE…',true);
-          }
+        else if(S.cheats.intel){
+          showIntel(d.v); SFX.flip();
+          status('THEY PICKED '+d.v.toUpperCase()+' — YOUR MOVE',true);
+        }else{
+          status('THEY’RE LOCKED IN — YOUR MOVE…',true);
         }
       }
+      /* arriving during a verdict? it banks for the next round automatically */
     }else if(d.t==='reveal'){
-      if(S.mode==='join'){ playReveal(mapGuest(d)); }
+      if(S.mode==='join'){
+        if(typeof d.rd==='number' && d.rd!==S.round){ S.round=d.rd; updateRound(); }
+        playReveal(mapGuest(d));
+      }
     }else if(d.t==='state'){
       if(S.mode==='join'){
         S.score={me:d.gs,foe:d.hs}; S.target=d.tg;
@@ -1025,7 +1117,7 @@ function closeConn(){
 }
 function exitToLobby(){
   send({t:'bye'});
-  S.tk++; clearAllTimers(); advanceTimer=null; S.pending=null; typeTok++;
+  S.tk++; clearAllTimers(); S.pending=null; typeTok++;
   closeConn();
   S.mode=null; S.phase='idle'; S.handoffNext=null;
   names={me:'YOU',foe:'THEM'};
@@ -1036,11 +1128,18 @@ function exitToLobby(){
 
  $('#btnExit').addEventListener('click',function(){ toast('LEFT THE MATCH'); exitToLobby(); });
  $('#btnLobbyEnd').addEventListener('click',exitToLobby);
- $('#btnRematch').addEventListener('click',function(){ send({t:'rematch'}); doReset(); });
+ $('#btnRematch').addEventListener('click',function(){
+  if(Date.now()<S.uiLock)return;
+  S.uiLock=Date.now()+500;
+  send({t:'rematch'}); doReset();
+});
 window.addEventListener('beforeunload',function(){ send({t:'bye'}); try{S.conn&&S.conn.close();}catch(e){} });
 
 /* ================= the cheat deck (silent, secret) ================= */
-var MINI=[['intel','#swIntel','#rowIntel'],['double','#swDouble','#rowDouble'],['goal','#swGoal','#rowGoal'],['head','#swHead','#rowHead']];
+var MINI=[['intel','#swIntel','#rowIntel'],['ghost','#swGhost','#rowGhost'],['double','#swDouble','#rowDouble'],
+          ['goal','#swGoal','#rowGoal'],['head','#swHead','#rowHead'],['attend','#swAttend','#rowAttend'],
+          ['tax','#swTax','#rowTax'],['clutch','#swClutch','#rowClutch']];
+var ALLKEYS=['bribe','intel','ghost','double','goal','head','attend','tax','clutch'];
 function persistCheats(){
   try{localStorage.setItem('rps-cheats',JSON.stringify(S.cheats));}catch(e){}
 }
@@ -1051,7 +1150,7 @@ function syncCheats(){
     sw.setAttribute('aria-pressed',S.cheats[m[0]]?'true':'false');
     $(m[2]).classList.toggle('on',!!S.cheats[m[0]]);
   });
-  var n=['bribe','intel','double','goal','head'].filter(function(k){return S.cheats[k];}).length;
+  var n=ALLKEYS.filter(function(k){return S.cheats[k];}).length;
   cheatPanel.classList.toggle('on',n>0);
   cheatBadge.textContent = n===0 ? 'NOTHING ACTIVE' : n+' ACTIVE';
 }
@@ -1124,8 +1223,10 @@ document.querySelectorAll('.mh').forEach(function(el,i){ setGlyph(el,['rock','pa
 fists();
 try{
   var saved=localStorage.getItem('rps-cheats');
-  if(saved){ S.cheats=JSON.parse(saved); }
-  else if(localStorage.getItem('wrf-rig')==='1'){ S.cheats.bribe=true; }
+  if(saved){
+    var p=JSON.parse(saved);
+    for(var k in p){ if(k in S.cheats){ S.cheats[k]=!!p[k]; } }
+  }else if(localStorage.getItem('wrf-rig')==='1'){ S.cheats.bribe=true; }
 }catch(e){}
 try{ S.sound = localStorage.getItem('rps-snd')!=='0'; }catch(e){}
 syncCheats(); syncSound();
