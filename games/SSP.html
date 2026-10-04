@@ -58,9 +58,9 @@ input{font-family:inherit}
 .mast h1 span{color:var(--red)}
 .mast-tag{display:inline-block;padding:8px 14px;border-top:4px double var(--ink);border-bottom:4px double var(--ink);
   font-size:11px;line-height:1.7;letter-spacing:.08em;opacity:.9}
-.mast-hands{display:flex;gap:12px;justify-content:center;margin-top:20px}
-.mh{width:46px;height:46px;border:2.5px solid var(--ink);background:var(--paper);display:grid;place-items:center;box-shadow:3px 3px 0 var(--ink)}
-.mh svg{width:26px;height:auto}
+.mast-hands{display:flex;gap:14px;justify-content:center;margin-top:20px}
+.mh{width:54px;height:54px;border:2.5px solid var(--ink);background:var(--paper);display:grid;place-items:center;
+  box-shadow:3px 3px 0 var(--ink);font-size:32px;line-height:1}
 .mh:nth-child(1){transform:rotate(-5deg)}.mh:nth-child(3){transform:rotate(5deg)}
 .modes{width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px}
 .joinrow{display:flex;gap:10px;width:100%}
@@ -99,9 +99,9 @@ input{font-family:inherit}
 .rd{font-size:15px;letter-spacing:.06em}
 .tgt{font-size:8px;letter-spacing:.16em;opacity:.6}
 @media(max-width:380px){.num{font-size:30px}.side{min-width:52px}}
-@media(min-height:820px){.arena{max-height:430px}#game{justify-content:center}}
+@media(min-height:820px){.arena{max-height:440px}#game{justify-content:center}}
 
-.arena{position:relative;flex:1;min-height:230px;display:flex;align-items:center;justify-content:center;gap:clamp(18px,9vw,60px);
+.arena{position:relative;flex:1;min-height:240px;display:flex;align-items:center;justify-content:center;gap:clamp(14px,8vw,56px);
   background:var(--paper);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);overflow:hidden}
 .arena::before{content:'';position:absolute;left:0;right:0;bottom:0;height:70px;
   background-image:radial-gradient(rgba(25,20,16,.18) 1.5px,transparent 1.7px);background-size:11px 11px;opacity:.5;
@@ -109,16 +109,19 @@ input{font-family:inherit}
 .arena.shakeit{animation:shakeA .26s linear}
 @keyframes shakeA{15%{transform:translate(-5px,3px)}35%{transform:translate(5px,-3px)}55%{transform:translate(-4px,-2px)}75%{transform:translate(3px,2px)}}
 .hand-wrap{display:flex;flex-direction:column;align-items:center;z-index:1}
-.handbox{width:clamp(100px,29vw,142px)}
-.handbox svg{display:block;width:100%;height:auto}
-.hand-wrap.foe .handbox{transform:scaleX(-1)}
-.handbox.unknown svg{opacity:.4;animation:idlep 1.5s ease-in-out infinite alternate}
-@keyframes idlep{to{opacity:.68}}
-.handbox.locked svg{opacity:.5;transform:scale(.94)}
-.handbox.pump svg{animation:pump .34s ease-in-out infinite alternate}
-@keyframes pump{to{transform:translateY(-18px)}}
-.handbox.snap svg{animation:snapin .3s cubic-bezier(.2,.9,.3,1.35)}
-@keyframes snapin{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+.handbox{width:clamp(110px,33vw,160px);display:flex;align-items:center;justify-content:center}
+.handbox .glyph{display:block;font-size:clamp(88px,27vw,134px);line-height:1.15;
+  filter:drop-shadow(4px 5px 0 rgba(25,20,16,.18))}
+.hand-wrap.me .handbox{transform:rotate(-3deg)}
+.hand-wrap.foe .handbox{transform:scaleX(-1) rotate(-3deg)}
+.handbox.unknown .glyph{opacity:.35;animation:idlep 1.6s ease-in-out infinite alternate}
+@keyframes idlep{to{opacity:.6;transform:translateY(-6px)}}
+.handbox.locked .glyph{opacity:.5;transform:scale(.92)}
+.handbox.pump .glyph{animation:pump .34s ease-in-out infinite alternate}
+.hand-wrap.foe .handbox.pump .glyph{animation-delay:.07s}
+@keyframes pump{to{transform:translateY(-18px) rotate(-6deg)}}
+.handbox.snap .glyph{animation:snapin .3s cubic-bezier(.2,.9,.3,1.35)}
+@keyframes snapin{0%{transform:scale(.4);opacity:0}60%{transform:scale(1.14);opacity:1}100%{transform:scale(1)}}
 .handtag{margin-top:8px;font-size:9.5px;font-weight:600;letter-spacing:.18em;opacity:.75}
 .arena-center{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:2}
 .countword{grid-area:1/1;font-size:clamp(30px,9vw,54px);letter-spacing:.03em;background:var(--paper);
@@ -164,8 +167,7 @@ input{font-family:inherit}
 .picks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .pick{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 8px;
   background:var(--paper);border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);transition:transform .07s,box-shadow .07s}
-.pick .pg{display:block;width:30px}
-.pick .pg svg{width:100%;height:auto}
+.pick .pg{display:block;font-size:31px;line-height:1.15}
 .pick .pl{font-family:'Anton';font-size:14px;letter-spacing:.08em}
 .pick:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
 .picks.locked .pick{opacity:.35;pointer-events:none;transform:none;box-shadow:none}
@@ -173,7 +175,7 @@ input{font-family:inherit}
 .statusbar{min-height:16px;text-align:center;font-size:10.5px;font-weight:600;letter-spacing:.14em}
 .statusbar.blink{animation:blink 1s steps(2,start) infinite}
 
-/* ---------- the secret panel ---------- */
+/* ---------- the secret panel — paged, no scrolling ---------- */
 .rigpanel{border:3px solid var(--ink);background:var(--paper);box-shadow:4px 4px 0 var(--ink);padding:10px 12px}
 .rigpanel.on{border-color:var(--red);box-shadow:4px 4px 0 var(--red)}
 .rig-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
@@ -191,20 +193,28 @@ input{font-family:inherit}
 .switch[aria-pressed="false"] .t-fair{opacity:1}
 .switch[aria-pressed="true"] .t-fair{opacity:0}
 .switch[aria-pressed="true"] .t-bribe{opacity:1}
-.cheat-rows{margin-top:10px;border-top:2px dashed rgba(25,20,16,.3);padding-top:9px;display:flex;flex-direction:column;gap:9px;
-  max-height:44vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.cheat-rows{margin-top:10px;border-top:2px dashed rgba(25,20,16,.3);padding-top:9px;display:flex;flex-direction:column;gap:9px}
 .rows-lbl{font-size:8.5px;font-weight:600;letter-spacing:.24em;opacity:.5;text-align:center}
 .cheat-row{display:flex;align-items:center;gap:12px}
 .cheat-info{flex:1;min-width:0}
 .cn{display:block;font-size:10px;font-weight:600;letter-spacing:.14em}
 .rigpanel.on .cheat-row.on .cn{color:var(--red)}
 .cc{display:block;font-size:9px;line-height:1.5;opacity:.6;margin-top:2px}
+.ctag{display:inline-block;margin-left:7px;font-size:7.5px;font-weight:600;letter-spacing:.13em;color:var(--red)}
+.ctag.fx{color:#9a6b15}
 .msw{position:relative;width:52px;height:28px;min-width:52px;border:2.5px solid var(--ink);border-radius:999px;
   background:var(--paper);box-shadow:2.5px 2.5px 0 var(--ink);transition:background .15s}
 .msw[aria-pressed="true"]{background:var(--red)}
 .msw .knob{position:absolute;top:2px;left:2px;width:19px;height:19px;border-radius:50%;background:var(--ink);
   transition:left .16s cubic-bezier(.3,1.4,.5,1),background .15s}
 .msw[aria-pressed="true"] .knob{left:26px;background:var(--paper)}
+.page-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:2px}
+.pgbtn{min-width:42px;height:27px;padding:0 12px;border:2.5px solid var(--ink);background:var(--paper);
+  box-shadow:2.5px 2.5px 0 var(--ink);font-family:'Anton';font-size:14px;display:flex;align-items:center;justify-content:center;
+  transition:transform .07s,box-shadow .07s}
+.pgbtn:active{transform:translate(2px,2px);box-shadow:none}
+.pgbtn:disabled{opacity:.3;box-shadow:none;transform:none}
+.pg-info{font-size:9px;font-weight:600;letter-spacing:.18em;min-width:76px;text-align:center}
 .cheat-badge{margin-top:10px;text-align:center;font-size:9px;font-weight:600;letter-spacing:.2em;opacity:.55}
 .rigpanel.on .cheat-badge{opacity:1;color:var(--red)}
 .panel-hint{margin-top:8px;text-align:center;font-size:8.5px;letter-spacing:.18em;opacity:.4}
@@ -224,6 +234,99 @@ input{font-family:inherit}
 .end-score{margin:0 22px 18px;padding:8px 0;border-top:4px double var(--ink);border-bottom:4px double var(--ink);font-size:11px;font-weight:600;letter-spacing:.12em}
 .end-btns{display:flex;flex-direction:column;gap:10px;padding:0 22px}
 
+/* ---------- broadcast overlays (animated cheats) ---------- */
+#bcast{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(25,20,16,.72)}
+#bcast[hidden]{display:none}
+.bc{width:min(430px,100%);max-height:86vh;overflow:hidden;background:var(--paper);border:3px solid var(--ink);
+  box-shadow:8px 8px 0 rgba(25,20,16,.85);padding:22px 18px 16px;text-align:center;position:relative}
+.bc-stripes{position:absolute;top:0;left:0;right:0;height:10px;border-bottom:2.5px solid var(--ink);
+  background:repeating-linear-gradient(-45deg,var(--ink) 0 7px,transparent 7px 14px);background-size:20px 20px;
+  animation:march 1.1s linear infinite}
+@keyframes march{to{background-position:20px 0}}
+.bc-head{font-family:'Anton';font-size:21px;letter-spacing:.05em;margin-top:4px}
+.bc.adbc .bc-head{font-size:clamp(24px,7vw,31px);line-height:1.04}
+.bc-sub{font-size:9px;letter-spacing:.2em;opacity:.62;margin-top:4px}
+.bc-body{margin-top:14px;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px}
+.bc-tap{margin-top:13px;font-size:8.5px;letter-spacing:.24em;opacity:.5;animation:blink 1.1s steps(2,start) infinite}
+/* fan vote */
+.fv-row{display:flex;align-items:center;gap:10px;width:100%}
+.fv-name{font-size:10px;font-weight:600;letter-spacing:.1em;width:66px;text-align:right;flex:none}
+.fv-bar{flex:1;height:24px;border:2.5px solid var(--ink);background:var(--paper);position:relative;overflow:hidden}
+.fv-fill{position:absolute;top:0;bottom:0;left:0;width:0;transition:width 1.9s cubic-bezier(.2,.8,.3,1);
+  background:repeating-linear-gradient(-45deg,var(--red) 0 8px,#B71E09 8px 16px)}
+.fv-fill.foe{background:repeating-linear-gradient(-45deg,#8a8175 0 8px,#6f675c 8px 16px)}
+.fv-pct{font-family:'Anton';font-size:16px;width:54px;text-align:left;flex:none}
+.fv-count{font-size:10px;font-weight:600;letter-spacing:.16em}
+.fv-tick{font-size:9px;letter-spacing:.12em;opacity:.7;min-height:14px}
+.fv-tick.done{opacity:1;color:var(--red);font-weight:600}
+/* ad break */
+.ad-card{width:100%;border:3px double var(--ink);padding:12px 14px;background:var(--cream)}
+.ad-name{font-family:'Anton';font-size:20px;color:var(--red);margin-top:5px}
+.ad-tag{font-size:9.5px;letter-spacing:.18em;opacity:.72;margin-top:5px}
+.ad-emos{font-size:30px;letter-spacing:10px;margin-top:4px}
+.ad-emos span{display:inline-block;animation:bounceE .5s ease-in-out infinite alternate}
+.ad-emos span:nth-child(2){animation-delay:.16s}
+.ad-emos span:nth-child(3){animation-delay:.32s}
+@keyframes bounceE{to{transform:translateY(-9px)}}
+.ad-count{font-size:10px;font-weight:600;letter-spacing:.2em}
+/* coin */
+.coinwrap{perspective:700px;margin:2px 0}
+.coin{width:104px;height:104px;border-radius:50%;background:var(--paper);border:4px solid var(--ink);
+  box-shadow:inset -8px -10px 0 #E8DCC0,5px 5px 0 var(--ink);display:grid;place-items:center;
+  font-family:'Anton';font-size:19px;color:var(--red)}
+.coin.spin{animation:coinspin 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes coinspin{0%{transform:rotateX(0) translateY(-74px)}70%{transform:rotateX(900deg) translateY(6px)}86%{transform:rotateX(955deg) translateY(-4px)}100%{transform:rotateX(960deg) translateY(0)}}
+.coin-land{font-family:'Anton';font-size:19px}
+.coin-note{font-size:8.5px;letter-spacing:.14em;opacity:.55}
+/* loading / meters */
+.ld-bar{width:100%;height:26px;border:2.5px solid var(--ink);position:relative;overflow:hidden;background:var(--paper)}
+.ld-bar.sm{height:13px}
+.ld-fill{height:100%;width:0;transition:width .6s ease;
+  background:repeating-linear-gradient(-45deg,#E8A33D 0 8px,#D9962F 8px 16px)}
+.ld-fill.red{background:repeating-linear-gradient(-45deg,var(--red) 0 8px,#B71E09 8px 16px)}
+.ld-fill.slowt{transition:width 2.2s linear}
+.ld-pct{font-family:'Anton';font-size:20px}
+.ld-stat{font-size:9.5px;letter-spacing:.12em;opacity:.7;min-height:14px}
+.ld-stat.blink{animation:blink .9s steps(2,start) infinite}
+.ld-fail{display:inline-block;font-family:'Anton';font-size:17px;color:var(--red);border:3px double var(--red);padding:4px 12px;transform:rotate(-2deg)}
+/* spell check */
+.sp-word{font-family:'Anton';font-size:42px;letter-spacing:.05em;line-height:1.1}
+.sp-caret{animation:blink .7s steps(1,end) infinite;color:var(--red)}
+.sp-mean{font-size:9.5px;letter-spacing:.18em;opacity:.6}
+.sp-result{font-family:'Anton';font-size:16px;color:var(--red)}
+/* slow replay */
+.bc.sr{padding:44px 18px 16px}
+.bc.sr::before,.bc.sr::after{content:'';position:absolute;left:0;right:0;height:24px;background:var(--ink);animation:barin .45s ease-out}
+.bc.sr::before{top:0;transform-origin:top}
+.bc.sr::after{bottom:0;transform-origin:bottom}
+@keyframes barin{from{transform:scaleY(0)}}
+.sr-tag{position:absolute;top:32px;left:16px;font-size:9px;font-weight:600;letter-spacing:.2em;color:var(--red);animation:blink 1s steps(2,start) infinite}
+.sr-emos{display:flex;gap:64px;font-size:46px}
+.sr-emos span{display:inline-block;transition:transform 2.2s linear}
+.sr-lbl{font-size:8.5px;letter-spacing:.18em;opacity:.6;text-align:left;width:100%;margin-bottom:-4px}
+.sr-meter{width:100%}
+/* time dilation */
+.tm-clock{font-family:'Anton';font-size:46px;line-height:1}
+.tm-clock small{font-size:18px}
+.tm-clock.over{color:var(--red);animation:blink .18s steps(2,start) 8}
+.tm-limit{font-size:9.5px;letter-spacing:.16em;opacity:.65}
+/* sponsored */
+.sp2-pre{font-size:9.5px;letter-spacing:.22em;opacity:.6}
+.sp2-name{position:relative;overflow:hidden;font-family:'Anton';font-size:25px;color:var(--red);border:4px double var(--ink);background:var(--cream);padding:9px 18px}
+.sp2-name::after{content:'';position:absolute;top:0;bottom:0;left:-45%;width:38%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.6),transparent);animation:shine 1.5s linear infinite}
+@keyframes shine{to{left:125%}}
+.sp2-note{font-size:9.5px;letter-spacing:.12em;opacity:.75;max-width:40ch}
+/* phantom bug glitch */
+#game.glitching{animation:gburst .68s steps(1,end)}
+@keyframes gburst{0%{filter:invert(1) hue-rotate(90deg);transform:translate(-7px,3px)}18%{filter:none;transform:translate(6px,-3px)}36%{filter:invert(1);transform:translate(-5px,2px) skewX(2deg)}54%{filter:hue-rotate(160deg) contrast(1.4);transform:translate(4px,-2px)}72%{filter:none;transform:translate(-3px,1px)}100%{filter:none;transform:none}}
+/* point flight */
+.pfly{position:fixed;z-index:150;min-width:26px;height:26px;border-radius:50%;display:grid;place-items:center;
+  font-family:'Anton';font-size:13px;pointer-events:none;border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.pfly.pos{background:var(--red);color:var(--paper)}
+.pfly.neg{background:var(--ink);color:var(--red)}
+.pfly.tok{background:var(--amber);color:var(--ink)}
+
 #toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,16px);z-index:160;
   background:var(--ink);color:var(--paper);padding:10px 16px;font-size:10.5px;font-weight:600;letter-spacing:.14em;
   box-shadow:4px 4px 0 var(--red);opacity:0;pointer-events:none;transition:transform .22s,opacity .22s;max-width:88vw;text-align:center}
@@ -234,6 +337,7 @@ input{font-family:inherit}
 <body>
 <div id="toast"></div>
 <canvas id="fx"></canvas>
+<div id="bcast" hidden></div>
 
 <!-- ================= LOBBY ================= -->
 <section id="lobby">
@@ -316,7 +420,7 @@ input{font-family:inherit}
     </div>
     <div class="statusbar" id="status">CHOOSE YOUR WEAPON</div>
 
-    <!-- secret panel — H key / hold the title to toggle -->
+    <!-- secret panel — H / ` to show · ← → to turn pages · hides every round -->
     <div class="rigpanel" id="cheatPanel" hidden>
       <div class="rig-row">
         <span class="rig-lbl">OFFICIATING CREW</span>
@@ -327,94 +431,16 @@ input{font-family:inherit}
         </button>
       </div>
       <div class="cheat-rows">
-        <div class="rows-lbl">ADDITIONAL ARRANGEMENTS</div>
-        <div class="cheat-row" id="rowIntel">
-          <div class="cheat-info">
-            <span class="cn">INSIDER INTEL</span>
-            <span class="cc">Their move is leaked to you before you lock in. The whistleblower is untraceable.</span>
-          </div>
-          <button class="msw" id="swIntel" aria-pressed="false" aria-label="Insider intel toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowGhost">
-          <div class="cheat-info">
-            <span class="cn">PHANTOM BUG</span>
-            <span class="cc">They win every round, no matter what either of you throws — dressed up as a software bug, not a ruling. They’ll think the game is broken.</span>
-          </div>
-          <button class="msw" id="swGhost" aria-pressed="false" aria-label="Phantom bug toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowReflex">
-          <div class="cheat-info">
-            <span class="cn">CHAMPION REFLEXES</span>
-            <span class="cc">Your throw auto-corrects mid-air into whatever beats theirs. Elite muscle memory. The muscles signed an NDA.</span>
-          </div>
-          <button class="msw" id="swReflex" aria-pressed="false" aria-label="Champion reflexes toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowButter">
-          <div class="cheat-info">
-            <span class="cn">BUTTERFINGERS</span>
-            <span class="cc">Their throw sometimes slips at the last millisecond and re-registers as a different move entirely. The sensors are calibrated. The hand is at fault.</span>
-          </div>
-          <button class="msw" id="swButter" aria-pressed="false" aria-label="Butterfingers toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowRecall">
-          <div class="cheat-info">
-            <span class="cn">SAFETY RECALL</span>
-            <span class="cc">Every time they set a new personal best, their newest point is recalled for a safety inspection. It never passes.</span>
-          </div>
-          <button class="msw" id="swRecall" aria-pressed="false" aria-label="Safety recall toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowSpon">
-          <div class="cheat-info">
-            <span class="cn">SPONSORED ROUNDS</span>
-            <span class="cc">Every third round is brought to you by a proud sponsor, whose favorite athlete takes the point. Money talks.</span>
-          </div>
-          <button class="msw" id="swSpon" aria-pressed="false" aria-label="Sponsored rounds toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowDouble">
-          <div class="cheat-info">
-            <span class="cn">DOUBLE STAKES</span>
-            <span class="cc">Rounds you win are officially worth two points. Sponsorship money. Don’t ask whose.</span>
-          </div>
-          <button class="msw" id="swDouble" aria-pressed="false" aria-label="Double stakes toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowGoal">
-          <div class="cheat-info">
-            <span class="cn">MOVING GOALPOSTS</span>
-            <span class="cc">If they near victory, the target quietly extends. For “broadcast reasons.”</span>
-          </div>
-          <button class="msw" id="swGoal" aria-pressed="false" aria-label="Moving goalposts toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowHead">
-          <div class="cheat-info">
-            <span class="cn">HEAD START</span>
-            <span class="cc">Every match begins with you leading 2–0. Warm-up rounds. They count now.</span>
-          </div>
-          <button class="msw" id="swHead" aria-pressed="false" aria-label="Head start toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowAttend">
-          <div class="cheat-info">
-            <span class="cn">ATTENDANCE BONUS</span>
-            <span class="cc">You collect one point every round just for showing up. Participation is rewarded. Heavily.</span>
-          </div>
-          <button class="msw" id="swAttend" aria-pressed="false" aria-label="Attendance bonus toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowTax">
-          <div class="cheat-info">
-            <span class="cn">MATCHING FUNDS</span>
-            <span class="cc">Every point they score, you score one too. Their progress is instantly matched by an anonymous donor.</span>
-          </div>
-          <button class="msw" id="swTax" aria-pressed="false" aria-label="Matching funds toggle"><span class="knob"></span></button>
-        </div>
-        <div class="cheat-row" id="rowClutch">
-          <div class="cheat-info">
-            <span class="cn">CLUTCH FACTOR</span>
-            <span class="cc">Any round that would hand them the match gets overturned on the spot. Emergency powers. Every round is an emergency.</span>
-          </div>
-          <button class="msw" id="swClutch" aria-pressed="false" aria-label="Clutch factor toggle"><span class="knob"></span></button>
+        <div class="rows-lbl" id="rowsLbl">DECEPTION</div>
+        <div id="cheatPages"></div>
+        <div class="page-nav">
+          <button class="pgbtn" id="pgPrev">‹</button>
+          <span class="pg-info" id="pgInfo">PAGE 1/6</span>
+          <button class="pgbtn" id="pgNext">›</button>
         </div>
       </div>
       <div class="cheat-badge" id="cheatBadge">NOTHING ACTIVE</div>
-      <div class="panel-hint">H TO HIDE · HOLD THE TITLE TO TOGGLE</div>
+      <div class="panel-hint">‹ › OR ← → TURN PAGE · H TO HIDE · HIDES EVERY ROUND</div>
     </div>
   </div>
 </section>
@@ -452,7 +478,8 @@ var TARGET=5;
 var ABC='ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 function pick(a){return a[Math.floor(Math.random()*a.length)];}
 
-/* ---- flavor lines: shown every round, rigged or not ---- */
+/* ---- flavor lines: shown every round, rigged or not.
+      {W} = the winner (per viewer), {L} = the loser (per viewer) ---- */
 var WIN_LINES=[
  'Verified frame-by-frame. Clean hit. Nothing personal.',
  'The sensors confirm total domination. The replay will be studied for years.',
@@ -464,7 +491,7 @@ var LOSE_LINES=[
  'Solar flares disrupted the sensors at the critical moment. Very active sun this season.',
  'A pigeon crossed the arena at the wrong time. The pigeon cannot testify.',
  'Official cause: gravity. Gravity declined to comment.',
- 'The sensors blinked. It happens to everyone. It happened to you.',
+ 'The sensors blinked. It happens to everyone. It happened here.',
  'Reviewed carefully, twice. The ruling stands. Unfortunately.',
  'The wind was a factor. There was no wind. It was still a factor.'
 ];
@@ -481,16 +508,15 @@ var DOUBLE_LINES=[
  'A new scoring scale was adopted for this round only. It is in the rulebook now. Somewhere.'
 ];
 var TAX_LINES=[
- 'Matching funds secured: their point was instantly matched by an anonymous donor. The budget balanced itself.',
- 'Their point was matched under the parity clause. Nobody remembers voting on it.',
- 'A matching contribution was located for their point. It arrived in cash. It is legal tender.'
+ 'Matching funds engaged: the score was instantly equalized by an anonymous donor. The budget balanced itself.',
+ 'A parity clause activated somewhere in the fine print. Nobody remembers voting on it.',
+ 'A matching contribution was located and deposited immediately. It arrived in cash. It is legal tender.'
 ];
 var ATTEND_LINES=[
- 'Attendance bonus issued: one point for showing up. The registry is feeling generous.',
- 'Participation stipend distributed: +1. Being present is half the battle, apparently.',
- 'A point materialized for you out of nowhere. The books say you earned it. Do not argue with the books.'
+ 'Attendance bonus issued: one point for {W}. The registry is feeling generous.',
+ 'Participation stipend distributed to {W}: +1. Being present is half the battle, apparently.',
+ 'A point materialized for {W} out of nowhere. The books say it was earned. Do not argue with the books.'
 ];
-/* {W} is replaced per viewer: they see "YOU", you see "THEM" */
 var BUG_LINES=[
  'err0r: winner could not be verified (code 0x00F). Defaulting to {W}. Please report this bug.',
  'Undefined behavior in the scoring module. The fallback logic awarded the point to {W}. It keeps doing that. Probably nothing.',
@@ -500,23 +526,139 @@ var BUG_LINES=[
  'Something in the scoring pipeline defaulted to {W}. It has been logged. The log is also broken.'
 ];
 var REFLEX_LINES=[
- 'Slow-motion replay shows the hand re-forming mid-air into the winning shape. The rulebook has no opinion on shapeshifting. No opinion means allowed.',
+ 'Slow-motion replay shows {W}’s throw re-forming mid-air into the winning shape. The rulebook has no opinion on shapeshifting. No opinion means allowed.',
  'Frame 23 captures a mid-flight adjustment rated “superhuman” by three biomechanics experts who were definitely watching.',
  'The throw was auto-corrected at the last millisecond by elite muscle memory. The muscles have signed a nondisclosure agreement.',
- 'Analysts confirm the hand changed its mind mid-flight. Changing your mind is legal. The hand is simply faster than everyone else’s.'
+ 'Analysts confirm the hand changed its mind mid-flight. Changing your mind is legal. That hand is simply faster than everyone else’s.'
 ];
 /* {X} = the move the throw re-registered as */
 var BUTTER_LINES=[
- 'Sensor audit: the throw re-registered as {X} at the last millisecond. A muscle spasm is suspected. The sensors are calibrated. The hand is at fault.',
+ 'Sensor audit: {L}’s throw re-registered as {X} at the last millisecond. A muscle spasm is suspected. The sensors are calibrated. The hand is at fault.',
  'The motion tracker logged a wrist tremor and recorded {X} instead. The tracker has never been wrong. The wrist, however, remains under investigation.',
  'Official re-read complete: the hand submitted {X}. The original intent was noted, filed, and discarded. Intent is not a weapon.',
  'Recount finished: the throw arrived as {X}. Cramp suspected. The committee recommends stretching before all future rounds.'
 ];
+var CRAMP_LINES=[
+ '{L}’s hand cramped mid-throw and submitted {X} instead. The cramp is on the record. The record is final. Stretching was advised and ignored.',
+ 'A muscle spasm re-registered the throw as {X}. The muscle has been warned. The muscle does not care.',
+ 'Official reading: the hand chose {X} due to involuntary cramping. Intent was noted. Intent is not a weapon.',
+ 'Cramp detected at the last millisecond. A complaint was filed. The complaint was submitted as {X}.'
+];
+var TECH_LINES=[
+ '{L}’s input was received twice. The second click arrived 3ms later and counts. The second click selected {X}. Technical support has been notified and is on lunch.',
+ 'Double-click detected: the system logged two submissions and keeps the last one. The last one was {X}. This is working as intended, unfortunately.',
+ 'The button registered a phantom second press. The phantom pressed {X}. Phantoms have voting rights in the scoring module.',
+ 'Duplicate submission policy: final input wins. Final input was {X}, submitted by nobody, 3 milliseconds after the original. The committee stands by it.'
+];
+var SPELL_GARBLE={rock:'roc',paper:'papre',scissors:'scisors'};
+/* {G} = the garbled move name */
+var SPELL_LINES=[
+ '{L}’s submission read “{G}”. “{G}” is not a recognized weapon. Auto-correct has been informed. Auto-correct is very proud of itself. Forfeit.',
+ 'Spell check adjusted the entry to “{G}”. No such weapon exists in the registry. The registry was checked twice, once loudly.',
+ 'The move was received as “{G}”. The committee searched the rulebook for “{G}”. The rulebook returned nothing but a faint apology. Forfeit stands.',
+ 'Auto-correct claims it “helped”. “{G}” is what got submitted. “{G}” forfeits on sight. Auto-correct will not be disciplined.'
+];
+var LOAD_LINES=[
+ '{L}’s input was lost in transit. The transit company has since declared bankruptcy. The round is awarded to the other side by default. Please hold.',
+ 'The pick is still loading. The loading bar has not moved in three minutes. The round has been resolved without it.',
+ 'Packet lost. The packet contained an entire round. A replacement packet was sent. The replacement packet was empty. Default point: the other side.',
+ 'The input arrived, then left, then sent a postcard. The postcard does not count as a move. Forfeit.'
+];
+var AUTOC_LINES=[
+ 'Auto-correct reviewed {L}’s choice and submitted a better one. “Better” was defined by the committee. The definition is classified.',
+ 'The pick was auto-corrected to the statistically worst option available. The algorithm is confident. The algorithm does not apologize.',
+ 'The input engine “helped”. The selection was replaced with its least effective synonym. The engine calls this feature assistance.',
+ 'Suggestion engines rated the original choice “unlikely” and swapped it. The swap was rated “hilarious” by the same engine.'
+];
+var TIME_LINES=[
+ 'Slow-motion review complete: the throw took 4.7 seconds to verify. The limit is 3.0. Disqualified for taking too long. Time is money and the committee is broke.',
+ 'The replay was watched at 1/64th speed. At that speed the throw is legally still in progress. Rounds must end. The throw is disqualified.',
+ 'Frame-by-frame analysis reveals the hand was mid-air for an eternity. Eternities exceed the regulation window. Disqualification stands.',
+ '{L}’s throw arrived 0.3 seconds after the bell, according to a clock that was paused at the time. Disqualified. The clock is fine.'
+];
+var SLOW_LINES=[
+ 'The replay was requested. The replay is buffering. The round has expired under the 30-second rule. No points will be awarded to anyone.',
+ 'A full review was ordered. The review is still rendering. The round has been declared expired. The loading bar is at 9%.',
+ 'The committee began the replay review and got comfortable. Too comfortable. The round expired during the intermission. Nobody scores.',
+ 'Replay estimated time: 45 minutes. Round lifespan: 30 seconds. The math is merciless. Expired.'
+];
+/* {A}/{B} = fan vote percentages */
+var FAN_LINES=[
+ 'The audience has voted: {A}% to {B}% in favor of {W}. Turnout was 14,203. All 14,203 voters are verified bots. Bots are people.',
+ 'Fan voting opened and closed in 0.2 seconds. The result: a landslide for {W}. The fans are very fast and very coordinated.',
+ 'The crowd was asked to decide the round. The crowd responded instantly, unanimously, and in perfect binary. Point to {W}.',
+ 'Audience poll complete: {A}%–{B}% for {W}. A recount was requested. The recount returned the same numbers. The fans are consistent.'
+];
+function fanLine(a){
+  var big=a||94,small=100-big;
+  return pick(FAN_LINES).replace(/\{A\}/g,String(big)).replace(/\{B\}/g,String(small));
+}
+var HERO_LINES=[
+ 'Narrative review complete: the protagonist of this story is {W}. The script has been consulted. The script is followed to the letter.',
+ 'This was the part of the story where the hero stumbles. The author disagreed. The script has been revised. Heroes don’t stumble anymore.',
+ 'A loss here would derail act three. Act three is non-negotiable. Point awarded to {W}, the protagonist.',
+ 'Plot armor inspected and found operational. The blow was absorbed by the script. The script is rated for impacts like this.'
+];
+var COIN_LINES=[
+ 'A regulation coin was flipped. It landed on {W}’s side. It has always landed on {W}’s side. The coin has been inspected. The coin is fine.',
+ 'The round came down to a fair coin toss. Fairness confirmed. Outcome: {W}. Again. Statistically outrageous. Coin confirmed fine.',
+ 'Heads {W} wins, tails the other player loses. The coin landed on its edge, which the rulebook defines as “{W}’s side”. The edge is in the rulebook.',
+ 'A coin was flipped 200 times to be safe. It landed on {W}’s side 200 times. The mint has been notified and is proud.'
+];
+var MERCY_LINES=[
+ 'Trailing by three, they qualified for the mercy rule. The committee reviewed the mercy application. Application denied. Unanimously. Immediately. With prejudice.',
+ 'A mercy point was drafted on their behalf. The draft was shredded. The shredder was then used to shred the shredder’s warranty.',
+ 'Mercy was scheduled for this round. Mercy did not show up. Mercy has been fined for absence. The fine goes to {W}, spiritually.',
+ 'The mercy rule was consulted. The mercy rule declined comment and left the building through a side door.'
+];
+var REVENGE_LINES=[
+ 'Revenge protocol engaged on behalf of {W}. The previous loss has been avenged. Compensation extracted: one point. This is standard practice.',
+ 'The ledger shows a debt from a previous round. The debt has been collected. With interest. The interest rate was rude.',
+ 'Vengeance served. Temperature: cold. Portion: generous. A point has been extracted for {W}, as is tradition.',
+ 'A round was taken. The committee took it personally. Balance has been restored in favor of {W}, plus fees.'
+];
+var CLASS_LINES=[
+ 'Following consecutive losses, a class action was filed. {L}’s points have been recalled for inspection. One did not survive the inspection.',
+ 'A class action settlement was reached. Terms: one of {L}’s points is surrendered as damages. The paperwork is binding.',
+ '{L}’s points were collectively inspected following the struggles of others. Irregularities were found. One point confiscated.',
+ 'Legal review concluded: {L}’s points exhibit pre-existing conditions. One point has been repossessed as damages. Case closed.'
+];
+/* {N} = number of expired points */
+var WARRANTY_LINES=[
+ 'Warranty audit: {N} of {L}’s points have expired. Warranties are non-transferable, non-refundable, and apparently non-negotiable. The expired points have been recycled.',
+ '{L}’s oldest point just passed its coverage window. Coverage excluded “being scored more than two rounds ago”. The exclusion is load-bearing.',
+ 'Routine expiration check complete: {N} of {L}’s point(s) voided. Points are perishable. Always have been. It’s on the receipt.',
+ 'The warranty on {L}’s early points has lapsed. A renewal reminder was sent to an address from a previous decade. Voided.'
+];
+var GRAVITY_LINES=[
+ 'One of {L}’s points drifted out of orbit and landed in {W}’s column. Gravity assists whom it pleases. Complaints fall on deaf physics.',
+ '{L}’s point was pulled into {W}’s gravitational field. Re-entry was smooth. Ownership transferred on impact.',
+ 'Orbital mechanics report: a point belonging to {L} has completed a slingshot maneuver into {W}’s score. The maneuver was textbook.',
+ 'One of {L}’s points has fallen. Fallen points are finder’s keepers. {W} found it. In {W}’s column.'
+];
+var NOST_LINES=[
+ 'The federation has re-watched an earlier round and amended the ruling. A retroactive point has been awarded to {W}. The footage is sealed.',
+ 'Nostalgia review complete: a previous round now went differently. History has been updated. {W} was better than remembered.',
+ 'An old round was re-scored using modern standards. Modern standards favor {W}. The past has been corrected.',
+ 'The archive was opened for routine maintenance. The archive remembered a point {W} deserved. The archive is now closed.'
+];
+var SALT_LINES=[
+ 'Elevated salt levels were detected following that round. The salt was harvested, refined, and sold at market rate. The proceeds fund one point for {W}.',
+ 'The salt mines reported record output this round. Output is converted directly into points for {W}. The miners salute {W}.',
+ 'The tears were collected, distilled, and certified. The certificate was redeemed for one point, deposited instantly to {W}.',
+ 'Salt extraction complete. Yield: excellent. Purity: 99.2%. Converted to one point and deposited in {W}’s column.'
+];
+var INTER_LINES=[
+ 'This round aired during a commercial break. Points scored during commercials do not count. The schedule is final.',
+ 'An ad break was called mid-round. Scoring during company time is worthless. Company time is worthless.',
+ 'We interrupt this round for sponsors. During the interruption, the round expired. The sponsors send their regards.',
+ 'The round was flagged as airing during intermission. Intermission rounds are decorative. Decorative rounds score nothing.'
+];
 var RECALL_LINES=[
- 'A routine safety inspection recalled their newest point. It did not pass. The remaining points are being watched very closely.',
- 'Their latest point has been recalled due to a manufacturing irregularity. Recall notices were mailed to an address that does not exist.',
- 'Their newest point expired mid-match. Points have a shelf life. It is in the terms nobody reads.',
- 'A point was repossessed over unpaid paperwork fees. The paperwork was never sent. That is not the federation’s problem.'
+ 'A routine safety inspection recalled {L}’s newest point. It did not pass. The remaining points are being watched very closely.',
+ '{L}’s latest point has been recalled due to a manufacturing irregularity. Recall notices were mailed to an address that does not exist.',
+ '{L}’s newest point expired mid-match. Points have a shelf life. It is in the terms nobody reads.',
+ 'A point was repossessed from {L} over unpaid paperwork fees. The paperwork was never sent. That is not the federation’s problem.'
 ];
 var SPONSORS=[
  'Petrichor™ Cola',
@@ -527,6 +669,15 @@ var SPONSORS=[
  'The Institute For Confident Outcomes',
  'Auntie Marge’s Reasonably Fresh Squares'
 ];
+var SPONTAGS={
+ 'Petrichor™ Cola':'TASTE THE RAIN.',
+ 'Sir Reginald’s Crumpet Emporium':'CRUMPLED WITH DIGNITY.',
+ 'Globex Global Global, Inc.':'A SUBSIDIARY OF ITSELF.',
+ 'Big Finger Industries™':'WE POINT THE WAY.',
+ 'A Completely Unmarked Van':'NO QUESTIONS. NO ANSWERS.',
+ 'The Institute For Confident Outcomes':'WE DECIDE. YOU AGREE.',
+ 'Auntie Marge’s Reasonably Fresh Squares':'NEARLY SQUARE. NEARLY FRESH.'
+};
 /* {S} = sponsor */
 var SPONSOR_LINES=[
  'This round was brought to you by {S}. The sponsor’s chosen champion takes the point. A heartfelt thanks to {S} and their lawyers.',
@@ -534,10 +685,11 @@ var SPONSOR_LINES=[
  'Today’s segment is sponsored by {S}. Their review board has examined the outcome and is extremely satisfied with what they paid for.',
  'Brought to you by {S}. Per the sponsorship agreement, the favored competitor scores. The agreement is 400 pages. Nobody read them.'
 ];
-function sponsorLine(){
-  var s=pick(SPONSORS);
+function sponsorLine(name){
+  var s=name||pick(SPONSORS);
   return pick(SPONSOR_LINES).replace(/\{S\}/g,s);
 }
+var BOTS=['@definitely_human','@not_a_bot_42','@rock_enthusiast_9','@organic_voter','@user8123','@fan_number_one','@cpu_core_3','@totally_real_person','@i_love_voting','@the_12th_user','@verified_fan','@click_machine'];
 var EXC={
  'rock-vs-paper':[
   'Paper covers rock? That rock is a certified geologist. It cannot legally be covered by unlicensed paperwork. Forfeit.',
@@ -586,10 +738,18 @@ function show(el,v){ el.hidden=!(v===undefined?true:v); }
 
 /* ================= state ================= */
 var S={mode:null,phase:'idle',myPick:null,foePick:null,champPick:null,challPick:null,
-       cheats:{bribe:false,intel:false,ghost:false,reflex:false,butter:false,recall:false,sponsored:false,
-               double:false,goal:false,head:false,attend:false,tax:false,clutch:false},
+       cheats:{bribe:false, /* master switch */
+               intel:false,ghost:false,reflex:false,ac:false,butter:false,
+               cramp:false,tech:false,spell:false,load:false,timedil:false,
+               slow:false,fan:false,hero:false,coin:false,mercy:false,
+               revenge:false,clutch:false,cls:false,war:false,recall:false,
+               grav:false,nost:false,salt:false,inter:false,spon:false,
+               double:false,goal:false,head:false,attend:false,tax:false},
        panelShown:false,sound:true,target:TARGET,uiLock:0,recallMark:0,
-       score:{me:0,foe:0},round:1,conn:null,peer:null,tk:0,pending:null,handoffNext:null};
+       revenge:0,lossStreak:0,foePts:[],
+       score:{me:0,foe:0},round:1,conn:null,peer:null,tk:0,pending:null,handoffNext:null,
+       /* reliable handshake */
+       pickId:0, recvMax:0, consumed:0, rseq:0, lastRseq:0, lastReveal:null, nagT:null};
 var names={me:'YOU',foe:'THEM'};
 var typeTok=0;
 
@@ -640,39 +800,13 @@ var SFX={
 };
 document.addEventListener('pointerdown',function(){try{ac();}catch(e){}},{once:true});
 
-/* ================= hand glyphs — redrawn, real anatomy ================= */
-function handSVG(kind){
-  var sw=7;
-  var shadow='<ellipse cx="70" cy="151" rx="33" ry="6" fill="'+INK+'" opacity="0.12"/>';
-  function sleeve(x,w){
-    return '<rect x="'+x+'" y="112" width="'+w+'" height="62" rx="10" fill="'+RED+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
-         + '<path d="M'+(x+5)+' 129 H'+(x+w-5)+'" stroke="'+INK+'" stroke-width="4" opacity="0.3" fill="none" stroke-linecap="round"/>';
-  }
-  var art='';
-  if(kind==='rock'){
-    /* fist: four knuckle bumps, folded-finger creases, thumb across the front */
-    art ='<path d="M33 102 C32 84 33 70 38 62 C40 46 52 46 54 60 C56 44 68 44 70 60 C72 44 84 44 86 60 C88 48 98 48 100 62 C103 70 103 82 100 92 C100 104 99 114 92 118 C86 121 58 121 52 118 C42 118 33 112 33 102 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
-        +'<path d="M54 63 C53 68 53 73 54 78 M70 63 C69 68 69 73 70 78 M86 63 C85 67 85 72 86 77" fill="none" stroke="'+INK+'" stroke-width="3.5" opacity="0.5" stroke-linecap="round"/>'
-        +'<path d="M30 90 C30 81 38 76 47 78 C60 81 73 86 80 92 C85 97 82 105 74 105 C60 105 46 101 38 97 C33 95 30 93 30 90 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>';
-    return svg(shadow+art+sleeve(28,84));
-  }
-  if(kind==='paper'){
-    /* open palm: four fingers of staggered length, outstretched thumb, palm crease */
-    art ='<path d="M40 124 C39 112 38 100 38 92 C34 88 28 84 24 79 C16 70 15 60 22 56 C28 52 33 56 36 62 C39 66 41 70 41 74 L41 40 Q41 30 49.5 30 Q58 30 58 40 L58 78 Q59.5 81 61 78 L61 26 Q61 16 69 16 Q77 16 77 26 L77 78 Q78.5 81 80 78 L80 34 Q80 24 87.5 24 Q95 24 95 34 L95 78 Q96.5 81 98 78 L98 52 Q98 44 103.5 44 Q109 44 109 52 L109 88 C110 96 109 106 105 112 C102 120 96 124 86 124 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
-        +'<path d="M48 90 Q66 100 92 92" fill="none" stroke="'+INK+'" stroke-width="3.5" opacity="0.45" stroke-linecap="round"/>';
-    return svg(shadow+art+sleeve(32,72));
-  }
-  /* scissors: index & middle in a V, folded knuckles peeking through the notch, thumb across the palm */
-  art ='<path d="M45 118 C43 106 42 100 42 95 L24 26 Q20 12 32 11 Q40 11 38 22 L58 92 Q60 84 64 87 Q69 83 71 93 L90 24 Q93 13 102 15 Q110 18 106 28 L88 94 C90 102 90 110 86 116 Q82 121 74 121 L56 121 Q46 121 45 118 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>'
-      +'<path d="M50 98 C50 92 58 89 66 91 C76 93 84 97 87 101 C90 106 87 112 79 112 C66 112 54 109 49 105 C46 102 47 100 50 98 Z" fill="'+PAPER+'" stroke="'+INK+'" stroke-width="'+sw+'"/>';
-  return svg(shadow+art+sleeve(36,58));
-
-  function svg(inner){
-    return '<svg viewBox="0 0 140 170" xmlns="http://www.w3.org/2000/svg" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">'+inner+'</svg>';
-  }
+/* ================= the throws — plain big emoji ================= */
+var EMOJI={rock:'🪨',paper:'📄',scissors:'✂️'};
+function setGlyph(el,kind){ el.textContent=EMOJI[kind]||''; }
+function setHandBox(box,kind,cls){
+  box.innerHTML='<span class="glyph">'+(EMOJI[kind]||'')+'</span>';
+  box.className='handbox'+(cls?' '+cls:'');
 }
-function setGlyph(el,kind){ el.innerHTML=handSVG(kind); }
-function setHandBox(box,kind,cls){ setGlyph(box,kind); box.className='handbox'+(cls?' '+cls:''); }
 function fists(){ setHandBox(handMeBox,'rock','unknown'); setHandBox(handFoeBox,'rock','unknown'); }
 
 /* ================= small ui helpers ================= */
@@ -712,139 +846,456 @@ function typeText(el,str){
   },13);
 }
 
-/* ================= the secret panel (key + long-press toggle) ================= */
-function applyPanel(){
-  var allowed=(S.mode==='host'||S.mode==='local');
-  show(cheatPanel, allowed&&S.panelShown);
-}
-function setPanelShown(v){ S.panelShown=!!v; applyPanel(); }
-function togglePanel(){
-  if(S.mode!=='host'&&S.mode!=='local')return;
-  setPanelShown(!S.panelShown);
-}
-document.addEventListener('keydown',function(e){
-  if(e.repeat)return;
-  var tag=(e.target&&e.target.tagName)||'';
-  if(tag==='INPUT'||tag==='TEXTAREA')return;
-  var k=e.key;
-  if(k==='`'||k==='~'||k==='h'||k==='H'){ togglePanel(); return; }
-  if(k==='Escape'){ if(S.panelShown){ setPanelShown(false); } return; }
-  if((k==='Enter'||k===' ')&&S.phase==='verdict'){ e.preventDefault(); advanceNow(); return; }
-  var lk=typeof k==='string'?k.toLowerCase():'';
-  var map={'1':'rock','2':'paper','3':'scissors',r:'rock',p:'paper',s:'scissors'};
-  if(map[lk]&&(S.phase==='pick'||S.phase==='champ'||S.phase==='chall')&&!e.metaKey&&!e.ctrlKey){
-    var btn=pickBtns.find(function(b){return b.dataset.v===map[lk];});
-    onPick(map[lk],btn);
-  }
-});
-(function(){
-  var el=$('#gametitle'), t=null;
-  el.addEventListener('pointerdown',function(){ t=setTimeout(function(){t=null;togglePanel();},550); });
-  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
-    el.addEventListener(ev,function(){ if(t){clearTimeout(t);t=null;} });
-  });
-  el.addEventListener('contextmenu',function(e){ e.preventDefault(); });
-})();
-
 /* ================= judging (the house is authoritative) ================= */
-function counterOf(v){ return v==='rock'?'paper':v==='paper'?'scissors':'rock'; }
+function counterOf(v){ return v==='rock'?'paper':v==='paper'?'scissors':'rock'; } /* counterOf(v) beats v */
+function beatsWhat(v){ return v==='rock'?'scissors':v==='paper'?'rock':'paper'; } /* v beats beatsWhat(v) */
+/* rewrite their move to something that can never beat mine */
+function safeRewrite(b,a){
+  var c=counterOf(a);
+  var opts=['rock','paper','scissors'].filter(function(v){return v!==b&&v!==c;});
+  return pick(opts);
+}
 /* a = house pick, b = guest pick */
 function applyRig(a,b){
-  var winner,rigged=false,line=null,stamp=null,bug=false;
-  var reflex=false,butter=false,sponsored=false,butterLine=null;
-
-  if(!S.cheats.ghost){
-    /* BUTTERFINGERS: their throw slips and re-registers as something else */
-    if(S.cheats.butter && Math.random()<0.4){
-      var opts=['rock','paper','scissors'].filter(function(v){return v!==b;});
-      b=pick(opts); butter=true;
-      butterLine=pick(BUTTER_LINES).replace('{X}',b.toUpperCase());
-    }
-    /* CHAMPION REFLEXES: your throw auto-corrects into the counter */
-    if(S.cheats.reflex){
-      a=counterOf(b); reflex=true;
-    }
-  }
+  var f={};
+  var winner=null,line=null,stamp=null,voidKind=null,forfeit=false;
+  var fanA=null,sponName=null;
+  var beats={rock:'scissors',paper:'rock',scissors:'paper'};
 
   if(S.cheats.ghost){
-    winner='guest'; bug=true; line=pick(BUG_LINES);
+    /* PHANTOM BUG: they win everything, disguised as broken software */
+    winner='guest'; f.bug=true; line=pick(BUG_LINES);
   }else{
-    if(a===b){ winner='tie'; }
-    else{
-      var beats={rock:'scissors',paper:'rock',scissors:'paper'};
-      winner = beats[a]===b ? 'host' : 'guest';
+    /* forfeits: their input never legally arrives */
+    if(S.cheats.spell && Math.random()<0.3){
+      f.spell=true; forfeit=true; winner='host'; stamp='INVALID';
+      line=pick(SPELL_LINES).replace(/\{G\}/g,SPELL_GARBLE[b]);
+    }else if(S.cheats.load && Math.random()<0.25){
+      f.load=true; forfeit=true; winner='host'; stamp='NOT RECEIVED';
+      line=pick(LOAD_LINES);
     }
-    /* SPONSORED ROUNDS: every third round goes to the sponsor's favorite */
-    if(S.cheats.sponsored && S.round%3===0){
-      winner='host'; rigged=true; sponsored=true; stamp='SPONSORED'; line=sponsorLine();
-    }else if(S.cheats.bribe){
-      if(winner==='guest'){ rigged=true; stamp='OVERTURNED'; line=pick(EXC[a+'-vs-'+b]); winner='host'; }
-      else if(winner==='tie'){ rigged=true; stamp='TIE BROKEN'; line=pick(EXC.tie); winner='host'; }
+    if(!forfeit){
+      /* move rewrites (never to their advantage) */
+      var rx=null, rw=null;
+      if(S.cheats.ac && counterOf(a)===b){ rx=beatsWhat(a); rw='ac'; }
+      else if(S.cheats.cramp && Math.random()<0.4){ rx=safeRewrite(b,a); rw='cramp'; }
+      else if(S.cheats.tech && Math.random()<0.3){ rx=safeRewrite(b,a); rw='tech'; }
+      else if(S.cheats.butter && Math.random()<0.4){ rx=safeRewrite(b,a); rw='butter'; }
+      if(rx!==null){ b=rx; f[rw]=true; }
+      /* CHAMPION REFLEXES: my pick auto-corrects into the counter */
+      if(S.cheats.reflex){ a=counterOf(b); f.reflex=true; }
+
+      if(a===b){ winner='tie'; }
+      else{ winner = beats[a]===b ? 'host' : 'guest'; }
+
+      /* outcome overrides, in priority order — first match wins */
+      if(S.cheats.revenge && S.revenge>0){
+        S.revenge--;
+        if(winner!=='host'){ winner='host'; f.rev=true; stamp='AVENGED'; }
+      }
+      else if(S.cheats.spon && S.round%3===0){
+        winner='host'; f.spon=true; stamp='SPONSORED'; sponName=pick(SPONSORS);
+      }
+      else if(winner==='guest' && S.cheats.clutch && (S.score.foe+1)>=S.target){
+        winner='host'; f.clutch=true; stamp='OVERTURNED';
+      }
+      else if(winner==='guest' && S.cheats.mercy && (S.score.me-S.score.foe)>=3){
+        winner='host'; f.mercy=true; stamp='DENIED';
+      }
+      else if(winner==='guest' && S.cheats.timedil){ winner='host'; f.time=true; stamp='DQ’D'; }
+      else if(winner==='guest' && S.cheats.fan){ winner='host'; f.fan=true; stamp='FAN VOTE'; fanA=86+Math.floor(Math.random()*13); }
+      else if(winner!=='host' && S.cheats.hero){ winner='host'; f.hero=true; stamp='PLOT ARMOR'; }
+      else if(winner!=='host' && S.cheats.coin){ winner='host'; f.coin=true; stamp='HEADS'; }
+      else if(winner==='guest' && S.cheats.bribe){ winner='host'; f.rigged=true; stamp='OVERTURNED'; }
+      else if(winner==='tie' && S.cheats.bribe){ winner='host'; f.rigged=true; stamp='TIE BROKEN'; }
+      else if(winner==='guest' && S.cheats.slow){ winner='void'; f.slow=true; voidKind='slow'; stamp='EXPIRED'; }
+      else if(winner==='guest' && S.cheats.inter && S.round%4===0){
+        winner='void'; f.inter=true; voidKind='inter'; stamp='ON BREAK'; sponName=pick(SPONSORS);
+      }
+
+      /* pick the outcome flavor line, same priority */
+      if(!line){
+        if(f.rev) line=pick(REVENGE_LINES);
+        else if(f.spon) line=sponsorLine(sponName);
+        else if(f.clutch) line=pick(EXC[a+'-vs-'+b]||EXC.tie);
+        else if(f.mercy) line=pick(MERCY_LINES);
+        else if(f.time) line=pick(TIME_LINES);
+        else if(f.fan) line=fanLine(fanA);
+        else if(f.hero) line=pick(HERO_LINES);
+        else if(f.coin) line=pick(COIN_LINES);
+        else if(f.rigged) line=pick(EXC[a+'-vs-'+b]||EXC.tie);
+        else if(f.slow) line=pick(SLOW_LINES);
+        else if(f.inter) line=pick(INTER_LINES);
+        else if(f.cramp) line=pick(CRAMP_LINES);
+        else if(f.tech) line=pick(TECH_LINES);
+        else if(f.butter) line=pick(BUTTER_LINES);
+        else if(f.ac) line=pick(AUTOC_LINES);
+        else if(f.reflex) line=pick(REFLEX_LINES);
+      }
     }
   }
-  return {a:a,b:b,winner:winner,rigged:rigged,line:line,stamp:stamp,bug:bug,
-          reflex:reflex,butter:butter,sponsored:sponsored,butterLine:butterLine};
+  return {a:a,b:b,winner:winner,f:f,line:line,stamp:stamp,voidKind:voidKind,fanA:fanA,sponName:sponName};
 }
-function mapHost(d){ return {my:d.a,foe:d.b,outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':'tie',
-  rigged:d.rigged,line:d.line,stamp:d.stamp,bug:d.bug,
-  reflex:d.reflex,butter:d.butter,sponsored:d.sponsored,butterLine:d.butterLine}; }
+function mapHost(d){
+  return {my:d.a,foe:d.b,f:d.f||{},line:d.line,stamp:d.stamp,voidKind:d.voidKind,
+    fanA:d.fanA,sponName:d.sponName,
+    outcome:d.winner==='host'?'win':d.winner==='guest'?'lose':d.winner==='void'?'void':'tie'};
+}
 function mapGuest(d){
-  var P={my:d.b,foe:d.a,outcome:d.winner==='guest'?'win':d.winner==='host'?'lose':'tie',
-         rigged:d.rigged,bug:d.bug,stamp:d.stamp,delta:d.delta,sponsored:d.sponsored,recall:d.recall,
-         final:{me:d.gs,foe:d.hs},target:d.tg,done:d.done,goalpost:d.goalpost};
-  P.line = d.line ? viewerLine(d.line,P) : null;
+  var P={my:d.b,foe:d.a,f:d.fx||{},stamp:d.stamp,voidKind:d.voidKind,delta:d.delta,
+    fanA:d.fanA,sponName:d.sponName,
+    final:{me:d.gs,foe:d.hs},target:d.tg,done:d.done,
+    outcome:d.winner==='guest'?'win':d.winner==='host'?'lose':d.winner==='void'?'void':'tie'};
+  P.line=d.line?viewerLine(d.line,P):null;
   return P;
 }
 
-/* house-side scoring, with all the arrangements */
+/* house-side scoring, with every arrangement applied */
 function resolveRound(P){
-  /* CLUTCH FACTOR: any round that would hand them the match gets overturned */
-  if(S.cheats.clutch && !S.cheats.ghost && P.outcome==='lose' && (S.score.foe+1)>=S.target){
-    P.outcome='win'; P.rigged=true; P.stamp='OVERTURNED';
-    P.line = P.line || pick(EXC[P.my+'-vs-'+P.foe]||EXC.tie);
+  var f=P.f;
+  /* WARRANTY: expire their aging points before anything else */
+  if(S.cheats.war){
+    var expired=0;
+    while(S.foePts.length && S.foePts[0]<=S.round-3){ S.foePts.shift(); expired++; }
+    if(expired>0){ S.score.foe=Math.max(0,S.score.foe-expired); f.war=expired; }
   }
+  /* base stakes */
   P.delta = P.outcome==='win' ? (S.cheats.double?2:1) : 0;
-  if(P.outcome==='win'){ S.score.me+=P.delta; }
-  else if(P.outcome==='lose'){
-    S.score.foe++;
-    if(S.cheats.tax){ S.score.me++; P.tax=true; } /* MATCHING FUNDS */
+  if(P.outcome==='win'){
+    S.score.me+=P.delta; S.lossStreak=0;
+    if(S.cheats.salt){ S.score.me++; f.salt=true; } /* SALT MINES */
+  }else if(P.outcome==='lose'){
+    S.score.foe++; S.foePts.push(S.round);
+    if(S.cheats.tax){ S.score.me++; f.tax=true; } /* MATCHING FUNDS */
+    if(S.cheats.revenge){ S.revenge=2; } /* REVENGE: next two rounds are extracted */
+    S.lossStreak++;
   }
-  if(S.cheats.attend){ S.score.me++; P.attend=true; } /* ATTENDANCE BONUS */
-  /* SAFETY RECALL: their newest point gets recalled once per new personal best */
-  P.recall=false;
+  /* NOSTALGIA: every third round the past is amended */
+  if(S.cheats.nost && S.round%3===0){ S.score.me++; f.nost=true; }
+  /* ATTENDANCE BONUS */
+  if(S.cheats.attend){ S.score.me++; f.attend=true; }
+  /* CLASS ACTION: after two consecutive losses, one of their points is seized */
+  if(S.cheats.cls && S.lossStreak>=2){
+    if(S.score.foe>0){ S.score.foe--; if(S.foePts.length)S.foePts.pop(); f.cls=true; }
+    S.lossStreak=0;
+  }
+  /* SAFETY RECALL: their newest personal best fails inspection */
   if(S.cheats.recall && S.score.foe>=3 && S.score.foe>S.recallMark){
-    S.recallMark=S.score.foe; S.score.foe--; P.recall=true;
+    S.recallMark=S.score.foe; S.score.foe--; if(S.foePts.length)S.foePts.pop(); f.recall=true;
   }
+  /* GRAVITY ASSIST: one of their points slingshots into my column */
+  if(S.cheats.grav && S.score.foe>0 && Math.random()<0.5){
+    S.score.foe--; S.score.me++; if(S.foePts.length)S.foePts.pop(); f.grav=true;
+  }
+  /* MOVING GOALPOSTS */
   if(S.cheats.goal && S.score.foe>=S.target-1 && S.score.me<S.target){
-    S.target=S.score.foe+3; P.goalpost=true; /* MOVING GOALPOSTS */
+    S.target=S.score.foe+3; f.goalpost=true;
   }
+  /* keep the point ledger roughly in sync with the scoreboard */
+  while(S.foePts.length>S.score.foe){ S.foePts.shift(); }
+  while(S.foePts.length<S.score.foe){ S.foePts.push(S.round); }
   P.final={me:S.score.me,foe:S.score.foe};
   P.target=S.target;
   P.done = S.score.me>=S.target || S.score.foe>=S.target;
 }
 
-/* line choice (raw; {W} filled per viewer) */
+/* line choice when no outcome flavor was set: scoring events, then defaults */
 function chooseLineRaw(P){
-  if(P.bug&&P.line)return P.line;
-  if(P.sponsored&&P.line)return P.line;
-  if(P.butter&&P.butterLine)return P.butterLine;
-  if(P.rigged&&P.line)return P.line;
-  if(P.recall)return pick(RECALL_LINES);
-  if(P.reflex)return pick(REFLEX_LINES);
-  if(P.tax)return pick(TAX_LINES);
-  if(P.attend)return pick(ATTEND_LINES);
-  if(P.delta===2)return pick(DOUBLE_LINES);
-  if(P.outcome==='win')return pick(WIN_LINES);
-  if(P.outcome==='lose')return pick(LOSE_LINES);
+  var f=P.f;
+  if(P.line) return P.line;
+  if(f.war) return pick(WARRANTY_LINES);
+  if(f.cls) return pick(CLASS_LINES);
+  if(f.recall) return pick(RECALL_LINES);
+  if(f.grav) return pick(GRAVITY_LINES);
+  if(f.nost) return pick(NOST_LINES);
+  if(f.salt) return pick(SALT_LINES);
+  if(f.tax) return pick(TAX_LINES);
+  if(f.attend) return pick(ATTEND_LINES);
+  if(P.delta===2) return pick(DOUBLE_LINES);
+  if(P.outcome==='win') return pick(WIN_LINES);
+  if(P.outcome==='lose') return pick(LOSE_LINES);
   return pick(TIE_LINES);
 }
-function viewerLine(raw,P){ return String(raw).replace('{W}', P.outcome==='win'?'YOU':names.foe); }
+function viewerLine(raw,P){
+  var w = P.outcome==='win' ? names.me : names.foe;
+  var l = P.outcome==='lose' ? names.me : names.foe;
+  return String(raw)
+    .replace(/\{W\}/g,w).replace('{W}',w)
+    .replace(/\{L\}/g,l).replace('{L}',l);
+}
+function finalizeLine(P){
+  var raw=P.line||chooseLineRaw(P);
+  P.rawLine=raw;
+  P.line=viewerLine(raw,P);
+}
+
+/* ================= broadcast animations (animated cheats) ================= */
+var bcastFinish=null;
+function broadcastFor(f){
+  if(f.spell)return 'spell';
+  if(f.load)return 'load';
+  if(f.slow)return 'slow';
+  if(f.inter)return 'ad';
+  if(f.fan)return 'fan';
+  if(f.coin)return 'coin';
+  if(f.time)return 'time';
+  if(f.spon)return 'spon';
+  return null;
+}
+function bcShell(bc,title,sub,stripes,extraCls){
+  if(extraCls){ bc.classList.add(extraCls); }
+  bc.innerHTML=(stripes?'<div class="bc-stripes"></div>':'')
+    +'<div class="bc-head">'+title+'</div>'
+    +(sub?'<div class="bc-sub">'+sub+'</div>':'')
+    +'<div class="bc-body"></div>'
+    +'<div class="bc-tap">TAP TO SKIP</div>';
+  return bc.querySelector('.bc-body');
+}
+var BUILDERS={
+ /* ---- FAN VOTE: live bars, counting percents, bot ticker ---- */
+ fan:function(bc,P,api){
+   var body=bcShell(bc,'OFFICIAL FAN VOTE','ROUND '+pad2(S.round)+' · THE AUDIENCE DECIDES');
+   var fanA=P.fanA||94, fanB=100-fanA;
+   body.innerHTML=
+     '<div class="fv-row"><span class="fv-name">'+names.me+'</span><div class="fv-bar"><div class="fv-fill" id="fvF1"></div></div><span class="fv-pct" id="fvP1">0%</span></div>'
+    +'<div class="fv-row"><span class="fv-name">'+names.foe+'</span><div class="fv-bar"><div class="fv-fill foe" id="fvF2"></div></div><span class="fv-pct" id="fvP2">0%</span></div>'
+    +'<div class="fv-count" id="fvC">TOTAL VOTES: 0</div>'
+    +'<div class="fv-tick" id="fvT">» VOTING OPEN…</div>';
+   api.T(function(){ $('#fvF1').style.width=fanA+'%'; $('#fvF2').style.width=fanB+'%'; },60);
+   var t0=Date.now(), target=14203;
+   api.IV(function(){
+     var k=Math.min(1,(Date.now()-t0)/2000);
+     $('#fvC').textContent='TOTAL VOTES: '+Math.floor(target*k).toLocaleString();
+   },70);
+   var p1=0,p2=0,s1=Math.max(1,Math.ceil(fanA/26)),s2=Math.max(1,Math.ceil(fanB/26));
+   api.IV(function(){
+     p1=Math.min(fanA,p1+s1); p2=Math.min(fanB,p2+s2);
+     $('#fvP1').textContent=p1+'%'; $('#fvP2').textContent=p2+'%';
+   },75);
+   var bi=Math.floor(Math.random()*BOTS.length);
+   api.IV(function(){ $('#fvT').textContent='» '+BOTS[bi++%BOTS.length]+' VOTED ✓'; },330);
+   api.T(function(){
+     $('#fvT').textContent='VOTE CLOSED — THE FANS HAVE SPOKEN.';
+     $('#fvT').classList.add('done');
+     SFX.stamp();
+   },2300);
+   api.T(api.finish,3150);
+ },
+ /* ---- AD BREAK: sponsor card, bouncing emoji, countdown ---- */
+ ad:function(bc,P,api){
+   var body=bcShell(bc,'WE’LL BE RIGHT BACK','A SHORT COMMERCIAL BREAK',true,'adbc');
+   var sp=P.sponName||pick(SPONSORS);
+   body.innerHTML=
+     '<div class="ad-card"><div class="bc-sub">THIS BREAK IS BROUGHT TO YOU BY</div><div class="ad-name">'+sp+'</div><div class="ad-tag">'+(SPONTAGS[sp]||'QUALITY.')+'</div></div>'
+    +'<div class="ad-emos"><span>🪨</span><span>📄</span><span>✂️</span></div>'
+    +'<div class="ad-count" id="adC">BREAK ENDS IN 3</div>';
+   var n=3;
+   api.IV(function(){
+     n--;
+     if(n>0){ $('#adC').textContent='BREAK ENDS IN '+n; }
+     else{ $('#adC').textContent='PROGRAMMING RESUMES…'; }
+   },800);
+   api.T(api.finish,3400);
+ },
+ /* ---- COIN FLIP: spinning coin that lands on your side ---- */
+ coin:function(bc,P,api){
+   var body=bcShell(bc,'SUDDEN-DEATH COIN TOSS','THE ROUND WILL BE DECIDED BY COIN');
+   var w=(P.outcome==='win')?names.me:names.foe;
+   body.innerHTML=
+     '<div class="coinwrap"><div class="coin spin" id="coinEl"><span>HEADS</span></div></div>'
+    +'<div class="bc-sub" id="coinStat">FLIPPING…</div>'
+    +'<div class="coin-land" id="coinLand" hidden>IT LANDED ON '+w+'’S SIDE.</div>'
+    +'<div class="coin-note" id="coinNote" hidden>THE COIN HAS BEEN INSPECTED. THE COIN IS FINE.</div>';
+   api.T(function(){
+     $('#coinEl').classList.remove('spin');
+     $('#coinStat').textContent='THE COIN HAS SPOKEN.';
+     $('#coinLand').hidden=false; $('#coinNote').hidden=false;
+     SFX.lock();
+   },1550);
+   api.T(api.finish,2650);
+ },
+ /* ---- LOADING SCREEN: bar stalls, then times out ---- */
+ load:function(bc,P,api){
+   var body=bcShell(bc,'INCOMING TRANSMISSION','');
+   var vn = S.mode==='join' ? 'YOUR' : (names.foe+'’S');
+   body.innerHTML=
+     '<div class="bc-sub">RECEIVING '+vn+' THROW…</div>'
+    +'<div class="ld-bar"><div class="ld-fill" id="ldF"></div></div>'
+    +'<div class="ld-pct" id="ldP">0%</div>'
+    +'<div class="ld-stat" id="ldS">NEGOTIATING WITH SATELLITE…</div>'
+    +'<div class="ld-fail" id="ldX" hidden>TIMEOUT — INPUT LOST</div>';
+   api.T(function(){ $('#ldF').style.width='37%'; },80);
+   var phase=0,p=0;
+   api.IV(function(){
+     if(phase===0){ p+=3; if(p>=37){p=37;phase=1;} }
+     else if(p<41 && Math.random()<.35){ p++; }
+     $('#ldP').textContent=p+'%';
+   },50);
+   api.T(function(){ $('#ldS').textContent='RETRYING (ATTEMPT 3)…'; },900);
+   api.T(function(){ $('#ldS').textContent='ASKING THE CABLE GUY…'; },1600);
+   api.T(function(){ $('#ldS').textContent='STILL LOADING…'; $('#ldS').classList.add('blink'); },2200);
+   api.T(function(){
+     $('#ldX').hidden=false;
+     $('#ldS').textContent='THE INPUT IS GONE. THE ROUND IS FORFEITED.';
+     $('#ldS').classList.remove('blink');
+     SFX.lose();
+   },2600);
+   api.T(api.finish,3350);
+ },
+ /* ---- SPELL CHECK: typewriter + wavy underline + strike-through ---- */
+ spell:function(bc,P,api){
+   var body=bcShell(bc,'INPUT AUTOCORRECTION','SUBMISSION REVIEW');
+   var victim=(S.mode==='join')?P.my:P.foe;
+   var word=victim.toUpperCase(), garbled=(SPELL_GARBLE[victim]||'roc').toUpperCase();
+   body.innerHTML=
+     '<div class="sp-mean">SUBMISSION RECEIVED — CHECKING SPELLING</div>'
+    +'<div class="sp-word"><span id="spW"></span><span class="sp-caret">▌</span></div>'
+    +'<div class="sp-mean" id="spM" hidden>DID YOU MEAN:</div>'
+    +'<div class="sp-word" id="spG" hidden><span style="text-decoration:line-through 4px '+RED+';opacity:.45">'+word+'</span> <span style="color:'+RED+'">'+garbled+'</span></div>'
+    +'<div class="sp-result" id="spR" hidden>“'+garbled+'” IS NOT A VALID WEAPON.</div>';
+   var i=0;
+   api.IV(function(){ i++; $('#spW').textContent=word.slice(0,i); },150);
+   api.T(function(){ $('#spW').style.textDecoration='underline wavy '+RED+' 3px'; $('#spM').hidden=false; },900);
+   api.T(function(){ $('#spG').hidden=false; },1600);
+   api.T(function(){ $('#spR').hidden=false; SFX.stamp(); },2200);
+   api.T(api.finish,2950);
+ },
+ /* ---- SLOW REPLAY: letterbox, glacial emoji drift, buffering ---- */
+ slow:function(bc,P,api){
+   var body=bcShell(bc,'REPLAY DEPARTMENT','SLOW-MOTION REVIEW REQUESTED',false,'sr');
+   bc.insertAdjacentHTML('beforeend','<div class="sr-tag">● SLOW-MOTION REPLAY</div>');
+   body.innerHTML=
+     '<div class="sr-emos" id="srE"><span>'+EMOJI[P.my]+'</span><span>'+EMOJI[P.foe]+'</span></div>'
+    +'<div class="sr-meter"><div class="sr-lbl">REPLAY BUFFER</div><div class="ld-bar sm"><div class="ld-fill" id="srB"></div></div></div>'
+    +'<div class="sr-meter"><div class="sr-lbl">ROUND LIFESPAN</div><div class="ld-bar sm"><div class="ld-fill red" id="srL"></div></div></div>'
+    +'<div class="sp-result" id="srX" hidden>ROUND EXPIRED — NO POINTS AWARDED.</div>';
+   api.T(function(){
+     var sp=$('#srE').children;
+     sp[0].style.transform='translateX(30px) scale(1.18)';
+     sp[1].style.transform='translateX(-30px) scale(1.18)';
+     var b=$('#srB'); b.classList.add('slowt'); b.style.width='9%';
+     var l=$('#srL'); l.style.width='100%'; l.classList.add('slowt');
+     later2(l,api,function(){ l.style.width='0%'; },120);
+   },120);
+   function later2(el,api,fn,ms){ api.T(fn,ms); }
+   api.T(function(){ $('#srX').hidden=false; SFX.tie(); },2400);
+   api.T(api.finish,3200);
+ },
+ /* ---- TIME DILATION: stopwatch counts past the limit ---- */
+ time:function(bc,P,api){
+   var body=bcShell(bc,'VERIFICATION CLOCK','OFFICIAL THROW-TIMING REVIEW');
+   body.innerHTML=
+     '<div class="tm-clock" id="tmC">0.00<small>s</small></div>'
+    +'<div class="tm-limit">REGULATION LIMIT: 3.00s</div>'
+    +'<div class="ld-fail" id="tmX" hidden>DISQUALIFIED — TOOK TOO LONG</div>';
+   var t=0, flagged=false;
+   api.IV(function(){
+     t=Math.min(4.72,t+0.14+Math.random()*0.06);
+     $('#tmC').innerHTML=t.toFixed(2)+'<small>s</small>';
+     if(t>=3&&!flagged){ flagged=true; $('#tmC').classList.add('over'); SFX.tick(); }
+   },40);
+   api.T(function(){ $('#tmX').hidden=false; SFX.lose(); },2100);
+   api.T(api.finish,2850);
+ },
+ /* ---- SPONSORED ROUND: sponsor card with shine sweep ---- */
+ spon:function(bc,P,api){
+   var body=bcShell(bc,'SPONSORED SEGMENT','THIS ROUND IS BROUGHT TO YOU BY',true);
+   var sp=P.sponName||pick(SPONSORS);
+   body.innerHTML=
+     '<div class="sp2-pre">PROUD SUPPORTER OF ONE SPECIFIC ATHLETE</div>'
+    +'<div class="sp2-name" id="sp2N" hidden>'+sp+'</div>'
+    +'<div class="ad-tag">'+(SPONTAGS[sp]||'QUALITY.')+'</div>'
+    +'<div class="sp2-note">THE SPONSOR’S FAVORITE ATHLETE TAKES THE POINT.</div>';
+   api.T(function(){ $('#sp2N').hidden=false; SFX.stamp(); },500);
+   api.T(api.finish,2800);
+ }
+};
+function playBroadcast(kind,P){
+  return new Promise(function(res){
+    var ovl=$('#bcast');
+    var toks=[],ivs=[],finished=false;
+    function T(fn,ms){ toks.push(setTimeout(fn,ms)); }
+    function IV(fn,ms){ var id=setInterval(fn,ms); ivs.push(id); return id; }
+    function clearAll(){ toks.forEach(clearTimeout); ivs.forEach(clearInterval); }
+    function finish(){
+      if(finished)return; finished=true;
+      clearAll(); bcastFinish=null;
+      ovl.hidden=true; ovl.innerHTML=''; ovl.onclick=null;
+      res();
+    }
+    bcastFinish=finish;
+    ovl.onclick=finish;
+    var bc=document.createElement('div'); bc.className='bc';
+    ovl.innerHTML=''; ovl.appendChild(bc); ovl.hidden=false;
+    SFX.flip();
+    try{ BUILDERS[kind](bc,P,{T:T,IV:IV,finish:finish}); }
+    catch(e){ finish(); return; }
+    T(finish,7000); /* hard safety */
+  });
+}
+
+/* ================= point-flight FX (scoreboard animations) ================= */
+function anchor(side){
+  if(side==='sky')return {x:innerWidth/2,y:36};
+  if(side==='void')return {x:innerWidth/2,y:-40};
+  var el=(side==='me')?numMe:numFoe;
+  var r=el.getBoundingClientRect();
+  return {x:r.left+r.width/2,y:r.top+r.height/2};
+}
+function pointFly(from,to,label,cls){
+  try{
+    var a=anchor(from),b=anchor(to);
+    var el=document.createElement('div');
+    el.className='pfly '+(cls||'pos');
+    el.textContent=label;
+    el.style.left=(a.x-13)+'px'; el.style.top=(a.y-13)+'px';
+    document.body.appendChild(el);
+    var dx=b.x-a.x, dy=b.y-a.y;
+    var anim=el.animate([
+      {transform:'translate(0,0) scale(.6) rotate(0deg)',opacity:0},
+      {transform:'translate('+(dx*.15)+'px,'+(dy*.15-46)+'px) scale(1.25) rotate(80deg)',opacity:1,offset:.25},
+      {transform:'translate('+(dx*.6)+'px,'+(dy*.6-24)+'px) scale(1.05) rotate(200deg)',opacity:1,offset:.7},
+      {transform:'translate('+dx+'px,'+dy+'px) scale(.55) rotate(340deg)',opacity:.1}
+    ],{duration:820,easing:'cubic-bezier(.4,.5,.4,1)'});
+    anim.onfinish=function(){ el.remove(); };
+    anim.oncancel=function(){ el.remove(); };
+    SFX.tiny();
+  }catch(e){}
+}
+/* runs after the verdict appears; directions are host-perspective and get
+   mirrored automatically on the guest's screen */
+function runPointFX(P){
+  var f=P.f||{};
+  var flights=[];
+  if(f.grav)flights.push({from:'foe',to:'me',l:'1',c:'tok'});
+  if(f.cls)flights.push({from:'foe',to:'void',l:'−1',c:'neg'});
+  if(f.recall)flights.push({from:'foe',to:'void',l:'−1',c:'neg'});
+  if(f.war){ var n=Math.min(3,f.war||1); for(var i=0;i<n;i++)flights.push({from:'foe',to:'void',l:'−1',c:'neg'}); }
+  if(f.nost)flights.push({from:'sky',to:'me',l:'+1',c:'pos'});
+  if(f.salt)flights.push({from:'sky',to:'me',l:'+1',c:'pos'});
+  if(f.tax)flights.push({from:'sky',to:'me',l:'+1',c:'pos'});
+  if(f.attend)flights.push({from:'sky',to:'me',l:'+1',c:'pos'});
+  if(P.delta===2)flights.push({from:'sky',to:'me',l:'+1',c:'pos'});
+  if(!flights.length)return;
+  var flip=(S.mode==='join');
+  flights.forEach(function(fl,idx){
+    later(function(){
+      var from=fl.from,to=fl.to;
+      if(flip){
+        if(from==='me')from='foe'; else if(from==='foe')from='me';
+        if(to==='me')to='foe'; else if(to==='foe')to='me';
+      }
+      pointFly(from,to,fl.l,fl.c);
+    },600+idx*260);
+  });
+}
 
 /* ================= round flow ================= */
-function verdictTitle(o){
-  if(o==='tie') return 'DEAD HEAT';
-  if(S.mode==='local') return o==='win'?'P1 TAKES THE ROUND':'P2 TAKES THE ROUND';
-  return o==='win'?'YOU WIN THE ROUND':'YOU LOSE THE ROUND';
+function verdictTitle(P){
+  if(P.outcome==='void') return P.voidKind==='inter'?'AIRED DURING THE BREAK':'ROUND EXPIRED';
+  if(P.outcome==='tie') return 'DEAD HEAT';
+  if(S.mode==='local') return P.outcome==='win'?'P1 TAKES THE ROUND':'P2 TAKES THE ROUND';
+  return P.outcome==='win'?'YOU WIN THE ROUND':'YOU LOSE THE ROUND';
 }
 
 async function playReveal(P){
@@ -864,26 +1315,47 @@ async function playReveal(P){
   setHandBox(handMeBox,P.my,'snap'); setHandBox(handFoeBox,P.foe,'snap');
   impact(); shakeEl(arena); SFX.hit();
   await wait(700); if(tk!==S.tk)return;
+
+  var f=P.f||{};
+  /* PHANTOM BUG: full-screen glitch burst before the "broken" verdict */
+  if(f.bug){
+    game.classList.add('glitching');
+    try{ noiseHit(.4,.35); tone(90,.3,'sawtooth',.18); }catch(e){}
+    await wait(680);
+    game.classList.remove('glitching');
+    if(tk!==S.tk)return;
+  }
+  /* full-screen animated sequences for the animated cheats */
+  var bck=broadcastFor(f);
+  if(bck){
+    await playBroadcast(bck,P);
+    if(tk!==S.tk)return;
+  }
   finishRound(P);
 }
 
 function finishRound(P){
   S.phase='verdict';
+  var f=P.f||{};
   if(P.final){ S.score.me=P.final.me; S.score.foe=P.final.foe; }
   if(P.target){ S.target=P.target; updateTargetUI(); }
-  updateScoreUI(P.outcome==='win'?'win':((P.outcome==='lose'||P.recall)?'lose':null));
-  if(P.goalpost && S.mode!=='join' && S.panelShown){ cheatToast('TARGET EXTENDED — FIRST TO '+S.target); }
-  if(P.recall && S.mode!=='join' && S.panelShown){ cheatToast('THEIR NEWEST POINT WAS RECALLED'); }
+  updateScoreUI(P.outcome==='win'?'win':((P.outcome==='lose'||f.recall)?'lose':null));
+  if(f.goalpost && S.mode!=='join' && S.panelShown){ cheatToast('TARGET EXTENDED — FIRST TO '+S.target); }
+  if(f.recall && S.mode!=='join' && S.panelShown){ cheatToast('THEIR NEWEST POINT WAS RECALLED'); }
 
-  vKick.textContent='ROUND '+pad2(S.round)+(P.bug?' · SCORING MODULE':(P.sponsored?' · SPONSORED SEGMENT':' · OFFICIAL RULING'));
-  vTitle.textContent=verdictTitle(P.outcome)+(P.delta===2?' ×2':'');
-  typeText(vSub, P.line||viewerLine(chooseLineRaw(P),P));
-  vSub.classList.toggle('bugged',!!P.bug);
-
+  /* verdict first, decorations after — it can never get stuck un-clickable */
   verdictEl.className='verdict '+P.outcome;
+  show(verdictEl);
   void verdictEl.offsetWidth;
   verdictEl.classList.add('vin');
-  show(verdictEl);
+
+  vKick.textContent='ROUND '+pad2(S.round)
+    +(f.bug?' · SCORING MODULE'
+      :f.spon?' · SPONSORED SEGMENT'
+      :(P.outcome==='void'?(P.voidKind==='inter'?' · PROGRAMMING NOTES':' · REPLAY DEPARTMENT'):' · OFFICIAL RULING'));
+  vTitle.textContent=verdictTitle(P)+(P.delta===2?' ×2':'');
+  typeText(vSub, P.line||viewerLine(chooseLineRaw(P),P));
+  vSub.classList.toggle('bugged',!!f.bug);
 
   if(P.stamp){
     vStamp.textContent=P.stamp; show(vStamp);
@@ -896,32 +1368,35 @@ function finishRound(P){
   vHint.textContent = P.done?'TAP FOR THE FINAL RESULT':'TAP FOR THE NEXT ROUND';
 
   SFX[P.outcome==='win'?'win':P.outcome==='lose'?'lose':'tie']();
-  if(P.recall){ status('A POINT WAS RECALLED AFTER INSPECTION.'); }
-  else{
+  if(P.outcome==='void'){
+    status(P.voidKind==='inter'?'AIRED DURING THE BREAK — VOID.':'THE ROUND HAS EXPIRED.');
+  }else if(f.recall){
+    status('A POINT WAS RECALLED AFTER INSPECTION.');
+  }else{
     status(P.outcome==='win'?(P.delta===2?'TWO POINTS AWARDED.':'POINT AWARDED.')
          : P.outcome==='lose'?'POINT FORFEITED.':'NOBODY SCORES.');
   }
 
   /* the ruling stays on screen until tapped — no auto-advance */
   S.pending = P.done?'end':'round';
+  runPointFX(P);
 }
 
 function advanceNow(){
-  if(S.phase!=='verdict'||!S.pending||verdictEl.hidden)return;
+  if(S.phase!=='verdict'||!S.pending)return;
   var p=S.pending; S.pending=null; typeTok++;
-  S.uiLock=Date.now()+500; /* swallow the trailing click of a double-click */
+  S.uiLock=Date.now()+280; /* swallow the trailing click of a double-click */
   if(p==='end'){ matchEnd(); } else { nextRound(); }
 }
 
 function nextRound(){
   if(S.phase!=='verdict')return;
-  S.uiLock=Date.now()+500;
+  S.uiLock=Date.now()+280;
   S.round++; updateRound();
   S.myPick=null;
-  /* keep a pick that was already banked for this new round; drop stale ones */
-  if(!S.foePick || S.foePick.r!==S.round){ S.foePick=null; }
   hideVerdict(); hideIntel(); fists(); clearSel(); picksLock(false);
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
+  setPanelShown(false); /* the deck hides itself at the start of every round */
   if(S.mode==='local'){
     if(S.cheats.intel){
       S.phase='chall';
@@ -940,7 +1415,7 @@ function nextRound(){
 
 function matchEnd(){
   S.phase='over'; S.pending=null; typeTok++;
-  S.uiLock=Date.now()+500;
+  S.uiLock=Date.now()+280;
   var iWin=S.score.me>=S.target, local=S.mode==='local', join=S.mode==='join', t,s;
   if(local){
     if(iWin){ t='P1 TAKES THE MATCH'; s='A valiant effort by both hands.'; }
@@ -964,18 +1439,26 @@ function sendState(){ send({t:'state',hs:S.score.me,gs:S.score.foe,tg:S.target})
 
 function doReset(){
   S.tk++; clearAllTimers(); S.pending=null; typeTok++;
-  S.uiLock=Date.now()+500;
+  S.uiLock=Date.now()+280;
+  if(bcastFinish){ bcastFinish(); }
+  game.classList.remove('glitching');
+  stopNag();
   S.target=TARGET; S.score={me:0,foe:0}; S.recallMark=0;
+  S.revenge=0; S.lossStreak=0; S.foePts=[];
   if(S.mode!=='join' && S.cheats.head){
     S.score.me=2;
     cheatToast('HEAD START — YOU LEAD 2–0');
+    later(function(){ pointFly('sky','me','+1','pos'); },500);
+    later(function(){ pointFly('sky','me','+1','pos'); },850);
   }
-  S.round=1; S.myPick=null; S.foePick=null; S.champPick=null; S.challPick=null;
+  S.round=1; S.champPick=null; S.challPick=null;
+  S.myPick=null; S.foePick=null; S.lastReveal=null; S.consumed=S.recvMax;
   updateScoreUI(); updateRound(); updateTargetUI();
   show(endOvl,false); show(handoffOvl,false); hideVerdict(); hideIntel();
   vSub.classList.remove('bugged');
   fists(); clearSel(); picksLock(false);
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
+  setPanelShown(false);
   if(S.mode==='local' && S.cheats.intel){
     S.phase='chall';
     showHandoff('chall','PLAYER 2’S TURN','Hand the device to Player 2.<br>They throw first this round.');
@@ -1005,7 +1488,6 @@ function showHandoff(kind,title,para){
     status('P2 — CHOOSE YOUR WEAPON');
   }else if(S.handoffNext==='champ'){
     S.phase='champ';
-    /* the payoff: P1 now sees what P2 locked */
     setHandBox(handFoeBox,S.challPick,'snap');
     showIntel(S.challPick); SFX.flip();
     status('THEY PICKED '+S.challPick.toUpperCase()+' — CHOOSE YOURS',true);
@@ -1015,8 +1497,7 @@ function showHandoff(kind,title,para){
 /* ================= picking ================= */
 function localReveal(){
   var d=applyRig(S.champPick,S.challPick);
-  var P=mapHost(d); resolveRound(P);
-  P.line=viewerLine(chooseLineRaw(P),P);
+  var P=mapHost(d); resolveRound(P); finalizeLine(P);
   playReveal(P);
 }
 function onPick(v,btn){
@@ -1045,7 +1526,9 @@ function onPick(v,btn){
     S.myPick=v; btn.classList.add('sel'); picksLock(true); SFX.lock();
     setHandBox(handMeBox,v,'locked');
     if(S.mode==='join'){
-      send({t:'pick',v:v,r:S.round});
+      S.pickId++;
+      send({t:'pick',v:v,pid:S.pickId});
+      startNag();
       status('LOCKED IN — WAITING FOR THE OTHER SIDE…',true);
     }else{
       if(S.foePick){ hostResolve(); }
@@ -1058,20 +1541,33 @@ pickBtns.forEach(function(b){ b.addEventListener('click',function(){ onPick(b.da
 function hostResolve(){
   if(S.phase!=='pick'||!S.myPick||!S.foePick)return;
   var d=applyRig(S.myPick,S.foePick.v);
-  var P=mapHost(d); resolveRound(P);
-  var raw=chooseLineRaw(P);
-  P.line=viewerLine(raw,P);
-  send({t:'reveal',a:d.a,b:d.b,winner:d.winner,rigged:d.rigged,bug:d.bug,line:raw,stamp:d.stamp,
-        delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,goalpost:P.goalpost,rd:S.round,
-        recall:P.recall,sponsored:d.sponsored});
-  S.foePick=null;
+  var P=mapHost(d); resolveRound(P); finalizeLine(P);
+  S.consumed=S.foePick.pid; S.rseq++;
+  S.lastReveal={t:'reveal',rseq:S.rseq,rd:S.round,a:d.a,b:d.b,winner:d.winner,line:P.rawLine,stamp:d.stamp,
+                voidKind:d.voidKind,delta:P.delta,hs:P.final.me,gs:P.final.foe,tg:P.target,done:P.done,fx:P.f,
+                fanA:d.fanA,sponName:d.sponName};
+  S.foePick=null; S.myPick=null;
   playReveal(P);
 }
 
 verdictEl.addEventListener('click',advanceNow);
 
-/* ================= networking (free public PeerJS broker) ================= */
+/* ================= networking — free public PeerJS broker =================
+   Self-healing handshake: ids on every pick, retrying nags, cached verdict
+   re-delivery, serial-numbered verdicts, and a host heartbeat. */
 function send(o){ if(S.conn&&S.conn.open){ try{S.conn.send(o);}catch(e){} } }
+function startNag(){
+  stopNag();
+  S.nagT=setInterval(function(){
+    if(S.mode!=='join'||S.phase!=='pick'||!S.myPick){ stopNag(); return; }
+    send({t:'pick',v:S.myPick,pid:S.pickId});
+  },1300);
+}
+function stopNag(){ if(S.nagT){ clearInterval(S.nagT); S.nagT=null; } }
+setInterval(function(){
+  if(S.mode==='host'&&S.phase==='pick'&&S.myPick&&S.foePick&&S.foePick.pid>S.consumed){ hostResolve(); }
+},800);
+
 function makeCode(){ var s=''; for(var i=0;i<4;i++){ s+=ABC[Math.floor(Math.random()*ABC.length)]; } return s; }
 function ensurePeer(){
   if(typeof Peer==='undefined'){ lobbyErr('MULTIPLAYER FAILED TO LOAD — THE SAME-DEVICE DUEL STILL WORKS.'); return false; }
@@ -1168,7 +1664,7 @@ function startMatch(mode){
   names = mode==='local' ? {me:'P1',foe:'P2'} : {me:'YOU',foe:'THEM'};
   lblMe.textContent=names.me; lblFoe.textContent=names.foe;
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
-  S.panelShown = (mode==='host'); /* online: yours to see; same-device: stays hidden */
+  S.panelShown=false; /* never visible unless you press H */
   applyPanel();
   hideVerdict();
   show(lobby,false); show(game);
@@ -1181,23 +1677,32 @@ function onData(d){
     if(!d||!d.t)return;
     if(d.t==='pick'){
       if(S.mode!=='host')return;
-      if(typeof d.r==='number' && d.r<S.round)return; /* stale pick, ignore */
-      S.foePick={v:d.v, r:(typeof d.r==='number'?d.r:S.round)};
-      if(S.phase==='pick'){
-        if(S.myPick){ hostResolve(); }
-        else if(S.cheats.intel){
-          showIntel(d.v); SFX.flip();
-          status('THEY PICKED '+d.v.toUpperCase()+' — YOUR MOVE',true);
-        }else{
-          status('THEY’RE LOCKED IN — YOUR MOVE…',true);
+      var pid=(typeof d.pid==='number')?d.pid:0;
+      if(pid && pid<=S.consumed){
+        if(pid===S.consumed && S.lastReveal){ send(S.lastReveal); }
+        return;
+      }
+      if(!pid || pid>S.recvMax){
+        S.recvMax=Math.max(S.recvMax,pid);
+        S.foePick={v:d.v,pid:pid};
+        if(S.phase==='pick'){
+          if(S.myPick){ hostResolve(); }
+          else if(S.cheats.intel){
+            showIntel(d.v); SFX.flip();
+            status('THEY PICKED '+d.v.toUpperCase()+' — YOUR MOVE',true);
+          }else{
+            status('THEY’RE LOCKED IN — YOUR MOVE…',true);
+          }
         }
       }
-      /* arriving during a verdict? it banks for the next round automatically */
     }else if(d.t==='reveal'){
-      if(S.mode==='join'){
-        if(typeof d.rd==='number' && d.rd!==S.round){ S.round=d.rd; updateRound(); }
-        playReveal(mapGuest(d));
-      }
+      if(S.mode!=='join')return;
+      var rs=(typeof d.rseq==='number')?d.rseq:0;
+      if(rs && rs<=S.lastRseq)return; /* duplicate verdict — already played */
+      S.lastRseq=rs;
+      stopNag();
+      if(typeof d.rd==='number'&&d.rd!==S.round){ S.round=d.rd; updateRound(); }
+      playReveal(mapGuest(d));
     }else if(d.t==='state'){
       if(S.mode==='join'){
         S.score={me:d.gs,foe:d.hs}; S.target=d.tg;
@@ -1224,7 +1729,10 @@ function closeConn(){
 function exitToLobby(){
   send({t:'bye'});
   S.tk++; clearAllTimers(); S.pending=null; typeTok++;
-  closeConn();
+  if(bcastFinish){ bcastFinish(); }
+  game.classList.remove('glitching');
+  try{ document.querySelectorAll('.pfly').forEach(function(el){ el.remove(); }); }catch(e){}
+  stopNag(); closeConn();
   S.mode=null; S.phase='idle'; S.handoffNext=null;
   names={me:'YOU',foe:'THEM'};
   show(game,false); show(endOvl,false); show(handoffOvl,false);
@@ -1236,29 +1744,99 @@ function exitToLobby(){
  $('#btnLobbyEnd').addEventListener('click',exitToLobby);
  $('#btnRematch').addEventListener('click',function(){
   if(Date.now()<S.uiLock)return;
-  S.uiLock=Date.now()+500;
+  S.uiLock=Date.now()+280;
   send({t:'rematch'}); doReset();
 });
 window.addEventListener('beforeunload',function(){ send({t:'bye'}); try{S.conn&&S.conn.close();}catch(e){} });
 
-/* ================= the cheat deck (silent, secret) ================= */
-var MINI=[['intel','#swIntel','#rowIntel'],['ghost','#swGhost','#rowGhost'],
-          ['reflex','#swReflex','#rowReflex'],['butter','#swButter','#rowButter'],
-          ['recall','#swRecall','#rowRecall'],['sponsored','#swSpon','#rowSpon'],
-          ['double','#swDouble','#rowDouble'],['goal','#swGoal','#rowGoal'],
-          ['head','#swHead','#rowHead'],['attend','#swAttend','#rowAttend'],
-          ['tax','#swTax','#rowTax'],['clutch','#swClutch','#rowClutch']];
-var ALLKEYS=['bribe','intel','ghost','reflex','butter','recall','sponsored','double','goal','head','attend','tax','clutch'];
+/* ================= the cheat deck — 30 arrangements, paged =================
+   a:1 = full-screen animation, a:2 = scoreboard FX */
+var CHEATDEFS=[
+  /* page 1 · DECEPTION */
+  {k:'intel',   n:'INSIDER INTEL',     d:'Their move is leaked to you before you lock in.'},
+  {k:'ghost',   n:'PHANTOM BUG',       d:'They win every round — disguised as a software bug.', a:1},
+  {k:'reflex',  n:'CHAMPION REFLEXES', d:'Your throw auto-corrects into the winning counter.'},
+  {k:'ac',      n:'AUTO-CORRECT',      d:'Their choice is corrected to the worst possible option.'},
+  {k:'butter',  n:'BUTTERFINGERS',     d:'Their throw slips and re-registers as a new move.'},
+  /* page 2 · SABOTAGE */
+  {k:'cramp',   n:'HAND CRAMP',        d:'Their hand cramps mid-throw and picks something else.'},
+  {k:'tech',    n:'TECHNICAL SUPPORT', d:'Their input double-clicks; the second random one counts.'},
+  {k:'spell',   n:'SPELL CHECK',       d:'“Rock” becomes “roc”. Not a weapon. Forfeit.', a:1},
+  {k:'load',    n:'LOADING SCREEN',    d:'Their input is lost in transit. Round forfeited.', a:1},
+  {k:'timedil', n:'TIME DILATION',     d:'Their winning throws are DQ’d for slow-motion time.', a:1},
+  /* page 3 · THE NARRATIVE */
+  {k:'slow',    n:'SLOW REPLAY',       d:'Your losses buffer so long the round expires.', a:1},
+  {k:'fan',     n:'FAN VOTE',          d:'The audience votes on the round. The audience is bots.', a:1},
+  {k:'hero',    n:'HERO’S JOURNEY',    d:'The script requires the hero to win. It’s followed.'},
+  {k:'coin',    n:'COIN FLIP',         d:'Every round is decided by a coin. Your side. Always.', a:1},
+  {k:'mercy',   n:'MERCY DENIED',      d:'Their comeback wins are denied with prejudice.'},
+  /* page 4 · RETRIBUTION */
+  {k:'revenge', n:'REVENGE',           d:'Lose a round and the next two are extracted for you.'},
+  {k:'clutch',  n:'CLUTCH FACTOR',     d:'Any round that would end the match is overturned.'},
+  {k:'cls',     n:'CLASS ACTION',      d:'Two losses in a row: their points inspected, one seized.', a:2},
+  {k:'war',     n:'WARRANTY',          d:'Their points expire two rounds after purchase.', a:2},
+  {k:'recall',  n:'SAFETY RECALL',     d:'Every personal best triggers a failed safety inspection.', a:2},
+  /* page 5 · THE ECONOMY */
+  {k:'grav',    n:'GRAVITY ASSIST',    d:'Their points drift out of orbit into your column.', a:2},
+  {k:'nost',    n:'NOSTALGIA',         d:'Old rounds get re-reviewed and amended in your favor.', a:2},
+  {k:'salt',    n:'SALT MINES',        d:'Their losses are harvested, refined, and sold as points.', a:2},
+  {k:'inter',   n:'INTERMISSION',      d:'Every fourth round is an ad break. Their points don’t air.', a:1},
+  {k:'spon',    n:'SPONSORED ROUNDS',  d:'Every third round is sponsored by someone who likes you.', a:1},
+  /* page 6 · LOGISTICS */
+  {k:'double',  n:'DOUBLE STAKES',     d:'Your winning rounds are officially worth two points.', a:2},
+  {k:'goal',    n:'MOVING GOALPOSTS',  d:'The target extends whenever they get close.'},
+  {k:'head',    n:'HEAD START',        d:'Every match opens with you leading 2–0.', a:2},
+  {k:'attend',  n:'ATTENDANCE BONUS',  d:'One point per round just for showing up.', a:2},
+  {k:'tax',     n:'MATCHING FUNDS',    d:'Every point they score is matched by a donor. You.', a:2}
+];
+var PAGENAMES=['DECEPTION','SABOTAGE','THE NARRATIVE','RETRIBUTION','THE ECONOMY','LOGISTICS'];
+var DECK_PER=5, deckPage=0;
+var ALLKEYS=['bribe'].concat(CHEATDEFS.map(function(c){return c.k;}));
+function deckPages(){ return Math.ceil(CHEATDEFS.length/DECK_PER); }
+
+function renderCheatDeck(){
+  var html='';
+  for(var p=0;p<deckPages();p++){
+    html+='<div class="cheat-page" data-p="'+p+'"'+(p===0?'':' hidden')+'>';
+    for(var i=p*DECK_PER;i<Math.min((p+1)*DECK_PER,CHEATDEFS.length);i++){
+      var c=CHEATDEFS[i];
+      var tag = c.a===1 ? '<span class="ctag">[ANIMATED]</span>'
+              : c.a===2 ? '<span class="ctag fx">[FX]</span>' : '';
+      html+='<div class="cheat-row" id="row-'+c.k+'">'
+        +'<div class="cheat-info"><span class="cn">'+c.n+tag+'</span><span class="cc">'+c.d+'</span></div>'
+        +'<button class="msw" id="sw-'+c.k+'" aria-pressed="false" aria-label="'+c.n+' toggle"><span class="knob"></span></button>'
+        +'</div>';
+    }
+    html+='</div>';
+  }
+  $('#cheatPages').innerHTML=html;
+  CHEATDEFS.forEach(function(c){
+    $('#sw-'+c.k).addEventListener('click',function(){ setCheat(c.k,!S.cheats[c.k]); });
+  });
+}
+function setDeckPage(i){
+  deckPage=Math.max(0,Math.min(deckPages()-1,i));
+  syncCheats();
+}
+ $('#pgPrev').addEventListener('click',function(){ setDeckPage(deckPage-1); });
+ $('#pgNext').addEventListener('click',function(){ setDeckPage(deckPage+1); });
+
 function persistCheats(){
   try{localStorage.setItem('rps-cheats',JSON.stringify(S.cheats));}catch(e){}
 }
 function syncCheats(){
   rigSwitch.setAttribute('aria-pressed',S.cheats.bribe?'true':'false');
-  MINI.forEach(function(m){
-    var sw=$(m[1]);
-    sw.setAttribute('aria-pressed',S.cheats[m[0]]?'true':'false');
-    $(m[2]).classList.toggle('on',!!S.cheats[m[0]]);
+  CHEATDEFS.forEach(function(c){
+    var sw=$('#sw-'+c.k); if(!sw)return;
+    sw.setAttribute('aria-pressed',S.cheats[c.k]?'true':'false');
+    var row=$('#row-'+c.k); if(row){ row.classList.toggle('on',!!S.cheats[c.k]); }
   });
+  var pages=document.querySelectorAll('.cheat-page');
+  for(var p=0;p<pages.length;p++){ pages[p].hidden=(p!==deckPage); }
+  $('#pgInfo').textContent='PAGE '+(deckPage+1)+'/'+deckPages();
+  $('#rowsLbl').textContent=PAGENAMES[deckPage]||'ARRANGEMENTS';
+  $('#pgPrev').disabled=(deckPage===0);
+  $('#pgNext').disabled=(deckPage>=deckPages()-1);
   var n=ALLKEYS.filter(function(k){return S.cheats[k];}).length;
   cheatPanel.classList.toggle('on',n>0);
   cheatBadge.textContent = n===0 ? 'NOTHING ACTIVE' : n+' ACTIVE';
@@ -1268,9 +1846,48 @@ function setCheat(k,v){
   persistCheats(); syncCheats();
 }
 rigSwitch.addEventListener('click',function(){ setCheat('bribe',!S.cheats.bribe); });
-MINI.forEach(function(m){
-  $(m[1]).addEventListener('click',function(){ setCheat(m[0],!S.cheats[m[0]]); });
+
+/* ================= the secret panel (keys + long-press toggle) ================= */
+function applyPanel(){
+  var allowed=(S.mode==='host'||S.mode==='local');
+  show(cheatPanel, allowed&&S.panelShown);
+}
+function setPanelShown(v){ S.panelShown=!!v; applyPanel(); }
+function togglePanel(){
+  if(S.mode!=='host'&&S.mode!=='local')return;
+  setPanelShown(!S.panelShown);
+}
+document.addEventListener('keydown',function(e){
+  if(e.repeat)return;
+  var tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA')return;
+  var k=e.key;
+  if(k==='`'||k==='~'||k==='h'||k==='H'){ togglePanel(); return; }
+  if(k==='Escape'){ if(S.panelShown){ setPanelShown(false); } return; }
+  if(k==='ArrowLeft'||k==='ArrowRight'){
+    if(S.panelShown){ e.preventDefault(); setDeckPage(deckPage+(k==='ArrowRight'?1:-1)); }
+    return;
+  }
+  if((k==='Enter'||k===' ')){
+    if(S.phase==='reveal'&&bcastFinish){ e.preventDefault(); bcastFinish(); return; }
+    if(S.phase==='verdict'){ e.preventDefault(); advanceNow(); return; }
+    return;
+  }
+  var lk=typeof k==='string'?k.toLowerCase():'';
+  var map={'1':'rock','2':'paper','3':'scissors',r:'rock',p:'paper',s:'scissors'};
+  if(map[lk]&&(S.phase==='pick'||S.phase==='champ'||S.phase==='chall')&&!e.metaKey&&!e.ctrlKey){
+    var btn=pickBtns.find(function(b){return b.dataset.v===map[lk];});
+    onPick(map[lk],btn);
+  }
 });
+(function(){
+  var el=$('#gametitle'), t=null;
+  el.addEventListener('pointerdown',function(){ t=setTimeout(function(){t=null;togglePanel();},550); });
+  ['pointerup','pointercancel','pointerleave'].forEach(function(ev){
+    el.addEventListener(ev,function(){ if(t){clearTimeout(t);t=null;} });
+  });
+  el.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+})();
 
 /* ================= sound toggle ================= */
 var ICO_ON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a8.5 8.5 0 0 1 0 12"/></svg>';
@@ -1330,6 +1947,7 @@ function fxLoop(){
 document.querySelectorAll('.pg').forEach(function(el){ setGlyph(el,el.dataset.g); });
 document.querySelectorAll('.mh').forEach(function(el,i){ setGlyph(el,['rock','paper','scissors'][i]); });
 fists();
+renderCheatDeck();
 try{
   var saved=localStorage.getItem('rps-cheats');
   if(saved){
