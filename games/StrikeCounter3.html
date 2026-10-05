@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>DUST PROTOCOL — Tactical FPS Prototype</title>
+<title>INFERNO PROTOCOL — Tactical FPS Prototype</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
 :root{
@@ -36,6 +36,11 @@ body.pregame #hud, body.pregame #touchui{opacity:0}
 #alive i{width:7px;height:7px;border-radius:50%;background:var(--t);opacity:1}
 #alive i.dead{opacity:.18}
 @keyframes pulse{50%{opacity:.5}}
+/* radar */
+#radar{position:absolute;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+  width:168px;height:168px;background:rgba(8,10,13,.5);border:1px solid var(--line);border-radius:4px;overflow:hidden}
+#radar canvas{width:100%;height:100%;display:block}
+body.touch #radar{top:calc(46px + env(safe-area-inset-top));width:138px;height:138px}
 #killfeed{position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));display:flex;flex-direction:column;gap:5px;align-items:flex-end}
 .kf{display:flex;gap:9px;align-items:center;padding:4px 11px;font-size:14px;font-weight:600;letter-spacing:.5px;animation:kfin .18s ease-out}
 .kf .a{color:var(--ct)} .kf .b{color:var(--t)} .kf .w{color:#8f8b80;font-size:11px;letter-spacing:1.5px}
@@ -59,6 +64,10 @@ body.pregame #hud, body.pregame #touchui{opacity:0}
 #hitmarker i:nth-child(3){transform:rotate(135deg);left:5px;top:-13px}
 #hitmarker i:nth-child(4){transform:rotate(-135deg);left:-7px;top:-13px}
 #hitmarker.kill i{background:#ff5340}
+/* damage direction */
+#dmgdir{position:absolute;left:50%;top:50%;width:0;height:0;opacity:0}
+#dmgdir i{position:absolute;left:-40px;top:-96px;width:80px;height:11px;border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(255,70,45,.95), rgba(255,70,45,0) 72%)}
 /* center messages */
 #msg{position:absolute;top:24%;left:0;right:0;text-align:center;opacity:0;transition:opacity .25s}
 #msg.show{opacity:1}
@@ -74,10 +83,14 @@ body.pregame #hud, body.pregame #touchui{opacity:0}
 #money{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:1px;padding:2px 12px;margin-bottom:6px;display:inline-block}
 #health{display:flex;align-items:center;gap:10px;padding:7px 14px}
 #hpnum{font-size:32px;font-weight:700;line-height:1;min-width:52px}
-#hpbar{width:150px;height:8px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
+#hpbar{width:130px;height:8px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
 #hpbar i{display:block;height:100%;width:100%;background:#e9e5d9}
 #health.low #hpnum{color:#eda456} #health.crit #hpnum{color:#ff5340}
 #health.low #hpbar i{background:#eda456} #health.crit #hpbar i{background:#ff5340}
+#armorwrap{display:flex;align-items:center;gap:7px;margin-left:12px;padding-left:12px;border-left:1px solid var(--line)}
+#armornum{font-size:19px;font-weight:700;color:#9fc0dd;min-width:26px;line-height:1}
+#armorbar{width:62px;height:5px;background:rgba(0,0,0,.5);border:1px solid var(--line)}
+#armorbar i{display:block;height:100%;width:0;background:#9fc0dd}
 #lowerright{position:absolute;right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));text-align:right}
 #weaponname{font-size:12px;letter-spacing:3px;color:#9b968a;margin-bottom:2px}
 #ammo{padding:6px 16px 8px}
@@ -107,6 +120,7 @@ body.touch #touchui{display:block}
 #btnReload{right:calc(152px + env(safe-area-inset-right));bottom:calc(152px + env(safe-area-inset-bottom));width:58px;height:58px;font-size:11px}
 #btnWpn{right:calc(52px + env(safe-area-inset-right));bottom:calc(330px + env(safe-area-inset-bottom));width:58px;height:58px;font-size:12px}
 #btnUse{left:calc(26px + env(safe-area-inset-left));bottom:calc(230px + env(safe-area-inset-bottom));width:78px;height:78px;font-size:12px;display:none}
+#btnArmor{left:calc(26px + env(safe-area-inset-left));bottom:calc(150px + env(safe-area-inset-bottom));width:112px;height:54px;border-radius:10px;font-size:11px;display:none}
 #fsbtn{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:7;display:none;
   padding:5px 12px;font-size:10px;letter-spacing:2px;background:var(--panel);border:1px solid var(--line);color:#9b968a;pointer-events:auto}
 body.touch #fsbtn{display:block}
@@ -138,14 +152,19 @@ body.touch #fsbtn{display:block}
     </div>
     <div class="scorebox plate" id="scoreT">0</div>
   </div>
+  <div id="radar"><canvas id="radarcv"></canvas></div>
   <div id="killfeed"></div>
   <div id="crosshair"><i class="v cht"></i><i class="v chb"></i><i class="h chl"></i><i class="h chr"></i><i class="dot"></i></div>
   <div id="hitmarker"><i></i><i></i><i></i><i></i></div>
+  <div id="dmgdir"><i></i></div>
   <div id="msg"><div id="msgtitle"></div><div id="msgsub"></div></div>
   <div id="interact"><div id="interactlabel"></div><div id="interactbar"><i></i></div></div>
   <div id="lowerleft">
     <div id="money" class="plate">$ 800</div>
-    <div id="health" class="plate"><div id="hpnum">100</div><div id="hpbar"><i id="hpbarfill"></i></div></div>
+    <div id="health" class="plate">
+      <div id="hpnum">100</div><div id="hpbar"><i id="hpbarfill"></i></div>
+      <div id="armorwrap"><div id="armornum">0</div><div id="armorbar"><i id="armorbarfill"></i></div></div>
+    </div>
   </div>
   <div id="lowerright">
     <div id="weaponname">AK-47</div>
@@ -166,13 +185,14 @@ body.touch #fsbtn{display:block}
   <div class="tbtn" id="btnReload">RLD</div>
   <div class="tbtn" id="btnWpn">KNIFE</div>
   <div class="tbtn" id="btnUse">DEFUSE</div>
+  <div class="tbtn" id="btnArmor">ARMOR $650</div>
 </div>
 <div id="fsbtn">FULLSCREEN</div>
 
 <div id="overlay">
   <div id="ovinner">
-    <div id="ovEyebrow">BOMB DEFUSAL · TACTICAL PROTOTYPE</div>
-    <div id="ovTitle">DUST PROTOCOL</div>
+    <div id="ovEyebrow">BOMB DEFUSAL · BANANA · MID · APARTMENTS</div>
+    <div id="ovTitle">INFERNO PROTOCOL</div>
     <div id="ovRule"></div>
     <div id="ovBody"></div>
     <button id="startBtn">DEPLOY</button>
@@ -200,7 +220,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
    0. CONSTANTS, GLOBAL STATE, UTILITIES
    ===================================================================== */
 const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-const SENS = 0.0021;                       // mouse look sensitivity (rad / px)
+const SENS = 0.0021;
 const $ = id => document.getElementById(id);
 const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -244,7 +264,7 @@ const AudioSys = {
     } else g.connect(this.master);
     return g;
   },
-  burst(o) { // filtered white-noise burst
+  burst(o) {
     if (!this.ctx || (o.vol || 0) <= 0.01) return;
     const t = this.ctx.currentTime + (o.delay || 0);
     const src = this.ctx.createBufferSource(); src.buffer = this.noise;
@@ -271,7 +291,7 @@ const AudioSys = {
     osc.connect(g); g.connect(this._out(o.pan || 0));
     osc.start(t); osc.stop(t + o.dur + 0.03);
   },
-  spatial(pos, base, maxDist = 60) { // distance attenuation + stereo pan relative to camera
+  spatial(pos, base, maxDist = 60) {
     const d = camera.position.distanceTo(pos);
     const vol = base * Math.max(0, 1 - d / maxDist);
     _tv1.copy(pos).sub(camera.position); _tv1.y = 0;
@@ -302,6 +322,7 @@ const AudioSys = {
   },
   whoosh() { this.burst({ dur: 0.16, type: 'bandpass', f0: 350, f1: 2400, vol: 0.28, q: 1.5 }); },
   click(f) { this.tone({ f0: f, dur: 0.03, type: 'square', vol: 0.1 }); },
+  buy() { this.tone({ f0: 880, dur: 0.07, vol: 0.2 }); this.tone({ f0: 1320, dur: 0.11, vol: 0.2, delay: 0.08 }); },
   roundStart() { this.tone({ f0: 620, dur: 0.09, vol: 0.22 }); this.tone({ f0: 930, dur: 0.12, vol: 0.22, delay: 0.12 }); },
   win() { [523, 659, 784].forEach((f, i) => this.tone({ f0: f, dur: 0.14, vol: 0.22, delay: i * 0.13 })); },
   lose() { [330, 262, 196].forEach((f, i) => this.tone({ f0: f, dur: 0.16, vol: 0.22, delay: i * 0.14 })); },
@@ -325,25 +346,24 @@ renderer.toneMappingExposure = 1.05;
  $('game').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xdccdb0, 95, 300);
+scene.fog = new THREE.Fog(0xd6c5a4, 95, 300);
 const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, 0.05, 400);
 camera.rotation.order = 'YXZ';
 camera.position.set(0, 1.6, 30);
 scene.add(camera);
 
-// soft daylight: warm sun + hemisphere bounce
-const sun = new THREE.DirectionalLight(0xfff0d6, 3.1);
+// warm late-afternoon sun over the village + hemisphere bounce
+const sun = new THREE.DirectionalLight(0xffedd2, 3.1);
 sun.position.set(46, 58, 24);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -52; sun.shadow.camera.right = 52;
-sun.shadow.camera.top = 52; sun.shadow.camera.bottom = -52;
+sun.shadow.camera.left = -55; sun.shadow.camera.right = 55;
+sun.shadow.camera.top = 55; sun.shadow.camera.bottom = -55;
 sun.shadow.camera.near = 8; sun.shadow.camera.far = 180;
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
 scene.add(sun);
 scene.add(new THREE.HemisphereLight(0xbcd7f2, 0xcbb489, 0.55));
 
-// procedural sky dome with a hot sun disc (drives the bloom)
 const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
   uniforms: { sunDir: { value: new THREE.Vector3(46, 58, 24).normalize() } },
@@ -351,20 +371,18 @@ const skyMat = new THREE.ShaderMaterial({
   fragmentShader: `varying vec3 vD; uniform vec3 sunDir;
     void main(){
       float h = clamp(vD.y, 0.0, 1.0);
-      vec3 col = mix(vec3(0.93,0.87,0.75), vec3(0.42,0.64,0.88), pow(h, 0.62));
+      vec3 col = mix(vec3(0.94,0.86,0.70), vec3(0.42,0.64,0.88), pow(h, 0.62));
       float d = dot(vD, sunDir);
-      col += vec3(1.0,0.92,0.75) * smoothstep(0.986, 0.999, d) * 4.0;
-      col += vec3(1.0,0.85,0.6) * smoothstep(0.92, 1.0, d) * 0.35;
+      col += vec3(1.0,0.92,0.72) * smoothstep(0.986, 0.999, d) * 4.0;
+      col += vec3(1.0,0.82,0.55) * smoothstep(0.92, 1.0, d) * 0.35;
       gl_FragColor = vec4(col, 1.0);
     }`
 });
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(320, 24, 14), skyMat));
 
-// subtle environment for metal reflections
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 
-// post: render -> bloom (flashes, hot specular, sun) -> output
 const rt = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: IS_TOUCH ? 0 : 4 });
 const composer = new EffectComposer(renderer, rt);
 composer.setPixelRatio(renderer.getPixelRatio());
@@ -385,7 +403,7 @@ addEventListener('resize', onResize);
 addEventListener('orientationchange', () => setTimeout(onResize, 350));
 
 /* =====================================================================
-   3. PROCEDURAL TEXTURES (canvas-painted, zero external files)
+   3. PROCEDURAL TEXTURES — plaster, cobblestone, wood, stone
    ===================================================================== */
 function makeTex(w, h, painter) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -404,18 +422,46 @@ function speckle(g, w, h, n, dark, light) {
     g.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1 + Math.random() * 2);
   }
 }
+function siteTex(letter) {
+  return makeTex(256, 256, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    g.strokeStyle = 'rgba(222,190,60,0.85)'; g.lineWidth = 14; g.strokeRect(14, 14, w - 28, h - 28);
+    g.fillStyle = 'rgba(222,190,60,0.85)';
+    g.font = '900 150px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(letter, w / 2, h / 2 + 8);
+    for (let i = 0; i < 420; i++) g.clearRect(Math.random() * w, Math.random() * h, Math.random() * 7, Math.random() * 4);
+  });
+}
 const TEX = {
-  sand: makeTex(512, 512, (g, w, h) => {
-    g.fillStyle = '#c7b183'; g.fillRect(0, 0, w, h);
-    for (let i = 0; i < 42; i++) {
-      g.fillStyle = `rgba(160,130,85,${(0.03 + Math.random() * 0.05).toFixed(3)})`;
-      g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 18 + Math.random() * 70, 12 + Math.random() * 50, Math.random() * 3, 0, 7); g.fill();
+  plaster: makeTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#e9dcc0'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 46; i++) {
+      g.fillStyle = `rgba(150,118,82,${(0.025 + Math.random() * 0.05).toFixed(3)})`;
+      g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 20 + Math.random() * 80, 14 + Math.random() * 60, Math.random() * 3, 0, 7); g.fill();
     }
-    speckle(g, w, h, 9000, '90,70,40', '255,240,210');
-    g.fillStyle = 'rgba(70,55,35,0.35)';
-    for (let i = 0; i < 260; i++) g.fillRect(Math.random() * w, Math.random() * h, 2, 2);
+    for (let i = 0; i < 30; i++) { // weathering streaks running down
+      const x = Math.random() * w;
+      g.fillStyle = `rgba(120,98,70,${(0.02 + Math.random() * 0.04).toFixed(3)})`;
+      g.fillRect(x, 0, 4 + Math.random() * 14, 60 + Math.random() * 300);
+    }
+    speckle(g, w, h, 5200, '90,70,40', '255,246,226');
   }),
-  concrete: makeTex(512, 512, (g, w, h) => {
+  cobble: makeTex(512, 512, (g, w, h) => {
+    g.fillStyle = '#8a8070'; g.fillRect(0, 0, w, h);
+    const tones = ['#a49a88', '#968c7c', '#ada189', '#8d8474', '#9d9584'];
+    for (let row = 0, y = 6; y < h; row++, y += 30) {
+      const off = (row % 2) * 24;
+      for (let x = -24 + off; x < w + 24; x += 48) {
+        const jx = x + rnd(-4, 4), jy = y + rnd(-3, 3);
+        g.fillStyle = tones[(Math.random() * tones.length) | 0];
+        g.beginPath(); g.ellipse(jx, jy, 20 + rnd(-3, 3), 12 + rnd(-2, 2), 0, 0, 7); g.fill();
+        g.fillStyle = 'rgba(255,250,235,0.10)';
+        g.beginPath(); g.ellipse(jx - 4, jy - 4, 9, 5, 0, 0, 7); g.fill();
+      }
+    }
+    speckle(g, w, h, 2600, '40,34,26', '230,224,208');
+  }),
+  stone: makeTex(512, 512, (g, w, h) => {
     g.fillStyle = '#b3a893'; g.fillRect(0, 0, w, h);
     speckle(g, w, h, 7000, '70,60,48', '235,228,212');
     for (let i = 0; i < 70; i++) {
@@ -454,43 +500,12 @@ const TEX = {
     g.fillStyle = '#2e2013';
     [[22, 22], [w - 22, 22], [22, h - 22], [w - 22, h - 22]].forEach(p => { g.beginPath(); g.arc(p[0], p[1], 3.4, 0, 7); g.fill(); });
   }),
-  metal: hue => makeTex(256, 256, (g, w, h) => {
-    g.fillStyle = hue; g.fillRect(0, 0, w, h);
-    for (let x = 0; x < w; x += 16) {
-      g.fillStyle = 'rgba(255,255,255,0.09)'; g.fillRect(x, 0, 7, h);
-      g.fillStyle = 'rgba(0,0,0,0.16)'; g.fillRect(x + 9, 0, 7, h);
-    }
-    g.fillStyle = 'rgba(0,0,0,0.22)'; g.fillRect(0, 0, 7, h); g.fillRect(w - 7, 0, 7, h);
-    for (let i = 0; i < 34; i++) {
-      g.fillStyle = `rgba(84,46,26,${(0.08 + Math.random() * 0.14).toFixed(3)})`;
-      const y = h - Math.random() * h * 0.55;
-      g.beginPath(); g.ellipse(Math.random() * w, y, 3 + Math.random() * 15, 2 + Math.random() * 9, 0, 0, 7); g.fill();
-    }
-    speckle(g, w, h, 1200, '30,20,15', '220,230,240');
-  }),
-  door: makeTex(256, 256, (g, w, h) => {
-    g.fillStyle = '#4d584c'; g.fillRect(0, 0, w, h);
-    speckle(g, w, h, 2600, '20,26,20', '190,200,190');
-    g.fillStyle = 'rgba(0,0,0,0.3)'; g.fillRect(0, 40, w, 6); g.fillRect(0, h - 46, w, 6);
-    g.strokeStyle = 'rgba(0,0,0,0.35)'; g.lineWidth = 5;
-    g.beginPath(); g.moveTo(10, 10); g.lineTo(w - 10, h - 10); g.moveTo(w - 10, 10); g.lineTo(10, h - 10); g.stroke();
-    g.fillStyle = 'rgba(120,90,50,0.25)';
-    for (let i = 0; i < 16; i++) g.fillRect(Math.random() * w, h - Math.random() * h * 0.4, 5 + Math.random() * 20, 3 + Math.random() * 8);
-  }),
   barrel: makeTex(128, 128, (g, w, h) => {
     g.fillStyle = '#6a6d4e'; g.fillRect(0, 0, w, h);
     speckle(g, w, h, 900, '30,32,20', '200,205,170');
     g.fillStyle = 'rgba(20,22,14,0.55)'; g.fillRect(0, h * 0.16, w, 7); g.fillRect(0, h * 0.78, w, 7);
     g.fillStyle = 'rgba(90,50,30,0.3)';
     for (let i = 0; i < 20; i++) g.fillRect(Math.random() * w, Math.random() * h, 4 + Math.random() * 10, 3 + Math.random() * 6);
-  }),
-  site: makeTex(256, 256, (g, w, h) => {
-    g.clearRect(0, 0, w, h);
-    g.strokeStyle = 'rgba(222,190,60,0.85)'; g.lineWidth = 14; g.strokeRect(14, 14, w - 28, h - 28);
-    g.fillStyle = 'rgba(222,190,60,0.85)';
-    g.font = '900 150px Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText('A', w / 2, h / 2 + 8);
-    for (let i = 0; i < 420; i++) g.clearRect(Math.random() * w, Math.random() * h, Math.random() * 7, Math.random() * 4);
   }),
   flash: makeTex(64, 64, (g, w, h) => {
     g.clearRect(0, 0, w, h);
@@ -506,7 +521,9 @@ const TEX = {
     g.beginPath(); g.arc(32, 32, 24, 0, 7); g.stroke();
     g.strokeStyle = 'rgba(255,180,80,0.4)'; g.lineWidth = 10;
     g.beginPath(); g.arc(32, 32, 24, 0, 7); g.stroke();
-  })
+  }),
+  siteA: siteTex('A'),
+  siteB: siteTex('B')
 };
 function stdMat(tex, rx, ry, opts = {}) {
   const t = tex.clone(); t.needsUpdate = true; t.repeat.set(rx, ry);
@@ -515,11 +532,16 @@ function stdMat(tex, rx, ry, opts = {}) {
 }
 
 /* =====================================================================
-   4. LEVEL GENERATOR — mini Dust-style bomb defusal map
+   4. LEVEL GENERATOR — mini Inferno: Banana / Mid / Apartments,
+      two bomb sites, CT corridor with rotations
+      (x: -36..36, z: -36 north/CT .. +36 south/T)
    ===================================================================== */
 const COLLIDERS = [];
 const levelGroup = new THREE.Group();
 scene.add(levelGroup);
+
+const SITE_A = { x: 18, z: -18 };
+const SITE_B = { x: -24, z: -17 };
 
 function addBox(cx, cz, sx, sz, h, mat, y0 = 0, collide = true) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(sx, h, sz), mat);
@@ -529,90 +551,216 @@ function addBox(cx, cz, sx, sz, h, mat, y0 = 0, collide = true) {
   if (collide) COLLIDERS.push({ x0: cx - sx / 2, x1: cx + sx / 2, y0: y0, y1: y0 + h, z0: cz - sz / 2, z1: cz + sz / 2 });
   return m;
 }
-function addBarrel(cx, cz) {
+// walls & building blocks — gates are the gaps between segments
+const WALLS = [
+  [0, -36, 74, 1.2], [0, 36, 74, 1.2], [-36, 0, 1.2, 74], [36, 0, 1.2, 74],   // perimeter
+  [-16, 16, 24, 1], [12, 16, 12, 1], [31, 16, 10, 1],                          // T-spawn line: banana/mid/rampage gates
+  [6, -20, 1, 12], [6, -8, 1, 4],                                              // second-mid east wall: short gate
+  [-25, -26, 10, 1], [7, -26, 2, 1], [15, -26, 2, 1],                          // CT line: B gate, mid opening, A gate
+  [20, 6, 4, 1], [28, 6, 4, 1]                                                 // apartments divider with doorway
+];
+const BLOCKS = [
+  [-22, 4, 12, 24],   // E1 banana / mid building
+  [-10, 4, 12, 24],   // E2 mid west building
+  [12, 5, 12, 22],    // E3 mid / apartments building
+  [33, 5, 6, 22],     // E4 apartments east fill
+  [-9, -17, 10, 18],  // E5 B-site / second-mid separator
+  [-33, -31, 6, 10],  // NW corner fill
+  [26, -31, 20, 10],  // NE corner fill
+  [33, -16, 6, 20]    // east strip behind A
+];
+const GATES = [ // [cx, cz, alongX, width]
+  [-32, 16, true, 8], [1, 16, true, 10], [22, 16, true, 8],
+  [-17, -26, true, 6], [1, -26, true, 10], [11, -26, true, 6],
+  [6, -12, false, 4], [24, 6, true, 4]
+];
+function addBarrel(cx, cz, y0 = 0) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.05, 14), stdMat(TEX.barrel, 2, 1));
-  m.position.set(cx, 0.525, cz); m.castShadow = true; m.receiveShadow = true;
+  m.position.set(cx, y0 + 0.525, cz); m.castShadow = true; m.receiveShadow = true;
   levelGroup.add(m);
-  COLLIDERS.push({ x0: cx - 0.42, x1: cx + 0.42, y0: 0, y1: 1.05, z0: cz - 0.42, z1: cz + 0.42 });
-}
-function addContainer(cx, cz, alongX, tex) {
-  const sx = alongX ? 6.2 : 2.6, sz = alongX ? 2.6 : 6.2;
-  addBox(cx, cz, sx, sz, 2.6, stdMat(tex, 2, 1, { roughness: 0.55, metalness: 0.7, envMapIntensity: 0.9 }));
+  COLLIDERS.push({ x0: cx - 0.42, x1: cx + 0.42, y0: y0, y1: y0 + 1.05, z0: cz - 0.42, z1: cz + 0.42 });
 }
 function addCrate(cx, cz, y0 = 0, s = 1.15) {
   addBox(cx, cz, s, s, s, stdMat(TEX.wood, 1, 1, { roughness: 0.85 }), y0);
 }
+let tintIdx = 0;
+const TINTS = [0xffffff, 0xf2e6cf, 0xe9d6ba, 0xdfc6a6, 0xf3ddc6, 0xeadbc4];
+function plasterMat(rx, ry) {
+  const t = TEX.plaster.clone(); t.needsUpdate = true; t.repeat.set(rx, ry);
+  const m = new THREE.MeshStandardMaterial({ map: t, roughness: 0.95, metalness: 0.02, envMapIntensity: 0.35 });
+  m.color.setHex(TINTS[tintIdx++ % TINTS.length]);
+  return m;
+}
+// shared decorative materials
+const jambMat = stdMat(TEX.stone, 1, 3, { color: 0xb3a893 });
+const capMat = stdMat(TEX.stone, 4, 1, { color: 0xa89d87 });
+const skirtMat = stdMat(TEX.stone, 3, 1, { color: 0x9a9080 });
+const platMat = stdMat(TEX.stone, 3, 3, { color: 0xa89d87 });
+const tombMat = stdMat(TEX.stone, 1, 1, { color: 0xb5aea0 });
+const ceilMat = stdMat(TEX.wood, 4, 6, { roughness: 0.85, color: 0xb99a72 });
+const chimMat = stdMat(TEX.plaster, 1, 1, { color: 0xb0765a });
+const winGlass = new THREE.MeshStandardMaterial({ color: 0x1e2a30, roughness: 0.15, metalness: 0.5, envMapIntensity: 1.2 });
+const winShutter = new THREE.MeshStandardMaterial({ color: 0x9c5a43, roughness: 0.85 });
+const bushMat = new THREE.MeshStandardMaterial({ color: 0x40522e, roughness: 1 });
 
-const WALLS = [ // cx, cz, sx, sz, h
-  [0, -36, 74, 1.2, 7], [0, 36, 74, 1.2, 7], [-36, 0, 1.2, 74, 7], [36, 0, 1.2, 74, 7],
-  [20, -25, 30, 1, 7],                                   // T-spawn separator
-  [-27, -15.5, 1, 19, 7], [-31, 0, 8, 1, 7], [-27, 9, 1, 18, 7],   // Long corridor + A west wall
-  [-3, -22.5, 1, 5, 7], [-3, -10, 1, 8, 7],              // Tunnels / Mid west
-  [-23, -6, 8, 1, 7], [-7, -6, 8, 1, 7],                 // A north wall (tunnels exit gap)
-  [-3, 0, 1, 12, 7], [-3, 15, 1, 6, 7],                  // A east wall (catwalk gap)
-  [5, -18.5, 1, 13, 7], [5, 6, 1, 24, 7],                // Mid east wall (short gap)
-  [-23, 18, 8, 1, 7], [-7, 18, 8, 1, 7]                  // A south wall (CT ramp gap)
-];
-const JAMBS = [[-27, -6], [-27, 0], [-3, 6], [-3, 12], [-19, 18], [-11, 18], [-19, -6], [-11, -6], [-3, -20], [-3, -14], [5, -12], [5, -6]];
-const ARCHES = [ // cx, cz, sx, sz — lintels above doorways (doorway clearance 3.4m)
-  [1, -2, 8, 1.1], [-27, -3, 1.1, 6], [-3, 9, 1.1, 6], [-15, -6, 8, 1.1], [-15, 18, 8, 1.1], [-3, -17, 1.1, 6], [5, -9, 1.1, 6]
-];
-const WP = [ // waypoint nodes [x, z]
-  [-31, -30], [-31, -13], [-31, -3], [-24, -3],          // 0-3  Long route
-  [-15, -29], [-15, -16], [-15, -8],                     // 4-6  Tunnels route
-  [1, -29], [1, -17], [1, -9], [1, -2], [1, 9], [-8, 9], // 7-12 Mid route + catwalk
-  [-12, 6],                                              // 13   PLANT SPOT (site A)
-  [-15, 15]                                              // 14   A / CT ramp
-];
-const ROUTE_LONG = [0, 1, 2, 3, 13];
-const ROUTE_MID = [7, 8, 9, 10, 11, 12, 13];
-const ROUTE_TUN = [4, 5, 6, 13];
-const GUARD_NODES = [3, 12, 14];
-const SITE = { x: -12, z: 6 };
+function addCoffin(cx, cz, rot, y0 = 0) {
+  const g = new THREE.Group();
+  const mat = stdMat(TEX.wood, 1, 1, { color: 0x6a6154, roughness: 0.8 });
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.5, 1.85), mat);
+  body.position.y = 0.25; g.add(body);
+  const lid = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.14, 1.55), mat);
+  lid.position.y = 0.56; g.add(lid);
+  g.position.set(cx, y0, cz); g.rotation.y = rot;
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  levelGroup.add(g);
+  COLLIDERS.push({ x0: cx - 1.05, x1: cx + 1.05, y0: y0, y1: y0 + 0.72, z0: cz - 1.05, z1: cz + 1.05 });
+}
+function addCar(cx, cz, rot) {
+  const g = new THREE.Group();
+  const paint = new THREE.MeshStandardMaterial({ color: 0x7d3b2e, roughness: 0.35, metalness: 0.55, envMapIntensity: 0.9 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1c2226, roughness: 0.3, metalness: 0.4 });
+  const tire = new THREE.MeshStandardMaterial({ color: 0x18181a, roughness: 0.9 });
+  const mk = (mat, sx, sy, sz, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), mat);
+    m.position.set(x, y, z); g.add(m); return m;
+  };
+  mk(paint, 4.3, 0.72, 1.9, 0, 0.62, 0);
+  mk(dark, 4.3, 0.22, 1.92, 0, 0.3, 0);
+  mk(paint, 2.1, 0.68, 1.74, -0.35, 1.3, 0);
+  mk(dark, 1.9, 0.3, 1.76, -0.35, 1.32, 0);
+  mk(paint, 0.5, 0.2, 1.9, 2.2, 1.02, 0);
+  for (const [wx, wz] of [[1.45, 0.95], [1.45, -0.95], [-1.45, 0.95], [-1.45, -0.95]]) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.37, 0.37, 0.3, 12), tire);
+    w.rotation.x = Math.PI / 2; w.position.set(wx, 0.37, wz); g.add(w);
+  }
+  g.position.set(cx, 0, cz); g.rotation.y = rot;
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  levelGroup.add(g);
+  COLLIDERS.push({ x0: cx - 2.4, x1: cx + 2.4, y0: 0, y1: 1.7, z0: cz - 1.5, z1: cz + 1.5 });
+}
+function addTomb(x, z, w, h) {
+  addBox(x, z, w, 0.28, h, tombMat);
+}
+function addWindow(x, z, ry) {
+  const g = new THREE.Group();
+  g.position.set(x, 2.7, z); g.rotation.y = ry;
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.45), winGlass);
+  g.add(glass);
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.16, 0.14), skirtMat);
+  lintel.position.y = 0.85; g.add(lintel);
+  const sill = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.14, 0.18), skirtMat);
+  sill.position.y = -0.85; g.add(sill);
+  for (const sx of [-0.75, 0.75]) {
+    const sh = new THREE.Mesh(new THREE.BoxGeometry(0.34, 1.55, 0.06), winShutter);
+    sh.position.x = sx; g.add(sh);
+  }
+  levelGroup.add(g);
+}
+function addBush(x, z, s = 1) {
+  const g = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(rnd(0.35, 0.55) * s, 8, 6), bushMat);
+    m.position.set(rnd(-0.4, 0.4) * s, rnd(0.25, 0.45) * s, rnd(-0.4, 0.4) * s);
+    m.scale.y = 0.7; m.castShadow = true;
+    g.add(m);
+  }
+  g.position.set(x, 0, z);
+  levelGroup.add(g);
+}
+function siteDecal(tex, x, z, wallX, wallZ) {
+  const d = new THREE.Mesh(new THREE.PlaneGeometry(9, 9),
+    new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 1, depthWrite: false }));
+  d.rotation.x = -Math.PI / 2; d.position.set(x, 0.02, z);
+  d.receiveShadow = true; d.renderOrder = 1;
+  levelGroup.add(d);
+  const wl = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2),
+    new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 1, depthWrite: false }));
+  wl.rotation.y = -Math.PI / 2; wl.position.set(wallX, 2.6, wallZ);
+  levelGroup.add(wl);
+}
 
 function buildLevel() {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), stdMat(TEX.sand, 26, 26, { roughness: 1 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), stdMat(TEX.cobble, 30, 30, { roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   levelGroup.add(ground);
 
   for (const w of WALLS) {
-    const mat = stdMat(TEX.concrete, Math.max(1, Math.round(Math.max(w[2], w[3]) / 3)), Math.max(1, Math.round(w[4] / 3)));
-    addBox(w[0], w[1], w[2], w[3], w[4], mat);
-    addBox(w[0], w[1], w[2] + 0.3, w[3] + 0.3, 0.3, stdMat(TEX.concrete, 4, 1, { color: 0x8f8574 }), w[4]); // cap trim
+    const mat = plasterMat(Math.max(1, Math.round(Math.max(w[2], w[3]) / 3)), Math.max(1, Math.round(7 / 3)));
+    addBox(w[0], w[1], w[2], w[3], 7, mat);
+    addBox(w[0], w[1], w[2] + 0.3, w[3] + 0.3, 0.3, capMat, 7);
   }
-  const jambMat = stdMat(TEX.concrete, 1, 3, { color: 0x9a9080 });
-  for (const j of JAMBS) addBox(j[0], j[1], 1.5, 1.5, 7.6, jambMat);
-  for (const a of ARCHES) addBox(a[0], a[1], a[2], a[3], 3.6, stdMat(TEX.concrete, 3, 2, { color: 0x9a9080 }), 3.4);
+  for (const b of BLOCKS) {
+    addBox(b[0], b[1], b[2], b[3], 7, plasterMat(Math.max(1, Math.round(b[2] / 3)), Math.max(1, Math.round(b[3] / 3))));
+    addBox(b[0], b[1], b[2] + 0.24, b[3] + 0.24, 0.9, skirtMat, 0, false);   // stone base course
+    addBox(b[0], b[1], b[2] + 0.3, b[3] + 0.3, 0.3, capMat, 7, false);       // roof trim
+  }
+  // gate jambs + lintels
+  for (const [gx, gz, ax, w] of GATES) {
+    const off = w / 2 + 0.75;
+    if (ax) {
+      addBox(gx - off, gz, 1.5, 1.5, 7.6, jambMat);
+      addBox(gx + off, gz, 1.5, 1.5, 7.6, jambMat);
+      addBox(gx, gz, w + 3, 1.1, 3.6, jambMat, 3.4);
+    } else {
+      addBox(gx, gz - off, 1.5, 1.5, 7.6, jambMat);
+      addBox(gx, gz + off, 1.5, 1.5, 7.6, jambMat);
+      addBox(gx, gz, 1.1, w + 3, 3.6, jambMat, 3.4);
+    }
+  }
+  // apartments: roofed indoor rooms with a doorway divider
+  addBox(24, 5, 12, 22, 0.4, ceilMat, 3.3);
+  // A-site: balcony off apartments + stepped descent into the site
+  addBox(24, -9.5, 12, 7, 0.6, platMat);
+  addBox(16.75, -9.5, 2.5, 7, 0.4, platMat);
+  addBox(14.25, -9.5, 2.5, 7, 0.2, platMat);
+  // B-site: back platform
+  addBox(-32.5, -22.5, 5, 4, 0.5, platMat);
 
-  // mid double doors (metal, with a narrow choke gap)
-  const doorMat = stdMat(TEX.door, 1.4, 1, { roughness: 0.5, metalness: 0.65, envMapIntensity: 0.8 });
-  addBox(-1.15, -2, 3.7, 0.25, 3.4, doorMat);
-  addBox(3.65, -2, 2.7, 0.25, 3.4, doorMat);
-
-  // A-site raised platform ("goose")
-  addBox(-23, -2, 7, 7, 0.55, stdMat(TEX.concrete, 3, 3, { color: 0xa89d87 }));
-
-  // crates: default plant stack, catwatch, xbox at mid, tunnels, halls, spawns
-  const CR = [[-14.5, 3.2, 0], [-14.5, 3.2, 1.15], [-9, 7.5, 0], [-6.5, 10.8, 0], [3.4, 6, 0],
-    [-17.5, -12, 0], [-8.5, -18, 0], [12, -16, 0], [13, 8, 0], [-24, -32.5, 0], [-24, -32.5, 1.15], [6, 26, 0]];
+  // props — crates
+  const CR = [
+    [-27, -20, 0],                       // B new box
+    [-29.5, 3, 0], [-34.5, -4, 0],       // banana sandbags / west crate
+    [-1.5, 3, 0], [-1.5, 3, 1.15],       // mid box (stacked)
+    [-2.5, -18, 0],                      // second-mid cover
+    [21, 12, 0], [28, 0, 0], [19.5, 2, 0], // apartments furniture
+    [10, -16, 0], [9, -19.5, 0],         // A quad
+    [15, -21, 0], [15, -21, 1.15],       // A big stack (default plant)
+    [-8, -31.5, 0], [10, -31.5, 0],      // CT corridor
+    [-34, 22, 0], [32, 22, 0]            // T spawn
+  ];
   for (const c of CR) addCrate(c[0], c[1], c[2]);
-  const BR = [[-1.5, -22.5], [3.9, -16], [-33.5, -8], [8.2, -10.5], [-7, 27]];
-  for (const b of BR) addBarrel(b[0], b[1]);
-  addContainer(-22.5, 11.5, false, TEX.metal('#8a3b2f'));   // red container on A
-  addContainer(26, 2, false, TEX.metal('#2f5a80'));         // blue container, east hall
-  addContainer(24, -32, true, TEX.metal('#5a5f4a'));        // olive container, T spawn
-
-  // painted A-site decal (ground + wall letter)
-  const decal = new THREE.Mesh(new THREE.PlaneGeometry(9, 9),
-    new THREE.MeshStandardMaterial({ map: TEX.site, transparent: true, roughness: 1, depthWrite: false }));
-  decal.rotation.x = -Math.PI / 2; decal.position.set(SITE.x, 0.02, SITE.z);
-  decal.receiveShadow = true; decal.renderOrder = 1;
-  levelGroup.add(decal);
-  const wallLetter = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2),
-    new THREE.MeshStandardMaterial({ map: TEX.site, transparent: true, roughness: 1, depthWrite: false }));
-  wallLetter.rotation.y = Math.PI / 2; wallLetter.position.set(-26.4, 2.6, 8);
-  levelGroup.add(wallLetter);
+  // coffins at B
+  addCoffin(-16.3, -21, 0.3);
+  addCoffin(-16.1, -20.8, -0.15, 0.78);
+  addCoffin(-14.8, -19.2, -0.25);
+  // car near banana exit into B
+  addCar(-24.5, -11.8, -0.55);
+  // barrels
+  for (const b of [[-34.8, 10, 0], [-35, -14, 0], [-18, -24.5, 0], [29, 8, 0], [28.5, -7, 0.6], [7, -8, 0], [-12, -32, 0]])
+    addBarrel(b[0], b[1], b[2]);
+  // graveyard at A
+  for (const [tx, tw, th] of [[16.5, 0.55, 1.0], [18.2, 0.5, 1.2], [20.1, 0.55, 1.05], [22, 0.5, 1.25], [24.2, 0.55, 1.0], [26, 0.5, 1.15]])
+    addTomb(tx, -25, tw, th);
+  // library shelves near A gate
+  addCrate(9.5, -24.3, 0, 1.3);
+  addCrate(12, -24.3, 0, 1.3);
+  // rooftop chimneys (decorative)
+  for (const c of [[-25, 10], [-19, -2], [-12, 9], [14, 11], [-11, -21], [20, -30]])
+    addBox(c[0], c[1], 0.9, 0.9, 1.7, chimMat, 7, false);
+  // windows on lane-facing walls
+  for (const x of [-24, -19, -13, -8, 9, 15, 29, 33]) addWindow(x, 16.55, 0);
+  for (const z of [2, 10]) addWindow(-28.05, z, -Math.PI / 2);
+  for (const z of [2, 10]) addWindow(18.05, z, Math.PI / 2);
+  for (const z of [-12, -21]) addWindow(-14.05, z, -Math.PI / 2);
+  for (const z of [-11, -20]) addWindow(29.95, z, -Math.PI / 2);
+  for (const x of [-22, -10, 4, 12]) addWindow(x, -35.3, 0);
+  // ivy bushes
+  for (const b of [[-35.2, 24, 1.1], [34.6, 25, 0.9], [-35.1, -25.2, 0.8], [29.2, -24.6, 1], [5.3, 17.3, 0.9], [-20.5, -27.3, 0.8]])
+    addBush(b[0], b[1], b[2]);
+  // site paint
+  siteDecal(TEX.siteA, SITE_A.x, SITE_A.z, 29.85, -16);
+  siteDecal(TEX.siteB, SITE_B.x, SITE_B.z, -13.85, -16);
 }
 buildLevel();
 
@@ -620,7 +768,7 @@ buildLevel();
    5. PHYSICS & COLLISION — AABB world, slab raycasts, axis slide + step
    ===================================================================== */
 let _hitAxis = 1, _hitSign = 1;
-function rayBox(ox, oy, oz, dx, dy, dz, c) { // slab test, returns entry t (>=0) or -1
+function rayBox(ox, oy, oz, dx, dy, dz, c) {
   let tmin = 0, tmax = 1e9, axis = -1;
   if (dx > -1e-9 && dx < 1e-9) { if (ox < c.x0 || ox > c.x1) return -1; }
   else {
@@ -682,8 +830,8 @@ function raySphere(o, d, cx, cy, cz, r) {
   if (d2 > r2) return -1;
   return tc - Math.sqrt(r2 - d2);
 }
-function tryStep(pos, r, h, c) { // step onto low ledges (platforms) while grounded
-  if (!player.grounded) return false;
+function tryStep(pos, r, h, c, canStep) { // step onto ledges (balcony stairs, platforms)
+  if (!canStep) return false;
   const rise = c.y1 - pos.y;
   if (rise > 0.7 || rise <= 0.001) return false;
   const ny = c.y1 + 0.002;
@@ -694,19 +842,19 @@ function tryStep(pos, r, h, c) { // step onto low ledges (platforms) while groun
   }
   pos.y = ny; return true;
 }
-function moveXZ(pos, r, h, dx, dz, step) { // per-axis slide resolution
+function moveXZ(pos, r, h, dx, dz, canStep) {
   pos.x += dx;
   for (const c of COLLIDERS) {
     if (pos.x + r <= c.x0 || pos.x - r >= c.x1 || pos.z + r <= c.z0 || pos.z - r >= c.z1) continue;
     if (pos.y >= c.y1 || pos.y + h <= c.y0) continue;
-    if (step && tryStep(pos, r, h, c)) continue;
+    if (tryStep(pos, r, h, c, canStep)) continue;
     pos.x = (pos.x < (c.x0 + c.x1) / 2) ? c.x0 - r - 0.001 : c.x1 + r + 0.001;
   }
   pos.z += dz;
   for (const c of COLLIDERS) {
     if (pos.x + r <= c.x0 || pos.x - r >= c.x1 || pos.z + r <= c.z0 || pos.z - r >= c.z1) continue;
     if (pos.y >= c.y1 || pos.y + h <= c.y0) continue;
-    if (step && tryStep(pos, r, h, c)) continue;
+    if (tryStep(pos, r, h, c, canStep)) continue;
     pos.z = (pos.z < (c.z0 + c.z1) / 2) ? c.z0 - r - 0.001 : c.z1 + r + 0.001;
   }
 }
@@ -907,18 +1055,18 @@ function buildAK() {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), mat);
     m.rotation.x = Math.PI / 2; m.position.set(x, y, z); g.add(m); return m;
   };
-  B(metal, 0.075, 0.09, 0.40, 0, 0, 0.02);          // receiver
-  B(metal, 0.06, 0.03, 0.34, 0, 0.055, 0);          // dust cover
-  B(wood, 0.065, 0.10, 0.26, 0, -0.025, 0.30, 0.12);// buttstock
-  B(wood, 0.05, 0.11, 0.06, 0, -0.085, 0.12, 0.45); // pistol grip
-  B(bake, 0.055, 0.17, 0.095, 0, -0.13, -0.03, -0.28);   // magazine (curved)
+  B(metal, 0.075, 0.09, 0.40, 0, 0, 0.02);
+  B(metal, 0.06, 0.03, 0.34, 0, 0.055, 0);
+  B(wood, 0.065, 0.10, 0.26, 0, -0.025, 0.30, 0.12);
+  B(wood, 0.05, 0.11, 0.06, 0, -0.085, 0.12, 0.45);
+  B(bake, 0.055, 0.17, 0.095, 0, -0.13, -0.03, -0.28);
   B(bake, 0.055, 0.15, 0.09, 0, -0.235, 0.015, -0.62);
-  B(wood, 0.07, 0.075, 0.24, 0, -0.005, -0.32);     // handguard
-  C(steel, 0.016, 0.20, 0, 0.045, -0.31);           // gas tube
-  C(steel, 0.012, 0.34, 0, 0.02, -0.55);            // barrel
-  B(metal, 0.014, 0.055, 0.014, 0, 0.05, -0.66);    // front sight
-  B(metal, 0.05, 0.03, 0.05, 0, 0.06, -0.10);       // rear sight block
-  C(metal, 0.02, 0.05, 0, 0.02, -0.73);             // muzzle brake
+  B(wood, 0.07, 0.075, 0.24, 0, -0.005, -0.32);
+  C(steel, 0.016, 0.20, 0, 0.045, -0.31);
+  C(steel, 0.012, 0.34, 0, 0.02, -0.55);
+  B(metal, 0.014, 0.055, 0.014, 0, 0.05, -0.66);
+  B(metal, 0.05, 0.03, 0.05, 0, 0.06, -0.10);
+  C(metal, 0.02, 0.05, 0, 0.02, -0.73);
   const muzzle = new THREE.Object3D();
   muzzle.position.set(0, 0.02, -0.76);
   g.add(muzzle);
@@ -989,25 +1137,27 @@ const VM = {
 VM.build();
 
 /* =====================================================================
-   8. PLAYER CONTROLLER
+   8. PLAYER CONTROLLER — CT defender, armor economy, damage direction
    ===================================================================== */
 const player = {
-  pos: new THREE.Vector3(0, 0, 30.5), vel: new THREE.Vector3(),
-  yaw: 0, pitch: 0, radius: 0.34,
-  hp: 100, alive: true, grounded: true,
+  pos: new THREE.Vector3(0, 0, -30), vel: new THREE.Vector3(),
+  yaw: Math.PI, pitch: 0, radius: 0.34,
+  hp: 100, armor: 0, alive: true, grounded: true,
   crouchAmt: 0, money: 800, kills: 0,
   stepAcc: 0, bobT: 0, bobAmp: 0, deathT: 0, shake: 0, hurt: 0,
   recoil: { p: 0, y: 0 },
+  dmgDirT: 0, dmgDirAng: 0,
   height() { return 1.8 - 0.62 * this.crouchAmt; },
   eyeH() { return 1.62 - 0.55 * this.crouchAmt; },
   reset() {
-    this.pos.set(0, 0, 30.5); this.vel.set(0, 0, 0);
-    this.yaw = 0; this.pitch = 0;
-    this.hp = 100; this.alive = true; this.crouchAmt = 0;
+    const keepArmor = this.alive ? this.armor : 0;
+    this.pos.set(0, 0, -30); this.vel.set(0, 0, 0);
+    this.yaw = Math.PI; this.pitch = 0;
+    this.hp = 100; this.armor = keepArmor; this.alive = true; this.crouchAmt = 0;
     this.recoil.p = this.recoil.y = 0;
-    this.deathT = 0; this.hurt = 0; this.shake = 0;
+    this.deathT = 0; this.hurt = 0; this.shake = 0; this.dmgDirT = 0;
     Weapons.reset();
-    UI.hp(); UI.ammo(); UI.money();
+    UI.hp(); UI.ammo(); UI.money(); UI.armor();
   },
   standBlocked() {
     const p = this.pos, r = this.radius;
@@ -1020,17 +1170,14 @@ const player = {
   },
   update(dt) {
     const frozen = Round.state === 'freeze' || Round.state === 'over' || Round.state === 'match' || !this.alive;
-    // look
     const [ldx, ldy] = Input.consumeLook();
     if (this.alive) {
       this.yaw -= ldx * SENS;
       this.pitch = clamp(this.pitch - ldy * SENS, -1.45, 1.45);
     }
-    // crouch (camera height scales down)
     const wantC = Input.crouch();
     if (wantC) this.crouchAmt = Math.min(1, this.crouchAmt + dt * 7);
     else if (!this.standBlocked()) this.crouchAmt = Math.max(0, this.crouchAmt - dt * 7);
-    // wish velocity
     let mf = 0, ms = 0;
     if (!frozen) { mf = Input.moveF(); ms = Input.moveS(); }
     const fx = -Math.sin(this.yaw), fz = -Math.cos(this.yaw);
@@ -1046,8 +1193,6 @@ const player = {
     if (!frozen && Input.jumpQ && this.grounded) { this.vel.y = 6.6; this.grounded = false; }
     Input.jumpQ = false;
     this.vel.y = Math.max(-28, this.vel.y - 17.5 * dt);
-    // vertical integrate + resolve
-    const fallV = this.vel.y;
     this.pos.y += this.vel.y * dt;
     let grounded = false;
     if (this.pos.y <= 0) {
@@ -1065,9 +1210,8 @@ const player = {
         this.pos.y = c.y0 - h - 0.001; this.vel.y = 0;
       }
     }
-    moveXZ(this.pos, r, h, this.vel.x * dt, this.vel.z * dt, true);
+    moveXZ(this.pos, r, h, this.vel.x * dt, this.vel.z * dt, this.grounded);
     this.grounded = grounded;
-    // bobbing + footsteps
     const hs = Math.hypot(this.vel.x, this.vel.z);
     this.bobT += hs * dt * 1.75;
     const targetAmp = this.grounded ? Math.min(1, hs / 4.8) : 0;
@@ -1076,20 +1220,18 @@ const player = {
       this.stepAcc += hs * dt;
       if (this.stepAcc > 2.5) { this.stepAcc = 0; AudioSys.footstep(0.4, 0); }
     }
-    // death handling
     if (!this.alive) {
       this.deathT += dt;
       if (this.deathT > 1.6 && Round.state !== 'over' && Round.state !== 'match' && !Round.bomb.planted)
         Round.end('t', 'YOU WERE ELIMINATED');
     }
-    // recoil recovery + decay
     if (Game.time - Weapons.lastShotT > 0.13) {
       const rk = Math.exp(-6.5 * dt);
       this.recoil.p *= rk; this.recoil.y *= rk;
     }
     this.hurt = Math.max(0, this.hurt - dt * 1.3);
     this.shake = Math.max(0, this.shake - dt * 0.55);
-    // camera
+    this.dmgDirT = Math.max(0, this.dmgDirT - dt);
     const eh = this.eyeH();
     let cy = this.pos.y + eh;
     if (!this.alive) cy = this.pos.y + Math.max(0.35, eh - this.deathT * 2.4);
@@ -1103,10 +1245,23 @@ const player = {
   },
   takeDamage(d, from) {
     if (!this.alive || Round.state === 'over' || Round.state === 'match') return;
+    if (this.armor > 0) { // kevlar soaks roughly half the hit
+      const absorb = Math.min(this.armor, d * 0.5);
+      this.armor -= absorb; d -= absorb;
+      UI.armor();
+    }
     this.hp -= d;
     this.hurt = Math.min(1, this.hurt + d / 45);
     this.shake = Math.max(this.shake, 0.12);
     AudioSys.hurt();
+    if (from) { // damage direction indicator
+      const dx = from.pos.x - this.pos.x, dz = from.pos.z - this.pos.z;
+      const fX = -Math.sin(this.yaw), fZ = -Math.cos(this.yaw);
+      const rX = Math.cos(this.yaw), rZ = -Math.sin(this.yaw);
+      this.dmgDirAng = Math.atan2(dx * rX + dz * rZ, dx * fX + dz * fZ);
+      this.dmgDirT = 1;
+      UI.els.dmgdir.style.transform = 'rotate(' + this.dmgDirAng.toFixed(3) + 'rad)';
+    }
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.deathT = 0;
       AudioSys.lose();
@@ -1123,7 +1278,7 @@ const WEAPONS = {
   rifle: { name: 'AK-47', dmg: 35, interval: 0.1, mag: 30, reserve: 90, baseSpread: 0.0016 },
   knife: { name: 'KNIFE', dmg: 55, interval: 0.45 }
 };
-const RECOIL = (() => { // classic climb-then-drift pattern
+const RECOIL = (() => {
   const a = [];
   for (let i = 0; i < 30; i++) {
     const p = i < 9 ? 0.016 + 0.002 * i : 0.011;
@@ -1216,7 +1371,6 @@ const Weapons = {
     player.recoil.y += pat[1];
     VM.kick = Math.min(0.09, VM.kick + 0.045);
     VM.kickR = Math.min(0.12, VM.kickR + 0.05);
-    // direction with dynamic spread
     camera.getWorldDirection(_v1);
     _v2.setFromMatrixColumn(camera.matrixWorld, 0);
     _v3.setFromMatrixColumn(camera.matrixWorld, 1);
@@ -1224,12 +1378,11 @@ const Weapons = {
     _v1.addScaledVector(_v2, Math.cos(a) * rr).addScaledVector(_v3, Math.sin(a) * rr).normalize();
     const origin = _v4.copy(camera.position);
     const wHit = raycastWorld(origin, _v1, 300);
-    // bots (head sphere + body box)
     let botHit = null;
     for (const b of bots) {
       if (!b.alive) continue;
-      const tH = raySphere(origin, _v1, b.pos.x, 1.65, b.pos.z, 0.23);
-      const bb = { x0: b.pos.x - 0.34, x1: b.pos.x + 0.34, y0: 0.1, y1: 1.5, z0: b.pos.z - 0.34, z1: b.pos.z + 0.34 };
+      const tH = raySphere(origin, _v1, b.pos.x, b.pos.y + 1.65, b.pos.z, 0.23);
+      const bb = { x0: b.pos.x - 0.34, x1: b.pos.x + 0.34, y0: b.pos.y + 0.1, y1: b.pos.y + 1.5, z0: b.pos.z - 0.34, z1: b.pos.z + 0.34 };
       const tB = rayBox(origin.x, origin.y, origin.z, _v1.x, _v1.y, _v1.z, bb);
       let t = -1, part = 'body';
       if (tH >= 0 && (tB < 0 || tH <= tB)) { t = tH; part = 'head'; }
@@ -1269,7 +1422,7 @@ const Weapons = {
     let botHit = null;
     for (const b of bots) {
       if (!b.alive) continue;
-      const bb = { x0: b.pos.x - 0.4, x1: b.pos.x + 0.4, y0: 0, y1: 1.8, z0: b.pos.z - 0.4, z1: b.pos.z + 0.4 };
+      const bb = { x0: b.pos.x - 0.4, x1: b.pos.x + 0.4, y0: b.pos.y, y1: b.pos.y + 1.8, z0: b.pos.z - 0.4, z1: b.pos.z + 0.4 };
       const t = rayBox(origin.x, origin.y, origin.z, _v1.x, _v1.y, _v1.z, bb);
       if (t >= 0 && t < 2.1 && (!wHit.hit || t < wHit.t) && (!botHit || t < botHit.t)) botHit = { b, t };
     }
@@ -1288,10 +1441,25 @@ const Weapons = {
 };
 
 /* =====================================================================
-   10. BOT AI — finite state machine on a waypoint network
+   10. BOT AI — finite state machine on a waypoint network,
+       height-aware (walks the apartment balcony and stairs)
    ===================================================================== */
 const BOT_NAMES = ['VIPER', 'KILO', 'ROGUE'];
-const BOT_SPAWNS = [[-26, -30], [0, -30.5], [12, -30]];
+const WP = [ // waypoint nodes [x, z]
+  [-32, 26], [-32, 13], [-32, 0], [-31, -10], [-24, -17],  // 0-4   banana -> B plant
+  [1, 26], [1, 13], [1, 0], [1, -10], [3, -12], [10, -12], [18, -18], // 5-11 mid -> short -> A plant
+  [22, 26], [24, 9], [24, 3], [24, -9.5], [16, -9.5]      // 12-16 rampage -> apps -> balcony -> stairs
+];
+const ROUTE_B = [0, 1, 2, 3, 4];
+const ROUTE_MID = [5, 6, 7, 8, 9, 10, 11];
+const ROUTE_APPS = [12, 13, 14, 15, 16, 11];
+const PLAN_B = { spawn: [-30, 30], route: ROUTE_B };
+const PLAN_MID = { spawn: [1, 30], route: ROUTE_MID };
+const PLAN_APPS = { spawn: [23, 30], route: ROUTE_APPS };
+const GUARDS = {
+  A: [[27, -22], [8, -22], [24, -16]],
+  B: [[-33, -23], [-17, -11], [-19, -13]]
+};
 function buildBotBody(tint) {
   const g = new THREE.Group();
   g.rotation.order = 'YXZ';
@@ -1309,14 +1477,14 @@ function buildBotBody(tint) {
   const lm = B(pants, 0.22, 0.88, 0.26, 0, 0, 0); lm.position.y = -0.44; legL.add(lm); g.add(legL);
   const legR = new THREE.Group(); legR.position.set(0.15, 0.88, 0);
   const rm = B(pants, 0.22, 0.88, 0.26, 0, 0, 0); rm.position.y = -0.44; legR.add(rm); g.add(legR);
-  B(cloth, 0.62, 0.62, 0.34, 0, 1.16, 0);                 // torso
-  B(vestM, 0.55, 0.42, 0.14, 0, 1.22, 0.2);               // chest rig
-  B(bandM, 0.5, 0.09, 0.1, 0, 1.33, 0.13);                // strap
+  B(cloth, 0.62, 0.62, 0.34, 0, 1.16, 0);
+  B(vestM, 0.55, 0.42, 0.14, 0, 1.22, 0.2);
+  B(bandM, 0.5, 0.09, 0.1, 0, 1.33, 0.13);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.185, 12, 10), skin);
   head.position.y = 1.66; g.add(head);
-  B(bandM, 0.3, 0.09, 0.3, 0, 1.72, 0);                   // headband
-  B(cloth, 0.13, 0.13, 0.42, 0.2, 1.3, 0.2);              // right arm
-  const la = B(cloth, 0.13, 0.13, 0.38, -0.1, 1.28, 0.26); la.rotation.y = 0.5; // left arm
+  B(bandM, 0.3, 0.09, 0.3, 0, 1.72, 0);
+  B(cloth, 0.13, 0.13, 0.42, 0.2, 1.3, 0.2);
+  const la = B(cloth, 0.13, 0.13, 0.38, -0.1, 1.28, 0.26); la.rotation.y = 0.5;
   const gun = new THREE.Group(); gun.position.set(0.1, 1.32, 0.3);
   const gb = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.1, 0.55), gunM);
   gb.position.z = 0.05; gun.add(gb);
@@ -1338,27 +1506,42 @@ class Bot {
     this.skill = 0.85 + Math.random() * 0.3;
     this.phase = Math.random() * 10;
     this.alive = false;
+    this.spotT = 0; this.lastFireT = -9;
   }
-  reset(spawn, route, delay) {
-    this.pos.set(spawn[0] + rnd(-1.2, 1.2), 0, spawn[1] + rnd(-1.2, 1.2));
+  reset(plan, delay, site) {
+    this.site = site;
+    this.pos.set(plan.spawn[0] + rnd(-1, 1), 0, plan.spawn[1] + rnd(-1, 1));
     this.hp = 100; this.alive = true;
     this.state = 'route'; this.prev = 'route';
-    this.path = route.slice(); this.wp = 0; this.pathDone = false;
+    this.path = plan.route.slice(); this.wp = 0; this.pathDone = false;
     this.delay = delay; this.stuckT = 0;
     this.canSee = false; this.loseT = 0; this.reactT = 0;
     this.burst = 0; this.pauseT = 0; this.shotT = 0;
     this.plantT = 0; this.beepT = 0; this.alertT = 0;
     this.stepAcc = 0; this.animT = Math.random() * 5; this.legPhase = 0;
     this.deathT = 0; this.fall = Math.random() < 0.5 ? 1 : -1;
-    this.guardNode = null; this.percT = Math.random() * 0.2;
-    this.yaw = 0;
+    this.guardNode = null; this.yawBase = null; this.percT = Math.random() * 0.2;
+    this.yaw = Math.PI;
+    this.spotT = 0; this.lastFireT = -9;
     this.group.visible = true;
     this.group.rotation.set(0, 0, 0);
     this.group.position.copy(this.pos);
   }
-  sense() { // vision: distance + FOV (bypassed when alerted) + static-geometry raycast
+  groundY(dt) { // keep bots glued to platforms / stairs / ground
+    let ty = 0;
+    const pr = 0.05;
+    for (const c of COLLIDERS) {
+      if (this.pos.x + pr <= c.x0 || this.pos.x - pr >= c.x1) continue;
+      if (this.pos.z + pr <= c.z0 || this.pos.z - pr >= c.z1) continue;
+      if (c.y1 > 1.6 || c.y1 <= ty) continue;
+      ty = c.y1;
+    }
+    if (this.pos.y < ty) this.pos.y = ty;
+    else this.pos.y += (ty - this.pos.y) * Math.min(1, dt * 12);
+  }
+  sense() {
     if (!player.alive) { this.canSee = false; return; }
-    const ex = this.pos.x, ez = this.pos.z, ey = 1.58;
+    const ex = this.pos.x, ez = this.pos.z, ey = this.pos.y + 1.58;
     const px = camera.position.x, py = camera.position.y, pz = camera.position.z;
     const dx = px - ex, dy = py - ey, dz = pz - ez;
     const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
@@ -1380,7 +1563,9 @@ class Bot {
   }
   toGuard() {
     this.state = 'guard';
-    this.guardNode = GUARD_NODES[(Math.random() * GUARD_NODES.length) | 0];
+    const list = GUARDS[this.site];
+    this.guardNode = list[(Math.random() * list.length) | 0];
+    this.yawBase = null;
   }
   followPath(spd, dt) {
     if (this.pathDone) return 0;
@@ -1394,7 +1579,7 @@ class Bot {
     }
     this.yaw = approachAngle(this.yaw, Math.atan2(dx, dz), 9 * dt);
     const bx = this.pos.x, bz = this.pos.z;
-    moveXZ(this.pos, this.r, 1.7, dx / d * spd * dt, dz / d * spd * dt, false);
+    moveXZ(this.pos, this.r, 1.7, dx / d * spd * dt, dz / d * spd * dt, true);
     const moved = Math.hypot(this.pos.x - bx, this.pos.z - bz);
     if (moved < spd * dt * 0.3) {
       this.stuckT += dt;
@@ -1415,7 +1600,7 @@ class Bot {
       if (dist > 26) { mvx += dx / dist * 1.6; mvz += dz / dist * 1.6; }
       if (dist < 5) { mvx -= dx / dist * 1.5; mvz -= dz / dist * 1.5; }
       const bx = this.pos.x, bz = this.pos.z;
-      moveXZ(this.pos, this.r, 1.7, mvx * dt, mvz * dt, false);
+      moveXZ(this.pos, this.r, 1.7, mvx * dt, mvz * dt, true);
       moved = Math.hypot(this.pos.x - bx, this.pos.z - bz);
       if (this.reactT > 0) this.reactT -= dt;
       else if (Math.abs(angDiff(this.yaw, tYaw)) < 0.14) {
@@ -1436,12 +1621,13 @@ class Bot {
     return moved;
   }
   fire(dist) {
+    this.lastFireT = Game.time;
     this.group.updateMatrixWorld(true);
     const muz = this.gunTip.getWorldPosition(_v1).clone();
     const s = AudioSys.spatial(this.pos, 0.9);
     AudioSys.shot(Math.max(0.06, s.vol), s.pan);
     Effects.muzzle(muz);
-    const eye = _v2.set(this.pos.x, 1.58, this.pos.z);
+    const eye = _v2.set(this.pos.x, this.pos.y + 1.58, this.pos.z);
     const blocked = losBlocked(eye.x, eye.y, eye.z, camera.position.x, camera.position.y, camera.position.z);
     const pSpeed = Math.hypot(player.vel.x, player.vel.z);
     let chance = (0.34 - dist * 0.004 - (pSpeed / 4.8) * 0.16 - (player.crouchAmt > 0.5 ? 0.04 : 0)) * this.skill;
@@ -1466,6 +1652,7 @@ class Bot {
     this.hp -= dmg;
     bloodFX(point, dmg);
     this.alertT = 6;
+    this.spotT = Math.max(this.spotT, 1.6);
     if (this.hp <= 0) { this.die(head, true); return; }
     if (this.state !== 'combat') this.enterCombat(true);
     else this.reactT = Math.min(this.reactT, 0.1);
@@ -1503,7 +1690,7 @@ class Bot {
   }
   update(dt) {
     this.animT += dt;
-    if (!this.alive) { // corpse tip-over
+    if (!this.alive) {
       this.deathT += dt;
       const k = Math.min(1, this.deathT / 0.45), e = 1 - (1 - k) * (1 - k);
       this.group.rotation.x = this.fall * Math.PI / 2 * 0.94 * e;
@@ -1512,6 +1699,7 @@ class Bot {
     if (Round.state === 'freeze' || Round.state === 'over' || Round.state === 'match') { this.animLegs(0); return; }
     if (this.delay > 0) { this.delay -= dt; this.animLegs(0); return; }
     this.alertT = Math.max(0, this.alertT - dt);
+    if (player.alive && distXZ(this.pos, player.pos) < 6) this.alertT = Math.max(this.alertT, 1); // hear sneaks
     this.percT -= dt;
     if (this.percT <= 0) { this.percT = 0.13 + Math.random() * 0.07; this.sense(); }
     let moved = 0;
@@ -1519,7 +1707,7 @@ class Bot {
       case 'route':
         moved = this.followPath(4.4, dt);
         if (this.pathDone) {
-          if (!Round.bomb.planted && !Round.bomb.bomber) {
+          if (!Round.bomb.planted && (!Round.bomb.bomber || !Round.bomb.bomber.alive)) {
             Round.bomb.bomber = this;
             this.state = 'plant'; this.plantT = 0; this.yaw0 = this.yaw;
           } else this.toGuard();
@@ -1534,13 +1722,16 @@ class Bot {
           const s = AudioSys.spatial(this.pos, 0.5);
           AudioSys.beep(1420, 0.07, Math.max(0.1, s.vol * 0.8), s.pan);
         }
-        if (this.plantT >= 3.2) { Round.plant(this.pos); this.toGuard(); }
+        if (this.plantT >= 3.2) { Round.plant(this.pos, this.site); this.toGuard(); }
         break;
       case 'guard': {
-        const n = WP[this.guardNode];
+        const n = this.guardNode;
         const d = Math.hypot(n[0] - this.pos.x, n[1] - this.pos.z);
         if (d > 1.2) moved = this.moveNode(n[0], n[1], 3.6, dt);
-        else this.yaw = (this.yawBase ?? (this.yawBase = this.yaw)) + Math.sin(this.animT * 0.6) * 0.9;
+        else {
+          if (this.yawBase == null) this.yawBase = this.yaw;
+          this.yaw = this.yawBase + Math.sin(this.animT * 0.6) * 0.9;
+        }
         break;
       }
       case 'combat':
@@ -1548,7 +1739,8 @@ class Bot {
         break;
     }
     this.separate();
-    this.group.position.set(this.pos.x, 0, this.pos.z);
+    this.groundY(dt);
+    this.group.position.set(this.pos.x, this.pos.y, this.pos.z);
     this.group.rotation.y = this.yaw;
     this.animLegs(moved);
     if (moved > 0.001) {
@@ -1566,7 +1758,7 @@ class Bot {
     if (d < 0.05) return 0;
     this.yaw = approachAngle(this.yaw, Math.atan2(dx, dz), 8 * dt);
     const bx = this.pos.x, bz = this.pos.z;
-    moveXZ(this.pos, this.r, 1.7, dx / d * spd * dt, dz / d * spd * dt, false);
+    moveXZ(this.pos, this.r, 1.7, dx / d * spd * dt, dz / d * spd * dt, true);
     return Math.hypot(this.pos.x - bx, this.pos.z - bz);
   }
   animLegs(moved) {
@@ -1579,7 +1771,7 @@ class Bot {
 const bots = [0, 1, 2].map(i => new Bot(i));
 
 /* =====================================================================
-   11. BOMB & ROUND MANAGER
+   11. BOMB & ROUND MANAGER — two bomb sites, random T target
    ===================================================================== */
 function buildBomb() {
   const g = new THREE.Group();
@@ -1613,13 +1805,13 @@ function checkElimination() {
   }
 }
 const Round = {
-  state: 'idle', num: 0, ct: 0, t: 0,
+  state: 'idle', num: 0, ct: 0, t: 0, site: 'A',
   timer: 115, freezeT: 0, overT: 0,
   beepT: 0, defuseTick: 0,
-  bomb: { planted: false, bomber: null, pos: new THREE.Vector3(), timer: 0, defuse: 0 },
+  bomb: { planted: false, bomber: null, site: 'A', pos: new THREE.Vector3(), timer: 0, defuse: 0 },
   startMatch() {
     this.num = 0; this.ct = 0; this.t = 0;
-    player.money = 800; player.kills = 0;
+    player.money = 800; player.kills = 0; player.armor = 0;
     this.begin();
   },
   begin() {
@@ -1629,22 +1821,28 @@ const Round = {
     b.planted = false; b.bomber = null; b.timer = 0; b.defuse = 0;
     bombMesh.group.visible = false; bombMesh.light.intensity = 0;
     player.reset();
-    const routes = shuffle([ROUTE_LONG, ROUTE_MID, ROUTE_TUN]);
-    bots.forEach((bt, i) => bt.reset(BOT_SPAWNS[i], routes[i], 0.4 + i * 0.7 + Math.random() * 0.6));
+    // T side picks a target site each round; bots take staggered routes to it
+    this.site = Math.random() < 0.5 ? 'A' : 'B';
+    const plans = this.site === 'B'
+      ? [PLAN_B, PLAN_B, PLAN_B]
+      : shuffle([PLAN_MID, PLAN_APPS, Math.random() < 0.5 ? PLAN_MID : PLAN_APPS]);
+    bots.forEach((bt, i) => bt.reset(plans[i], 0.5 + i * 0.9 + Math.random() * 0.7, this.site));
     updateAliveDots();
-    UI.score(); UI.msg('ROUND ' + this.num, 'DEFEND SITE A — STOP THE PLANT', 2.6);
+    UI.score();
+    UI.msg('ROUND ' + this.num, 'HOLD SITES A & B — BUY ARMOR ' + (IS_TOUCH ? 'WITH BUTTON' : '[B]'), 2.8);
     AudioSys.roundStart();
     document.body.classList.remove('pregame');
   },
-  plant(pos) {
+  plant(pos, site) {
     const b = this.bomb;
-    b.planted = true; b.bomber = null;
-    b.pos.set(clamp(pos.x, SITE.x - 4, SITE.x + 4), 0, clamp(pos.z, SITE.z - 4, SITE.z + 4));
+    const S = site === 'A' ? SITE_A : SITE_B;
+    b.planted = true; b.bomber = null; b.site = site;
+    b.pos.set(clamp(pos.x, S.x - 4.5, S.x + 4.5), 0, clamp(pos.z, S.z - 4.5, S.z + 4.5));
     b.timer = 45; b.defuse = 0; this.beepT = 0;
     this.state = 'planted';
     bombMesh.group.position.copy(b.pos);
     bombMesh.group.visible = true;
-    UI.msg('THE BOMB HAS BEEN PLANTED', '45 SECONDS TO DETONATION', 3, 't');
+    UI.msg('THE BOMB HAS BEEN PLANTED', 'SITE ' + site + ' — 45 SECONDS TO DETONATION', 3, 't');
     AudioSys.beep(880, 0.2, 0.3);
   },
   explode() {
@@ -1656,23 +1854,22 @@ const Round = {
     if (player.alive && distXZ(player.pos, p) < 16) player.takeDamage(500, null);
     for (const b of bots) if (b.alive && distXZ(b.pos, p) < 14) b.die(false, false);
     bombMesh.group.visible = false; bombMesh.light.intensity = 0;
-    this.bomb.planted = false; // consumed
-    this.end('t', 'TARGET DESTROYED', true);
-    this.bomb.planted = true;  // keep flag semantics for the rest of the round
+    this.bomb.planted = false;
+    this.end('t', 'TARGET DESTROYED');
   },
-  end(winner, reason, silentMsg) {
+  end(winner, reason) {
     if (this.state === 'over' || this.state === 'match') return;
     this.state = 'over'; this.overT = 4.6;
     if (winner === 'ct') {
       this.ct++;
       player.money = Math.min(16000, player.money + 3250);
       AudioSys.win();
-      if (!silentMsg) UI.msg('COUNTER-TERRORISTS WIN', reason, 4.4, 'ct');
+      UI.msg('COUNTER-TERRORISTS WIN', reason, 4.4, 'ct');
     } else {
       this.t++;
       player.money = Math.min(16000, player.money + 1400);
       AudioSys.lose();
-      if (!silentMsg) UI.msg('TERRORISTS WIN', reason, 4.4, 't');
+      UI.msg('TERRORISTS WIN', reason, 4.4, 't');
     }
     UI.score(); UI.money();
     if (this.ct >= 8 || this.t >= 8) {
@@ -1688,7 +1885,7 @@ const Round = {
         break;
       case 'live':
         this.timer -= dt;
-        if (this.timer <= 0) this.end('ct', 'TIME EXPIRED — SITE HELD');
+        if (this.timer <= 0) this.end('ct', 'TIME EXPIRED — SITES HELD');
         break;
       case 'planted': {
         const b = this.bomb;
@@ -1704,8 +1901,7 @@ const Round = {
         bombMesh.light.intensity *= Math.pow(0.02, dt);
         bombMesh.lamp.material.emissiveIntensity = 2 + bombMesh.light.intensity * 2;
         if (b.timer <= 0) { this.explode(); break; }
-        // defusing
-        const near = player.alive && distXZ(player.pos, b.pos) < 2.3;
+        const near = player.alive && player.pos.y < 0.35 && distXZ(player.pos, b.pos) < 2.3;
         UI.interact(near, b.defuse / 5);
         if (IS_TOUCH) $('btnUse').style.display = this.bomb.planted && Round.state === 'planted' ? 'flex' : 'none';
         if (near && Input.use) {
@@ -1729,14 +1925,15 @@ const Round = {
 };
 
 /* =====================================================================
-   12. UI MANAGER
+   12. UI MANAGER + RADAR (spotted enemies, bomb, site letters)
    ===================================================================== */
 const UI = {
-  els: {}, last: {}, msgT: 0, hmT: 0, flashT: 0,
+  els: {}, last: {}, msgT: 0, hmT: 0, flashT: 0, armorBtn: null,
   init() {
     ['topbar', 'scoreCT', 'scoreT', 'timer', 'roundlbl', 'killfeed', 'crosshair', 'hitmarker',
      'msg', 'msgtitle', 'msgsub', 'interact', 'interactlabel', 'interactbar', 'money', 'health',
-     'hpnum', 'hpbarfill', 'weaponname', 'mag', 'reserve', 'vignette', 'flashwhite']
+     'hpnum', 'hpbarfill', 'armorwrap', 'armornum', 'armorbarfill', 'weaponname', 'mag', 'reserve',
+     'vignette', 'flashwhite', 'dmgdir']
       .forEach(id => this.els[id] = $(id));
     this.bar = this.els.interactbar.firstElementChild;
   },
@@ -1746,6 +1943,11 @@ const UI = {
     this.els.hpbarfill.style.width = Math.max(0, player.hp) + '%';
     this.els.health.className = 'plate ' + (player.hp <= 25 ? 'crit' : player.hp <= 50 ? 'low' : '');
   },
+  armor() {
+    this.text('armornum', String(Math.ceil(player.armor)));
+    this.els.armorbarfill.style.width = player.armor + '%';
+    this.els.armorwrap.style.opacity = player.armor > 0 ? 1 : 0.35;
+  },
   ammo() {
     this.text('mag', String(Weapons.mag));
     this.text('reserve', '/ ' + Weapons.reserve);
@@ -1754,7 +1956,6 @@ const UI = {
   weaponName() { this.text('weaponname', WEAPONS[Weapons.current].name); },
   money() { this.text('money', '$ ' + player.money); },
   score() {
-    this.text('scoreCT', String(this === UI ? Round.ct : 0));
     this.els.scoreCT.textContent = Round.ct;
     this.els.scoreT.textContent = Round.t;
     this.text('roundlbl', 'ROUND ' + Round.num);
@@ -1788,40 +1989,121 @@ const UI = {
   },
   flash(v) { this.flashT = v; },
   frame(dt) {
-    // timer
     let t = Round.timer, bomb = false;
     if (Round.state === 'freeze') t = Math.max(0, Round.freezeT);
     if (Round.state === 'planted') { t = Math.max(0, Round.bomb.timer); bomb = true; }
     const m = Math.floor(t / 60), s = Math.floor(t % 60);
     this.text('timer', m + ':' + String(s).padStart(2, '0'));
     this.els.timer.className = bomb ? 'bomb' : '';
-    // crosshair spread
     const gap = clamp(4 + Weapons.computeSpread() * 2600, 4, 70);
     this.els.crosshair.style.setProperty('--gap', gap.toFixed(1) + 'px');
     this.els.crosshair.style.opacity = player.alive ? 1 : 0;
-    // hitmarker fade
     if (this.hmT > 0) {
       this.hmT -= dt;
       if (this.hmT <= 0) this.els.hitmarker.style.opacity = 0;
     }
-    // message fade
     if (this.msgT > 0) {
       this.msgT -= dt;
       if (this.msgT <= 0) this.els.msg.className = '';
     }
-    // vignette
+    this.els.dmgdir.style.opacity = clamp(player.dmgDirT, 0, 1).toFixed(2);
     this.els.vignette.style.opacity = clamp(player.hurt + (player.alive && player.hp < 30 ? 0.28 : 0), 0, 1).toFixed(3);
-    // explosion flash
     if (this.flashT > 0) {
       this.flashT -= dt * 1.6;
       this.els.flashwhite.style.opacity = Math.max(0, this.flashT).toFixed(3);
+    }
+    if (IS_TOUCH) {
+      const show = Round.state === 'freeze';
+      if (this.armorBtn !== show) {
+        this.armorBtn = show;
+        $('btnArmor').style.display = show ? 'flex' : 'none';
+      }
     }
   }
 };
 UI.init();
 
+const Radar = {
+  size: 168, ctx: null, stat: null, spotAcc: 0,
+  init() {
+    this.cv = $('radarcv');
+    this.cv.width = this.size * 2; this.cv.height = this.size * 2;
+    this.ctx = this.cv.getContext('2d');
+    this.ctx.scale(2, 2);
+    this.renderStatic();
+  },
+  px(x) { return (x + 36) * (this.size / 72); },
+  pz(z) { return (z + 36) * (this.size / 72); },
+  renderStatic() {
+    const c = document.createElement('canvas');
+    c.width = this.size * 2; c.height = this.size * 2;
+    const g = c.getContext('2d'); g.scale(2, 2);
+    g.fillStyle = 'rgba(196,190,176,0.10)';
+    g.fillRect(0, 0, this.size, this.size);
+    const sc = this.size / 72;
+    for (const cl of COLLIDERS) {
+      const x = this.px(cl.x0), y = this.pz(cl.z0);
+      const w = Math.max(1, (cl.x1 - cl.x0) * sc), h = Math.max(1, (cl.z1 - cl.z0) * sc);
+      if (cl.y0 >= 3) g.fillStyle = 'rgba(140,160,185,0.18)';        // rooftops / indoor
+      else if (cl.y1 >= 5) g.fillStyle = 'rgba(226,219,203,0.85)';   // walls
+      else if (cl.y1 >= 0.4) g.fillStyle = 'rgba(226,219,203,0.28)'; // crates / platforms
+      else continue;
+      g.fillRect(x, y, w, h);
+    }
+    g.font = '700 15px Rajdhani, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = 'rgba(222,190,60,0.9)';
+    g.fillText('A', this.px(SITE_A.x), this.pz(SITE_A.z));
+    g.fillText('B', this.px(SITE_B.x), this.pz(SITE_B.z));
+    g.font = '600 10px Rajdhani, Arial';
+    g.fillStyle = 'rgba(140,193,238,0.8)'; g.fillText('CT', this.px(0), this.pz(-30));
+    g.fillStyle = 'rgba(230,189,108,0.8)'; g.fillText('T', this.px(0), this.pz(29));
+    this.stat = c;
+  },
+  frame(dt) {
+    this.spotAcc -= dt;
+    if (this.spotAcc <= 0) { // spotting pass: seen in FOV+LOS, or heard firing
+      this.spotAcc = 0.12;
+      camera.getWorldDirection(_v1);
+      for (const b of bots) {
+        if (!b.alive) continue;
+        const dx = b.pos.x - camera.position.x, dz = b.pos.z - camera.position.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist > 75) continue;
+        const nx = dx / (dist || 1), nz = dz / (dist || 1);
+        if (nx * _v1.x + nz * _v1.z > 0.2 &&
+            !losBlocked(camera.position.x, camera.position.y, camera.position.z, b.pos.x, b.pos.y + 1.5, b.pos.z))
+          b.spotT = 1.6;
+        if (Game.time - b.lastFireT < 1.4 && dist < 60) b.spotT = Math.max(b.spotT, 1.1);
+      }
+    }
+    for (const b of bots) if (b.spotT > 0) b.spotT -= dt;
+    const g = this.ctx;
+    g.clearRect(0, 0, this.size, this.size);
+    g.drawImage(this.stat, 0, 0, this.size, this.size);
+    if (Round.bomb.planted) {
+      const x = this.px(Round.bomb.pos.x), y = this.pz(Round.bomb.pos.z);
+      g.fillStyle = '#ff5340';
+      g.beginPath(); g.arc(x, y, Math.max(1.5, 3 + Math.sin(Game.time * 9) * 1.6), 0, 7); g.fill();
+      g.strokeStyle = 'rgba(255,83,64,0.6)'; g.lineWidth = 1.5;
+      g.beginPath(); g.arc(x, y, 7.5, 0, 7); g.stroke();
+    }
+    for (const b of bots) {
+      if (!b.alive || b.spotT <= 0) continue;
+      g.fillStyle = 'rgba(230,90,70,' + clamp(b.spotT, 0, 1).toFixed(2) + ')';
+      g.beginPath(); g.arc(this.px(b.pos.x), this.pz(b.pos.z), 3.4, 0, 7); g.fill();
+    }
+    g.save();
+    g.translate(this.px(player.pos.x), this.pz(player.pos.z));
+    g.rotate(Math.atan2(-Math.cos(player.yaw), -Math.sin(player.yaw)));
+    g.fillStyle = '#eef2f6';
+    g.beginPath(); g.moveTo(7, 0); g.lineTo(-5, 4.5); g.lineTo(-3, 0); g.lineTo(-5, -4.5); g.closePath(); g.fill();
+    g.restore();
+  }
+};
+Radar.init();
+
 /* =====================================================================
-   13. INPUT HANDLER — keyboard / mouse / multi-touch
+   13. INPUT HANDLER — keyboard / mouse / multi-touch (iPad)
    ===================================================================== */
 const Input = {
   keys: Object.create(null),
@@ -1848,6 +2130,12 @@ const Input = {
     return r;
   }
 };
+function buyArmor() {
+  if (Round.state !== 'freeze' || player.money < 650 || player.armor >= 100) return;
+  player.money -= 650; player.armor = 100;
+  UI.money(); UI.armor();
+  AudioSys.buy();
+}
 addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
   if (e.repeat) return;
@@ -1855,6 +2143,7 @@ addEventListener('keydown', e => {
   if (!Game.started || Game.paused) return;
   if (e.code === 'Space') Input.jumpQ = true;
   if (e.code === 'KeyR') Weapons.tryReload();
+  if (e.code === 'KeyB') buyArmor();
   if (e.code === 'Digit1') Weapons.switchTo('rifle');
   if (e.code === 'Digit2') Weapons.switchTo('knife');
 });
@@ -1951,6 +2240,7 @@ if (IS_TOUCH) {
   bindHold('btnReload', () => Weapons.tryReload());
   bindHold('btnWpn', () => Weapons.switchTo(Weapons.current === 'rifle' ? 'knife' : 'rifle'));
   bindHold('btnUse', () => { Input.use = true; }, () => { Input.use = false; });
+  bindHold('btnArmor', () => buyArmor());
   $('fsbtn').addEventListener('touchstart', e => {
     e.preventDefault(); e.stopPropagation();
     try { document.documentElement.requestFullscreen(); } catch (_) { }
@@ -1965,11 +2255,11 @@ const Overlay = {
     const ov = $('overlay'), eb = $('ovEyebrow'), ti = $('ovTitle'), bo = $('ovBody'), btn = $('startBtn');
     ti.className = '';
     if (type === 'start') {
-      eb.textContent = 'BOMB DEFUSAL · TACTICAL PROTOTYPE';
-      ti.textContent = 'DUST PROTOCOL';
+      eb.textContent = 'BOMB DEFUSAL · BANANA · MID · APARTMENTS';
+      ti.textContent = 'INFERNO PROTOCOL';
       bo.innerHTML = IS_TOUCH
-        ? 'LEFT THUMB — <b>MOVE</b> · RIGHT THUMB — <b>AIM</b><br>BUTTONS — <b>FIRE / JUMP / CROUCH / RELOAD / DEFUSE</b><br>STOP THE BOTS FROM PLANTING AT SITE A. FIRST TO 8 ROUNDS WINS.'
-        : '<b>WASD</b> MOVE · <b>SPACE</b> JUMP · <b>C</b> CROUCH · <b>SHIFT</b> WALK<br><b>MOUSE</b> AIM + FIRE · <b>R</b> RELOAD · <b>1 / 2</b> WEAPONS · <b>E</b> DEFUSE<br>STOP THE BOTS FROM PLANTING AT SITE A. FIRST TO 8 ROUNDS WINS.';
+        ? 'LEFT THUMB — <b>MOVE</b> · RIGHT THUMB — <b>AIM</b><br>BUTTONS — <b>FIRE / JUMP / CROUCH / RELOAD / DEFUSE</b><br>2 SITES. BOTS PICK ONE EACH ROUND — READ THE <b>RADAR</b>, LISTEN, ROTATE.<br>BUY <b>ARMOR $650</b> DURING FREEZE TIME. FIRST TO 8 WINS.'
+        : '<b>WASD</b> MOVE · <b>SPACE</b> JUMP · <b>C</b> CROUCH · <b>SHIFT</b> WALK<br><b>MOUSE</b> AIM + FIRE · <b>R</b> RELOAD · <b>1 / 2</b> WEAPONS · <b>E</b> DEFUSE<br>2 SITES. BOTS PICK ONE EACH ROUND — READ THE <b>RADAR</b>, LISTEN, ROTATE.<br>BUY <b>ARMOR $650</b> WITH <b>B</b> DURING FREEZE TIME. FIRST TO 8 WINS.';
       btn.textContent = 'DEPLOY';
     } else if (type === 'pause') {
       eb.textContent = 'PAUSED';
@@ -2015,11 +2305,11 @@ function tick(now) {
   lastT = now;
   if (dt > 0.05) dt = 0.05;
   if (dt <= 0) dt = 0.001;
-  if (!Game.started) { // menu: slow orbit over the map
+  if (!Game.started) { // menu: slow orbit over the village
     Game.time += dt;
     const a = Game.time * 0.07;
-    camera.position.set(Math.cos(a) * 33, 19, Math.sin(a) * 33);
-    camera.lookAt(-6, 0, 0);
+    camera.position.set(Math.cos(a) * 40, 22, Math.sin(a) * 40);
+    camera.lookAt(0, 0, 2);
     Effects.update(dt);
     composer.render();
     return;
@@ -2032,6 +2322,7 @@ function tick(now) {
   Round.update(dt);
   Effects.update(dt);
   UI.frame(dt);
+  Radar.frame(dt);
   composer.render();
 }
 requestAnimationFrame(tick);
