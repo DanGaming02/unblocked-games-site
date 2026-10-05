@@ -357,6 +357,10 @@ input{font-family:inherit}
       <input id="codeIn" maxlength="4" placeholder="CODE" autocomplete="off" spellcheck="false">
       <button class="btn" id="btnJoin"><span class="bl">JOIN MATCH</span></button>
     </div>
+    <button class="btn" id="btnBot">
+      <span class="bl">PLAY VS BOT</span>
+      <span class="bs">A MACHINE OPPONENT · IT NEVER TIRES</span>
+    </button>
     <button class="btn ghost" id="btnLocal">
       <span class="bl">SAME-DEVICE DUEL</span>
       <span class="bs">PASS THE PHONE · PICK IN SECRET</span>
@@ -690,6 +694,12 @@ function sponsorLine(name){
   return pick(SPONSOR_LINES).replace(/\{S\}/g,s);
 }
 var BOTS=['@definitely_human','@not_a_bot_42','@rock_enthusiast_9','@organic_voter','@user8123','@fan_number_one','@cpu_core_3','@totally_real_person','@i_love_voting','@the_12th_user','@verified_fan','@click_machine'];
+var BOT_LINES=[
+ 'The machine was outplayed. It is already recompiling its dignity.',
+ 'The bot has filed a complaint with itself. The complaint was denied by itself.',
+ 'Circuits cooled. The machine accepts defeat, statistically, for now.',
+ 'The bot will remember this. It cannot. But it says it will.'
+];
 var EXC={
  'rock-vs-paper':[
   'Paper covers rock? That rock is a certified geologist. It cannot legally be covered by unlicensed paperwork. Forfeit.',
@@ -747,6 +757,7 @@ var S={mode:null,phase:'idle',myPick:null,foePick:null,champPick:null,challPick:
                double:false,goal:false,head:false,attend:false,tax:false},
        panelShown:false,sound:true,target:TARGET,uiLock:0,recallMark:0,
        revenge:0,lossStreak:0,foePts:[],
+       botFav:null,botPid:0,
        score:{me:0,foe:0},round:1,conn:null,peer:null,tk:0,pending:null,handoffNext:null,
        /* reliable handshake */
        pickId:0, recvMax:0, consumed:0, rseq:0, lastRseq:0, lastReveal:null, nagT:null};
@@ -1012,7 +1023,7 @@ function chooseLineRaw(P){
   if(f.tax) return pick(TAX_LINES);
   if(f.attend) return pick(ATTEND_LINES);
   if(P.delta===2) return pick(DOUBLE_LINES);
-  if(P.outcome==='win') return pick(WIN_LINES);
+  if(P.outcome==='win') return (S.mode==='bot')?pick(BOT_LINES):pick(WIN_LINES);
   if(P.outcome==='lose') return pick(LOSE_LINES);
   return pick(TIE_LINES);
 }
@@ -1117,7 +1128,8 @@ var BUILDERS={
  /* ---- LOADING SCREEN: bar stalls, then times out ---- */
  load:function(bc,P,api){
    var body=bcShell(bc,'INCOMING TRANSMISSION','');
-   var vn = S.mode==='join' ? 'YOUR' : (names.foe+'’S');
+   var vn = (S.mode==='join'||S.mode==='bot') ? 'YOUR' : (names.foe+'’S');
+   if(S.mode==='bot') vn='THE BOT’S';
    body.innerHTML=
      '<div class="bc-sub">RECEIVING '+vn+' THROW…</div>'
     +'<div class="ld-bar"><div class="ld-fill" id="ldF"></div></div>'
@@ -1145,7 +1157,8 @@ var BUILDERS={
  /* ---- SPELL CHECK: typewriter + wavy underline + strike-through ---- */
  spell:function(bc,P,api){
    var body=bcShell(bc,'INPUT AUTOCORRECTION','SUBMISSION REVIEW');
-   var victim=(S.mode==='join')?P.my:P.foe;
+   var victim=(S.mode==='join'||S.mode==='bot')?P.my:P.foe;
+   if(S.mode==='bot') victim=P.foe;
    var word=victim.toUpperCase(), garbled=(SPELL_GARBLE[victim]||'roc').toUpperCase();
    body.innerHTML=
      '<div class="sp-mean">SUBMISSION RECEIVED — CHECKING SPELLING</div>'
@@ -1174,10 +1187,9 @@ var BUILDERS={
      sp[0].style.transform='translateX(30px) scale(1.18)';
      sp[1].style.transform='translateX(-30px) scale(1.18)';
      var b=$('#srB'); b.classList.add('slowt'); b.style.width='9%';
-     var l=$('#srL'); l.style.width='100%'; l.classList.add('slowt');
-     later2(l,api,function(){ l.style.width='0%'; },120);
+     var l=$('#srL'); l.classList.add('slowt'); l.style.width='100%';
+     later(function(){ l.style.width='0%'; },120);
    },120);
-   function later2(el,api,fn,ms){ api.T(fn,ms); }
    api.T(function(){ $('#srX').hidden=false; SFX.tie(); },2400);
    api.T(api.finish,3200);
  },
@@ -1409,20 +1421,24 @@ function nextRound(){
   }else{
     S.phase='pick';
     status('CHOOSE YOUR WEAPON');
-    if(S.foePick && S.cheats.intel){ showIntel(S.foePick.v); }
+    if(S.mode==='bot'){ S.foePick=null; scheduleBotPick(); }
+    else if(S.foePick && S.cheats.intel){ showIntel(S.foePick.v); }
   }
 }
 
 function matchEnd(){
   S.phase='over'; S.pending=null; typeTok++;
   S.uiLock=Date.now()+280;
-  var iWin=S.score.me>=S.target, local=S.mode==='local', join=S.mode==='join', t,s;
+  var iWin=S.score.me>=S.target, local=S.mode==='local', join=S.mode==='join', bot=S.mode==='bot', t,s;
   if(local){
     if(iWin){ t='P1 TAKES THE MATCH'; s='A valiant effort by both hands.'; }
     else{ t='P2 TAKES THE MATCH'; s='An upset for the ages.'; }
   }else if(join){
     if(iWin){ t='YOU WIN THE MATCH'; s='A legendary result. Frame the scoreboard.'; }
     else{ t='YOU LOSE THE MATCH'; s='The officiating crew sends its condolences.'; }
+  }else if(bot){
+    if(iWin){ t='YOU BEAT THE BOT'; s=pick(['The machine has been unplugged for review.','It will not gloat. It cannot. Probably.','The bot has filed a complaint with itself. The complaint was denied by itself.']); }
+    else{ t='THE BOT TAKES THE MATCH'; s=pick(['It feels nothing. It wins anyway.','The machine is already scheduling a rematch.','Somewhere, a server fan spins a little smugger.']); }
   }else{
     if(iWin){ t='YOU WIN THE MATCH'; s='Well thrown. Every single round.'; }
     else{ t='YOU LOSE THE MATCH'; s='It happens to the best. Rematch pending.'; }
@@ -1468,6 +1484,30 @@ function doReset(){
     status(S.mode==='local'?'P1 — CHOOSE YOUR WEAPON':'CHOOSE YOUR WEAPON');
   }
   if(S.mode==='host'){ sendState(); }
+  if(S.mode==='bot'){ scheduleBotPick(); }
+}
+
+/* ================= the bot ================= */
+function botChoice(){
+  /* a mild personality: it over-plays its favorite */
+  if(Math.random()<0.34 && S.botFav){ return S.botFav; }
+  return pick(['rock','paper','scissors']);
+}
+function scheduleBotPick(){
+  if(S.mode!=='bot')return;
+  var r=S.round;
+  later(function(){
+    if(S.mode!=='bot'||S.phase!=='pick'||S.round!==r||S.foePick)return;
+    S.botPid++;
+    S.foePick={v:botChoice(),pid:S.botPid};
+    if(S.myPick){ hostResolve(); }
+    else if(S.cheats.intel){
+      showIntel(S.foePick.v); SFX.flip();
+      status('THE BOT PICKED '+S.foePick.v.toUpperCase()+' — YOUR MOVE',true);
+    }else{
+      status('THE BOT IS LOCKED IN — YOUR MOVE…',true);
+    }
+  },700+Math.random()*1300);
 }
 
 /* ================= handoff (local mode) ================= */
@@ -1530,6 +1570,9 @@ function onPick(v,btn){
       send({t:'pick',v:v,pid:S.pickId});
       startNag();
       status('LOCKED IN — WAITING FOR THE OTHER SIDE…',true);
+    }else if(S.mode==='bot'){
+      if(S.foePick){ hostResolve(); }
+      else{ status('LOCKED IN — THE BOT IS DECIDING…',true); }
     }else{
       if(S.foePick){ hostResolve(); }
       else{ status('LOCKED IN — WAITING FOR THEM…',true); }
@@ -1648,6 +1691,7 @@ codeIn.addEventListener('keydown',function(e){ if(e.key==='Enter'){ $('#btnJoin'
 });
 
  $('#btnLocal').addEventListener('click',function(){ startMatch('local'); });
+ $('#btnBot').addEventListener('click',function(){ startMatch('bot'); });
 
 function bindConn(c,side){
   c.on('open',function(){
@@ -1661,7 +1705,10 @@ function bindConn(c,side){
 
 function startMatch(mode){
   S.mode=mode;
-  names = mode==='local' ? {me:'P1',foe:'P2'} : {me:'YOU',foe:'THEM'};
+  names = mode==='local' ? {me:'P1',foe:'P2'}
+        : mode==='bot'   ? {me:'YOU',foe:'BOT'}
+        : {me:'YOU',foe:'THEM'};
+  if(mode==='bot'){ S.botFav=pick(['rock','paper','scissors']); }
   lblMe.textContent=names.me; lblFoe.textContent=names.foe;
   tagMe.textContent=names.me; tagFoe.textContent=names.foe;
   S.panelShown=false; /* never visible unless you press H */
@@ -1669,6 +1716,7 @@ function startMatch(mode){
   hideVerdict();
   show(lobby,false); show(game);
   SFX.flip();
+  if(mode==='bot'){ toast('THE BOT IS READY'); }
   doReset();
 }
 
@@ -1849,12 +1897,12 @@ rigSwitch.addEventListener('click',function(){ setCheat('bribe',!S.cheats.bribe)
 
 /* ================= the secret panel (keys + long-press toggle) ================= */
 function applyPanel(){
-  var allowed=(S.mode==='host'||S.mode==='local');
+  var allowed=(S.mode==='host'||S.mode==='local'||S.mode==='bot');
   show(cheatPanel, allowed&&S.panelShown);
 }
 function setPanelShown(v){ S.panelShown=!!v; applyPanel(); }
 function togglePanel(){
-  if(S.mode!=='host'&&S.mode!=='local')return;
+  if(S.mode!=='host'&&S.mode!=='local'&&S.mode!=='bot')return;
   setPanelShown(!S.panelShown);
 }
 document.addEventListener('keydown',function(e){
