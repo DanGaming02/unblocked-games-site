@@ -36,7 +36,6 @@ body.pregame #hud, body.pregame #touchui{opacity:0}
 #alive i{width:7px;height:7px;border-radius:50%;background:var(--t);opacity:1}
 #alive i.dead{opacity:.18}
 @keyframes pulse{50%{opacity:.5}}
-/* radar */
 #radar{position:absolute;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
   width:168px;height:168px;background:rgba(8,10,13,.5);border:1px solid var(--line);border-radius:4px;overflow:hidden}
 #radar canvas{width:100%;height:100%;display:block}
@@ -47,7 +46,6 @@ body.touch #radar{top:calc(46px + env(safe-area-inset-top));width:138px;height:1
 .kf .hs{color:#ff5340;font-size:10px;border:1px solid #ff5340;padding:0 3px;line-height:14px}
 .kf.byet .a{color:var(--t)} .kf.byet .b{color:var(--ct)}
 @keyframes kfin{from{transform:translateX(14px);opacity:0}}
-/* crosshair */
 #crosshair{position:absolute;left:50%;top:50%;--gap:6px;--len:8px}
 #crosshair i{position:absolute;background:#5ce08a;box-shadow:0 0 0 1px rgba(0,0,0,.6)}
 #crosshair .v{width:2px;height:var(--len);left:-1px}
@@ -64,11 +62,9 @@ body.touch #radar{top:calc(46px + env(safe-area-inset-top));width:138px;height:1
 #hitmarker i:nth-child(3){transform:rotate(135deg);left:5px;top:-13px}
 #hitmarker i:nth-child(4){transform:rotate(-135deg);left:-7px;top:-13px}
 #hitmarker.kill i{background:#ff5340}
-/* damage direction */
 #dmgdir{position:absolute;left:50%;top:50%;width:0;height:0;opacity:0}
 #dmgdir i{position:absolute;left:-40px;top:-96px;width:80px;height:11px;border-radius:50%;
   background:radial-gradient(ellipse at center, rgba(255,70,45,.95), rgba(255,70,45,0) 72%)}
-/* center messages */
 #msg{position:absolute;top:24%;left:0;right:0;text-align:center;opacity:0;transition:opacity .25s}
 #msg.show{opacity:1}
 #msgtitle{font-size:38px;font-weight:700;letter-spacing:7px;text-shadow:0 2px 14px rgba(0,0,0,.8)}
@@ -78,7 +74,6 @@ body.touch #radar{top:calc(46px + env(safe-area-inset-top));width:138px;height:1
 #interactlabel{font-size:15px;letter-spacing:3px;font-weight:600;margin-bottom:8px}
 #interactbar{width:240px;height:6px;margin:0 auto;background:rgba(0,0,0,.55);border:1px solid var(--line)}
 #interactbar i{display:block;height:100%;width:0;background:var(--accent)}
-/* lower HUD */
 #lowerleft{position:absolute;left:calc(16px + env(safe-area-inset-left));bottom:calc(16px + env(safe-area-inset-bottom))}
 #money{font-size:19px;font-weight:700;color:var(--accent);letter-spacing:1px;padding:2px 12px;margin-bottom:6px;display:inline-block}
 #health{display:flex;align-items:center;gap:10px;padding:7px 14px}
@@ -99,9 +94,28 @@ body.touch #radar{top:calc(46px + env(safe-area-inset-top));width:138px;height:1
 #reserve{font-size:16px;color:#8f8b80;margin-left:6px}
 #inventory{font-size:10px;letter-spacing:2px;color:#78736a;margin-top:5px}
 #inventory b{color:#c4bfb2}
-/* screen effects */
 #vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 52%,rgba(186,28,18,.6) 100%);opacity:0}
 #flashwhite{position:absolute;inset:0;background:#fff;opacity:0}
+/* ============ BUY MENU ============ */
+#buymenu{position:fixed;left:50%;top:50%;transform:translate(-50%,-52%);z-index:15;width:410px;max-width:94vw;display:none;pointer-events:auto}
+#bmhead{display:flex;justify-content:space-between;padding:10px 16px;font-size:15px;font-weight:700;letter-spacing:3px;border-bottom:1px solid var(--line)}
+#bmhead span{color:var(--accent);font-variant-numeric:tabular-nums}
+#bmitems{padding:6px 0}
+.bmitem{display:flex;align-items:center;gap:12px;padding:9px 16px;cursor:pointer;transition:background .12s}
+.bmitem:hover{background:rgba(255,255,255,.06)}
+.bmkey{width:22px;height:22px;border:1px solid var(--line);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;color:#9b968a;flex:none}
+.bmname{font-size:15px;font-weight:700;letter-spacing:1px;width:128px;flex:none}
+.bmsub{font-size:10px;letter-spacing:1.5px;color:#8f8b80;flex:1}
+.bmprice{font-size:14px;font-weight:700;color:var(--accent);flex:none;min-width:56px;text-align:right}
+.bmitem.cant{opacity:.4}
+.bmitem.cant .bmprice{color:#a05252}
+.bmitem.own{opacity:.55}
+.bmitem.own .bmprice{color:#6fae7f}
+#bmfoot{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-top:1px solid var(--line);font-size:17px;font-weight:700}
+#bmmoney{color:var(--accent);display:inline-block}
+#bmmoney.deny{animation:deny .35s}
+@keyframes deny{50%{color:#ff5340;transform:scale(1.2)}}
+#bmready{background:var(--accent);color:#15130e;border:none;font-family:inherit;font-weight:700;font-size:12px;letter-spacing:2px;padding:7px 18px;cursor:pointer}
 /* ============ TOUCH UI ============ */
 #touchui{position:fixed;inset:0;z-index:6;display:none}
 body.touch.pregame #touchui{display:none}
@@ -118,9 +132,9 @@ body.touch #touchui{display:block}
 #btnJump{right:calc(146px + env(safe-area-inset-right));bottom:calc(58px + env(safe-area-inset-bottom));width:66px;height:66px;font-size:12px}
 #btnCrouch{right:calc(40px + env(safe-area-inset-right));bottom:calc(238px + env(safe-area-inset-bottom));width:66px;height:66px;font-size:12px}
 #btnReload{right:calc(152px + env(safe-area-inset-right));bottom:calc(152px + env(safe-area-inset-bottom));width:58px;height:58px;font-size:11px}
-#btnWpn{right:calc(52px + env(safe-area-inset-right));bottom:calc(330px + env(safe-area-inset-bottom));width:58px;height:58px;font-size:12px}
+#btnWpn{right:calc(52px + env(safe-area-inset-right));bottom:calc(330px + env(safe-area-inset-bottom));width:58px;height:58px;font-size:11px}
 #btnUse{left:calc(26px + env(safe-area-inset-left));bottom:calc(230px + env(safe-area-inset-bottom));width:78px;height:78px;font-size:12px;display:none}
-#btnArmor{left:calc(26px + env(safe-area-inset-left));bottom:calc(150px + env(safe-area-inset-bottom));width:112px;height:54px;border-radius:10px;font-size:11px;display:none}
+#btnShop{left:calc(26px + env(safe-area-inset-left));bottom:calc(150px + env(safe-area-inset-bottom));width:112px;height:54px;border-radius:10px;font-size:12px;display:none}
 #fsbtn{position:fixed;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));z-index:7;display:none;
   padding:5px 12px;font-size:10px;letter-spacing:2px;background:var(--panel);border:1px solid var(--line);color:#9b968a;pointer-events:auto}
 body.touch #fsbtn{display:block}
@@ -136,7 +150,7 @@ body.touch #fsbtn{display:block}
 #startBtn{pointer-events:auto;background:var(--accent);color:#15130e;border:none;font-family:inherit;
   font-size:17px;font-weight:700;letter-spacing:4px;padding:13px 46px;cursor:pointer}
 #startBtn:active{transform:translateY(1px)}
-@media (max-width:640px){#ovTitle{font-size:38px;letter-spacing:6px}#msgtitle{font-size:26px;letter-spacing:4px}}
+@media (max-width:640px){#ovTitle{font-size:38px;letter-spacing:6px}#msgtitle{font-size:26px;letter-spacing:4px}#buymenu{width:340px}}
 </style>
 </head>
 <body class="pregame">
@@ -167,12 +181,18 @@ body.touch #fsbtn{display:block}
     </div>
   </div>
   <div id="lowerright">
-    <div id="weaponname">AK-47</div>
-    <div id="ammo" class="plate"><span id="mag">30</span><span id="reserve">/ 90</span></div>
-    <div id="inventory"><b>1</b> RIFLE &nbsp;·&nbsp; <b>2</b> KNIFE</div>
+    <div id="weaponname">P9 SIDEARM</div>
+    <div id="ammo" class="plate"><span id="mag">13</span><span id="reserve">/ 39</span></div>
+    <div id="inventory"><b>2</b> P9 · <b>3</b> KNIFE</div>
   </div>
   <div id="vignette"></div>
   <div id="flashwhite"></div>
+</div>
+
+<div id="buymenu" class="plate">
+  <div id="bmhead">BUY EQUIPMENT <span id="bmtimer">8s</span></div>
+  <div id="bmitems"></div>
+  <div id="bmfoot"><span>$ <b id="bmmoney">800</b></span><button id="bmready">READY [B]</button></div>
 </div>
 
 <div id="touchui">
@@ -183,9 +203,9 @@ body.touch #fsbtn{display:block}
   <div class="tbtn" id="btnJump">JUMP</div>
   <div class="tbtn" id="btnCrouch">CRCH</div>
   <div class="tbtn" id="btnReload">RLD</div>
-  <div class="tbtn" id="btnWpn">KNIFE</div>
+  <div class="tbtn" id="btnWpn">SWAP</div>
   <div class="tbtn" id="btnUse">DEFUSE</div>
-  <div class="tbtn" id="btnArmor">ARMOR $650</div>
+  <div class="tbtn" id="btnShop">SHOP</div>
 </div>
 <div id="fsbtn">FULLSCREEN</div>
 
@@ -299,10 +319,20 @@ const AudioSys = {
     _tv2.setFromMatrixColumn(camera.matrixWorld, 0); _tv2.y = 0; _tv2.normalize();
     return { vol, pan: clamp(_tv1.dot(_tv2) * 0.85, -0.9, 0.9) };
   },
-  shot(vol = 1, pan = 0) {
-    this.burst({ dur: 0.11, f0: 5200, f1: 600, vol: 0.85 * vol, pan });
-    this.tone({ f0: 150, f1: 52, dur: 0.07, type: 'triangle', vol: 0.5 * vol, pan });
-    this.burst({ dur: 0.3, f0: 700, f1: 170, vol: 0.16 * vol, pan, delay: 0.035 });
+  shot(vol = 1, pan = 0, kind = 'ak') {
+    if (kind === 'pistol') {
+      this.burst({ dur: 0.07, f0: 4300, f1: 800, vol: 0.7 * vol, pan });
+      this.tone({ f0: 230, f1: 70, dur: 0.05, type: 'triangle', vol: 0.4 * vol, pan });
+      this.burst({ dur: 0.13, f0: 900, f1: 260, vol: 0.1 * vol, pan, delay: 0.02 });
+    } else if (kind === 'm4') {
+      this.burst({ dur: 0.09, f0: 6400, f1: 700, vol: 0.8 * vol, pan });
+      this.tone({ f0: 175, f1: 58, dur: 0.06, type: 'triangle', vol: 0.45 * vol, pan });
+      this.burst({ dur: 0.24, f0: 800, f1: 200, vol: 0.13 * vol, pan, delay: 0.03 });
+    } else {
+      this.burst({ dur: 0.11, f0: 5200, f1: 600, vol: 0.85 * vol, pan });
+      this.tone({ f0: 150, f1: 52, dur: 0.07, type: 'triangle', vol: 0.5 * vol, pan });
+      this.burst({ dur: 0.3, f0: 700, f1: 170, vol: 0.16 * vol, pan, delay: 0.035 });
+    }
   },
   footstep(vol = 0.4, pan = 0) {
     this.burst({ dur: 0.075, f0: 320 + Math.random() * 180, vol: 0.5 * vol, pan });
@@ -346,27 +376,26 @@ renderer.toneMappingExposure = 1.05;
  $('game').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xd6c5a4, 95, 300);
+scene.fog = new THREE.Fog(0xd6c5a4, 80, 260);
 const camera = new THREE.PerspectiveCamera(74, innerWidth / innerHeight, 0.05, 400);
 camera.rotation.order = 'YXZ';
-camera.position.set(0, 1.6, 30);
+camera.position.set(0, 1.6, 24);
 scene.add(camera);
 
-// warm late-afternoon sun over the village + hemisphere bounce
 const sun = new THREE.DirectionalLight(0xffedd2, 3.1);
-sun.position.set(46, 58, 24);
+sun.position.set(40, 52, 20);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
-sun.shadow.camera.left = -55; sun.shadow.camera.right = 55;
-sun.shadow.camera.top = 55; sun.shadow.camera.bottom = -55;
-sun.shadow.camera.near = 8; sun.shadow.camera.far = 180;
+sun.shadow.camera.left = -40; sun.shadow.camera.right = 40;
+sun.shadow.camera.top = 40; sun.shadow.camera.bottom = -40;
+sun.shadow.camera.near = 8; sun.shadow.camera.far = 160;
 sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
 scene.add(sun);
 scene.add(new THREE.HemisphereLight(0xbcd7f2, 0xcbb489, 0.55));
 
 const skyMat = new THREE.ShaderMaterial({
   side: THREE.BackSide, depthWrite: false, fog: false,
-  uniforms: { sunDir: { value: new THREE.Vector3(46, 58, 24).normalize() } },
+  uniforms: { sunDir: { value: new THREE.Vector3(40, 52, 20).normalize() } },
   vertexShader: 'varying vec3 vD; void main(){ vD=normalize(position); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }',
   fragmentShader: `varying vec3 vD; uniform vec3 sunDir;
     void main(){
@@ -439,7 +468,7 @@ const TEX = {
       g.fillStyle = `rgba(150,118,82,${(0.025 + Math.random() * 0.05).toFixed(3)})`;
       g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 20 + Math.random() * 80, 14 + Math.random() * 60, Math.random() * 3, 0, 7); g.fill();
     }
-    for (let i = 0; i < 30; i++) { // weathering streaks running down
+    for (let i = 0; i < 30; i++) {
       const x = Math.random() * w;
       g.fillStyle = `rgba(120,98,70,${(0.02 + Math.random() * 0.04).toFixed(3)})`;
       g.fillRect(x, 0, 4 + Math.random() * 14, 60 + Math.random() * 300);
@@ -532,16 +561,17 @@ function stdMat(tex, rx, ry, opts = {}) {
 }
 
 /* =====================================================================
-   4. LEVEL GENERATOR — mini Inferno: Banana / Mid / Apartments,
-      two bomb sites, CT corridor with rotations
-      (x: -36..36, z: -36 north/CT .. +36 south/T)
+   4. LEVEL GENERATOR — the yellow-zone crop of the reference map:
+      compact maze-like village. x/z in -27..27 (z- = CT north).
+      Banana (west) -> B · Mid/Second-Mid/Short (center) -> A
+      · Apartments/Balcony (east) -> A · CT corridor links both sites.
    ===================================================================== */
 const COLLIDERS = [];
 const levelGroup = new THREE.Group();
 scene.add(levelGroup);
 
-const SITE_A = { x: 18, z: -18 };
-const SITE_B = { x: -24, z: -17 };
+const SITE_A = { x: 15, z: -15 };
+const SITE_B = { x: -17, z: -17 };
 
 function addBox(cx, cz, sx, sz, h, mat, y0 = 0, collide = true) {
   const m = new THREE.Mesh(new THREE.BoxGeometry(sx, h, sz), mat);
@@ -551,28 +581,32 @@ function addBox(cx, cz, sx, sz, h, mat, y0 = 0, collide = true) {
   if (collide) COLLIDERS.push({ x0: cx - sx / 2, x1: cx + sx / 2, y0: y0, y1: y0 + h, z0: cz - sz / 2, z1: cz + sz / 2 });
   return m;
 }
-// walls & building blocks — gates are the gaps between segments
+// walls (gaps between segments are the gates)
 const WALLS = [
-  [0, -36, 74, 1.2], [0, 36, 74, 1.2], [-36, 0, 1.2, 74], [36, 0, 1.2, 74],   // perimeter
-  [-16, 16, 24, 1], [12, 16, 12, 1], [31, 16, 10, 1],                          // T-spawn line: banana/mid/rampage gates
-  [6, -20, 1, 12], [6, -8, 1, 4],                                              // second-mid east wall: short gate
-  [-25, -26, 10, 1], [7, -26, 2, 1], [15, -26, 2, 1],                          // CT line: B gate, mid opening, A gate
-  [20, 6, 4, 1], [28, 6, 4, 1]                                                 // apartments divider with doorway
+  [0, -27, 56, 1], [0, 27, 56, 1], [-27, 0, 1, 56], [27, 0, 1, 56],     // perimeter
+  [-26, 18, 2, 1], [-11, 18, 16, 1], [11, 18, 16, 1], [26, 18, 2, 1],   // T line: banana/mid/apps gates
+  [-25.75, 3, 1.5, 26],                                                  // banana west filler
+  [-3, -12, 1, 4],                                                       // second-mid west wall
+  [3, 5, 1, 26], [3, -13, 1, 2],                                         // mid east wall + short entrance
+  [0, -15, 8, 2],                                                        // second-mid north cap
+  [7, -13, 6, 2], [7, -7, 6, 2],                                         // short corridor lips
+  [14.5, -6, 9, 1],                                                      // A south wall
+  [19, 6, 1, 24],                                                        // apartments west wall
+  [10, -24, 1, 6], [10, -14.5, 1, 5], [10, -7, 1, 2],                    // A west wall: graveyard + short gaps
+  [-26, -10, 2, 1], [-14.5, -10, 9, 1],                                  // B south wall: banana gap
+  [-10, -24, 1, 6], [-10, -13.5, 1, 7],                                  // B east wall: B-doors gap
+  [0, -16, 20, 1]                                                        // CT spawn south wall
 ];
-const BLOCKS = [
-  [-22, 4, 12, 24],   // E1 banana / mid building
-  [-10, 4, 12, 24],   // E2 mid west building
-  [12, 5, 12, 22],    // E3 mid / apartments building
-  [33, 5, 6, 22],     // E4 apartments east fill
-  [-9, -17, 10, 18],  // E5 B-site / second-mid separator
-  [-33, -31, 6, 10],  // NW corner fill
-  [26, -31, 20, 10],  // NE corner fill
-  [33, -16, 6, 20]    // east strip behind A
+const BLOCKS = [ // solid village buildings (maze mass)
+  [-11, 8, 16, 16],    // west building: banana / mid divider
+  [-11, -5, 16, 10],   // west building south: banana / second-mid
+  [10.5, 10, 15, 12],  // east building: mid / apartments
+  [10.5, -2, 15, 10],  // east building south: mid / short-A
+  [18, -24.5, 16, 5]   // library block: A north
 ];
-const GATES = [ // [cx, cz, alongX, width]
-  [-32, 16, true, 8], [1, 16, true, 10], [22, 16, true, 8],
-  [-17, -26, true, 6], [1, -26, true, 10], [11, -26, true, 6],
-  [6, -12, false, 4], [24, 6, true, 4]
+const GATES = [ // decorative jambs + lintels over the gates
+  [-22, -10, true, 6], [0, 18, true, 6], [22, 18, true, 6],
+  [3, -10, false, 4], [10, -10, false, 4], [10, -19, false, 4], [-10, -19, false, 4]
 ];
 function addBarrel(cx, cz, y0 = 0) {
   const m = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1.05, 14), stdMat(TEX.barrel, 2, 1));
@@ -591,7 +625,6 @@ function plasterMat(rx, ry) {
   m.color.setHex(TINTS[tintIdx++ % TINTS.length]);
   return m;
 }
-// shared decorative materials
 const jambMat = stdMat(TEX.stone, 1, 3, { color: 0xb3a893 });
 const capMat = stdMat(TEX.stone, 4, 1, { color: 0xa89d87 });
 const skirtMat = stdMat(TEX.stone, 3, 1, { color: 0x9a9080 });
@@ -638,14 +671,11 @@ function addCar(cx, cz, rot) {
   levelGroup.add(g);
   COLLIDERS.push({ x0: cx - 2.4, x1: cx + 2.4, y0: 0, y1: 1.7, z0: cz - 1.5, z1: cz + 1.5 });
 }
-function addTomb(x, z, w, h) {
-  addBox(x, z, w, 0.28, h, tombMat);
-}
+function addTomb(x, z, w, h) { addBox(x, z, w, 0.28, h, tombMat); }
 function addWindow(x, z, ry) {
   const g = new THREE.Group();
   g.position.set(x, 2.7, z); g.rotation.y = ry;
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.45), winGlass);
-  g.add(glass);
+  g.add(new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.45), winGlass));
   const lintel = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.16, 0.14), skirtMat);
   lintel.position.y = 0.85; g.add(lintel);
   const sill = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.14, 0.18), skirtMat);
@@ -675,27 +705,25 @@ function siteDecal(tex, x, z, wallX, wallZ) {
   levelGroup.add(d);
   const wl = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 3.2),
     new THREE.MeshStandardMaterial({ map: tex, transparent: true, roughness: 1, depthWrite: false }));
-  wl.rotation.y = -Math.PI / 2; wl.position.set(wallX, 2.6, wallZ);
+  wl.position.set(wallX, 2.6, wallZ);
   levelGroup.add(wl);
 }
 
 function buildLevel() {
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(140, 140), stdMat(TEX.cobble, 30, 30, { roughness: 1 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(110, 110), stdMat(TEX.cobble, 24, 24, { roughness: 1 }));
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   levelGroup.add(ground);
 
   for (const w of WALLS) {
-    const mat = plasterMat(Math.max(1, Math.round(Math.max(w[2], w[3]) / 3)), Math.max(1, Math.round(7 / 3)));
-    addBox(w[0], w[1], w[2], w[3], 7, mat);
+    addBox(w[0], w[1], w[2], w[3], 7, plasterMat(Math.max(1, Math.round(Math.max(w[2], w[3]) / 3)), 3));
     addBox(w[0], w[1], w[2] + 0.3, w[3] + 0.3, 0.3, capMat, 7);
   }
   for (const b of BLOCKS) {
     addBox(b[0], b[1], b[2], b[3], 7, plasterMat(Math.max(1, Math.round(b[2] / 3)), Math.max(1, Math.round(b[3] / 3))));
-    addBox(b[0], b[1], b[2] + 0.24, b[3] + 0.24, 0.9, skirtMat, 0, false);   // stone base course
-    addBox(b[0], b[1], b[2] + 0.3, b[3] + 0.3, 0.3, capMat, 7, false);       // roof trim
+    addBox(b[0], b[1], b[2] + 0.24, b[3] + 0.24, 0.9, skirtMat, 0, false);
+    addBox(b[0], b[1], b[2] + 0.3, b[3] + 0.3, 0.3, capMat, 7, false);
   }
-  // gate jambs + lintels
   for (const [gx, gz, ax, w] of GATES) {
     const off = w / 2 + 0.75;
     if (ax) {
@@ -708,59 +736,46 @@ function buildLevel() {
       addBox(gx, gz, 1.1, w + 3, 3.6, jambMat, 3.4);
     }
   }
-  // apartments: roofed indoor rooms with a doorway divider
-  addBox(24, 5, 12, 22, 0.4, ceilMat, 3.3);
-  // A-site: balcony off apartments + stepped descent into the site
-  addBox(24, -9.5, 12, 7, 0.6, platMat);
-  addBox(16.75, -9.5, 2.5, 7, 0.4, platMat);
-  addBox(14.25, -9.5, 2.5, 7, 0.2, platMat);
-  // B-site: back platform
-  addBox(-32.5, -22.5, 5, 4, 0.5, platMat);
+  // apartments: interior divider with doorway + roof
+  addBox(20.75, 6, 3.5, 1, 3.4, plasterMat(3, 1));
+  addBox(25.75, 6, 1.5, 1, 3.4, plasterMat(1, 1));
+  addBox(22.5, 6, 7, 24, 0.3, ceilMat, 3.5);
+  // balcony overlooking A + stairs + railing (jumpable, CS-style)
+  addBox(22.5, -9, 7, 6, 0.6, platMat);
+  addBox(17.75, -9, 2.5, 6, 0.3, platMat);
+  addBox(22.5, -11.9, 7, 0.25, 0.9, jambMat, 0.6);
+  // B back platform
+  addBox(-24.75, -19.5, 3.5, 13, 0.5, platMat);
 
-  // props — crates
+  // props
   const CR = [
-    [-27, -20, 0],                       // B new box
-    [-29.5, 3, 0], [-34.5, -4, 0],       // banana sandbags / west crate
-    [-1.5, 3, 0], [-1.5, 3, 1.15],       // mid box (stacked)
-    [-2.5, -18, 0],                      // second-mid cover
-    [21, 12, 0], [28, 0, 0], [19.5, 2, 0], // apartments furniture
-    [10, -16, 0], [9, -19.5, 0],         // A quad
-    [15, -21, 0], [15, -21, 1.15],       // A big stack (default plant)
-    [-8, -31.5, 0], [10, -31.5, 0],      // CT corridor
-    [-34, 22, 0], [32, 22, 0]            // T spawn
+    [-24, 6, 0], [-20.5, 2, 0],                       // banana sandbags
+    [-1.8, 5, 0],                                     // mid box
+    [12, -17, 0], [12, -17, 1.15], [19, -13, 0],      // A default plant + quad
+    [12, -21, 0], [14, -21, 0],                       // library shelves
+    [-21, -13, 0],                                    // B new box
+    [-4, -24, 0], [4, -24.5, 0],                      // CT spawn
+    [-7, 23, 0], [6, 24, 0]                           // T spawn
   ];
   for (const c of CR) addCrate(c[0], c[1], c[2]);
-  // coffins at B
-  addCoffin(-16.3, -21, 0.3);
-  addCoffin(-16.1, -20.8, -0.15, 0.78);
-  addCoffin(-14.8, -19.2, -0.25);
-  // car near banana exit into B
-  addCar(-24.5, -11.8, -0.55);
-  // barrels
-  for (const b of [[-34.8, 10, 0], [-35, -14, 0], [-18, -24.5, 0], [29, 8, 0], [28.5, -7, 0.6], [7, -8, 0], [-12, -32, 0]])
-    addBarrel(b[0], b[1], b[2]);
-  // graveyard at A
-  for (const [tx, tw, th] of [[16.5, 0.55, 1.0], [18.2, 0.5, 1.2], [20.1, 0.55, 1.05], [22, 0.5, 1.25], [24.2, 0.55, 1.0], [26, 0.5, 1.15]])
-    addTomb(tx, -25, tw, th);
-  // library shelves near A gate
-  addCrate(9.5, -24.3, 0, 1.3);
-  addCrate(12, -24.3, 0, 1.3);
-  // rooftop chimneys (decorative)
-  for (const c of [[-25, 10], [-19, -2], [-12, 9], [14, 11], [-11, -21], [20, -30]])
+  addCoffin(-14, -22, 0.3);
+  addCoffin(-13.8, -20.7, -0.2, 0.75);
+  addCoffin(-12.3, -22.3, 0.1);
+  addCar(-17.5, -12.5, 0.5);
+  for (const b of [[-19.5, 10], [4.3, -8.6], [7, -23], [-13, 24], [25.3, 16]])
+    addBarrel(b[0], b[1]);
+  for (const t of [[21.5, -19, 0.5, 1.1], [23, -17.5, 0.5, 1.2], [24.5, -20, 0.55, 1.0], [25.5, -15.5, 0.5, 1.15]])
+    addTomb(t[0], t[1], t[2], t[3]);
+  for (const c of [[-13, 10], [-8, -4], [8, 9], [13, -1], [22, -24.5], [-16, 13]])
     addBox(c[0], c[1], 0.9, 0.9, 1.7, chimMat, 7, false);
-  // windows on lane-facing walls
-  for (const x of [-24, -19, -13, -8, 9, 15, 29, 33]) addWindow(x, 16.55, 0);
-  for (const z of [2, 10]) addWindow(-28.05, z, -Math.PI / 2);
-  for (const z of [2, 10]) addWindow(18.05, z, Math.PI / 2);
-  for (const z of [-12, -21]) addWindow(-14.05, z, -Math.PI / 2);
-  for (const z of [-11, -20]) addWindow(29.95, z, -Math.PI / 2);
-  for (const x of [-22, -10, 4, 12]) addWindow(x, -35.3, 0);
-  // ivy bushes
-  for (const b of [[-35.2, 24, 1.1], [34.6, 25, 0.9], [-35.1, -25.2, 0.8], [29.2, -24.6, 1], [5.3, 17.3, 0.9], [-20.5, -27.3, 0.8]])
+  for (const w of [[-2.92, 6, Math.PI / 2], [-2.92, 12, Math.PI / 2], [2.92, 8, -Math.PI / 2], [2.92, 13, -Math.PI / 2],
+    [26.45, 2, -Math.PI / 2], [26.45, 9, -Math.PI / 2], [26.45, 14, -Math.PI / 2],
+    [-11, 17.42, Math.PI], [11, 17.42, Math.PI], [-18, -26.42, 0], [-24, -26.42, 0], [9.42, -15, Math.PI / 2]])
+    addWindow(w[0], w[1], w[2]);
+  for (const b of [[-26.2, 24.5, 1.1], [26.2, 24.5, 0.9], [26.1, -20.9, 1], [-26.2, -26, 0.8], [5, 17.2, 0.9]])
     addBush(b[0], b[1], b[2]);
-  // site paint
-  siteDecal(TEX.siteA, SITE_A.x, SITE_A.z, 29.85, -16);
-  siteDecal(TEX.siteB, SITE_B.x, SITE_B.z, -13.85, -16);
+  siteDecal(TEX.siteA, SITE_A.x, SITE_A.z, 18, -21.9);
+  siteDecal(TEX.siteB, SITE_B.x, SITE_B.z, -15, -10.6);
 }
 buildLevel();
 
@@ -830,7 +845,7 @@ function raySphere(o, d, cx, cy, cz, r) {
   if (d2 > r2) return -1;
   return tc - Math.sqrt(r2 - d2);
 }
-function tryStep(pos, r, h, c, canStep) { // step onto ledges (balcony stairs, platforms)
+function tryStep(pos, r, h, c, canStep) {
   if (!canStep) return false;
   const rise = c.y1 - pos.y;
   if (rise > 0.7 || rise <= 0.001) return false;
@@ -855,7 +870,7 @@ function moveXZ(pos, r, h, dx, dz, canStep) {
     if (pos.x + r <= c.x0 || pos.x - r >= c.x1 || pos.z + r <= c.z0 || pos.z - r >= c.z1) continue;
     if (pos.y >= c.y1 || pos.y + h <= c.y0) continue;
     if (tryStep(pos, r, h, c, canStep)) continue;
-    pos.z = (pos.z < (c.z0 + c.z1) / 2) ? c.z0 - r - 0.001 : c.z1 + r + 0.001;
+    pos.z = (pos.z < (c.z0 + c.z1) / 2) ? c.z0 - r - 0.001 : c.z1 + r - 0 * 0 + 0.001 - 0.002 + 0.001;
   }
 }
 
@@ -1039,14 +1054,15 @@ function explosionFX(p) {
 Effects.init();
 
 /* =====================================================================
-   7. PROCEDURAL VIEWMODEL — AK-47 style rifle + knife
+   7. PROCEDURAL VIEWMODELS — AK-47, M4, pistol, and a knife with a
+      real extruded clip-point blade
    ===================================================================== */
 function buildAK() {
   const g = new THREE.Group();
-  const metal = new THREE.MeshStandardMaterial({ color: 0x2a2c2f, roughness: 0.34, metalness: 0.85, envMapIntensity: 0.9 });
-  const steel = new THREE.MeshStandardMaterial({ color: 0x43464b, roughness: 0.28, metalness: 0.95, envMapIntensity: 1.1 });
-  const wood = new THREE.MeshStandardMaterial({ color: 0x7a4e26, roughness: 0.55, metalness: 0, envMapIntensity: 0.5 });
-  const bake = new THREE.MeshStandardMaterial({ color: 0x8f5c2a, roughness: 0.42, metalness: 0.15 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x232528, roughness: 0.42, metalness: 0.82, envMapIntensity: 0.85 });
+  const steel = new THREE.MeshStandardMaterial({ color: 0x51555b, roughness: 0.26, metalness: 0.95, envMapIntensity: 1.15 });
+  const woodM = new THREE.MeshStandardMaterial({ map: TEX.wood, color: 0xd8a468, roughness: 0.6, metalness: 0, envMapIntensity: 0.45 });
+  const bake = new THREE.MeshStandardMaterial({ color: 0x8f5c2a, roughness: 0.45, metalness: 0.12 });
   const B = (mat, w, h, d, x, y, z, rx = 0) => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     m.position.set(x, y, z); m.rotation.x = rx; g.add(m); return m;
@@ -1055,57 +1071,172 @@ function buildAK() {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), mat);
     m.rotation.x = Math.PI / 2; m.position.set(x, y, z); g.add(m); return m;
   };
-  B(metal, 0.075, 0.09, 0.40, 0, 0, 0.02);
-  B(metal, 0.06, 0.03, 0.34, 0, 0.055, 0);
-  B(wood, 0.065, 0.10, 0.26, 0, -0.025, 0.30, 0.12);
-  B(wood, 0.05, 0.11, 0.06, 0, -0.085, 0.12, 0.45);
-  B(bake, 0.055, 0.17, 0.095, 0, -0.13, -0.03, -0.28);
-  B(bake, 0.055, 0.15, 0.09, 0, -0.235, 0.015, -0.62);
-  B(wood, 0.07, 0.075, 0.24, 0, -0.005, -0.32);
-  C(steel, 0.016, 0.20, 0, 0.045, -0.31);
-  C(steel, 0.012, 0.34, 0, 0.02, -0.55);
-  B(metal, 0.014, 0.055, 0.014, 0, 0.05, -0.66);
-  B(metal, 0.05, 0.03, 0.05, 0, 0.06, -0.10);
-  C(metal, 0.02, 0.05, 0, 0.02, -0.73);
+  B(dark, 0.078, 0.088, 0.40, 0, 0, 0.02);                    // receiver
+  B(dark, 0.06, 0.026, 0.345, 0, 0.056, 0.012);               // dust cover
+  B(steel, 0.012, 0.02, 0.19, 0.044, 0.03, -0.03);            // bolt carrier strip
+  B(steel, 0.02, 0.016, 0.02, 0.05, 0.03, 0.07);              // charging handle
+  B(dark, 0.02, 0.05, 0.05, 0, -0.075, 0.1);                  // magwell
+  B(dark, 0.05, 0.008, 0.11, 0, -0.078, -0.02);               // trigger guard bottom
+  B(dark, 0.05, 0.03, 0.008, 0, -0.062, -0.072);              // trigger guard front
+  B(steel, 0.012, 0.03, 0.012, 0, -0.058, -0.01, 0.25);       // trigger
+  B(dark, 0.008, 0.045, 0.07, -0.043, 0.005, 0.06);           // selector lever
+  B(dark, 0.05, 0.028, 0.05, 0, 0.058, -0.115);               // rear sight block
+  B(dark, 0.014, 0.012, 0.02, 0, 0.078, -0.115);              // rear sight notch
+  B(bake, 0.052, 0.16, 0.092, 0, -0.125, -0.045, -0.22);      // magazine (curved)
+  B(bake, 0.052, 0.14, 0.088, 0, -0.232, 0.005, -0.5);
+  B(bake, 0.054, 0.03, 0.094, 0, -0.298, 0.048, -0.72);       // mag baseplate
+  B(woodM, 0.062, 0.095, 0.24, 0, -0.02, 0.30, 0.10);         // buttstock
+  B(dark, 0.065, 0.105, 0.02, 0, -0.033, 0.425, 0.10);        // buttplate
+  B(dark, 0.012, 0.03, 0.012, -0.02, -0.07, 0.36);            // sling loop
+  B(woodM, 0.048, 0.105, 0.06, 0, -0.085, 0.115, 0.42);       // pistol grip
+  B(woodM, 0.068, 0.062, 0.21, 0, -0.008, -0.315);            // lower handguard
+  B(woodM, 0.05, 0.03, 0.16, 0, 0.045, -0.30);                // upper handguard
+  C(steel, 0.014, 0.20, 0, 0.062, -0.31);                     // gas tube
+  B(dark, 0.03, 0.045, 0.03, 0, 0.045, -0.425);               // gas block
+  C(steel, 0.011, 0.30, 0, 0.02, -0.53);                      // barrel
+  C(steel, 0.009, 0.08, 0, 0.02, -0.66);
+  B(dark, 0.012, 0.05, 0.012, 0, 0.055, -0.64);               // front sight post
+  B(dark, 0.005, 0.045, 0.005, -0.011, 0.058, -0.64);         // sight ear L
+  B(dark, 0.005, 0.045, 0.005, 0.011, 0.058, -0.64);          // sight ear R
+  C(dark, 0.018, 0.045, 0, 0.02, -0.70);                      // muzzle brake
+  C(dark, 0.022, 0.012, 0, 0.02, -0.715);
   const muzzle = new THREE.Object3D();
-  muzzle.position.set(0, 0.02, -0.76);
+  muzzle.position.set(0, 0.02, -0.74);
   g.add(muzzle);
   g.scale.setScalar(0.95);
-  VM.muzzleRef = muzzle;
   g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
-  return g;
+  return { group: g, muzzle };
+}
+function buildM4() {
+  const g = new THREE.Group();
+  const poly = new THREE.MeshStandardMaterial({ color: 0x1f2124, roughness: 0.55, metalness: 0.25, envMapIntensity: 0.6 });
+  const alu = new THREE.MeshStandardMaterial({ color: 0x3a3d42, roughness: 0.35, metalness: 0.85, envMapIntensity: 1.0 });
+  const dark = new THREE.MeshStandardMaterial({ color: 0x141517, roughness: 0.5, metalness: 0.4 });
+  const B = (mat, w, h, d, x, y, z, rx = 0) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.rotation.x = rx; g.add(m); return m;
+  };
+  const C = (mat, r, len, x, y, z) => {
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 10), mat);
+    m.rotation.x = Math.PI / 2; m.position.set(x, y, z); g.add(m); return m;
+  };
+  B(alu, 0.072, 0.075, 0.30, 0, 0, -0.02);                    // upper receiver
+  B(alu, 0.06, 0.05, 0.13, 0, -0.05, 0.05);                   // lower receiver
+  B(dark, 0.012, 0.022, 0.05, 0.036, 0.012, 0.12);            // charging handle
+  B(alu, 0.008, 0.018, 0.09, 0.037, -0.008, -0.05);           // ejection port cover
+  B(poly, 0.05, 0.018, 0.52, 0, 0.05, -0.13);                 // top rail
+  for (let i = 0; i < 9; i++) B(dark, 0.052, 0.006, 0.02, 0, 0.062, 0.08 - i * 0.058);  // rail notches
+  B(alu, 0.055, 0.06, 0.09, 0, -0.075, -0.02);                // magwell
+  B(poly, 0.045, 0.16, 0.075, 0, -0.155, -0.028, -0.12);      // magazine
+  B(poly, 0.05, 0.025, 0.085, 0, -0.235, -0.038, -0.12);      // mag baseplate
+  B(poly, 0.045, 0.008, 0.095, 0, -0.072, 0.075);             // trigger guard
+  B(poly, 0.045, 0.028, 0.008, 0, -0.058, 0.03);
+  B(dark, 0.012, 0.028, 0.012, 0, -0.052, 0.06, 0.2);         // trigger
+  B(poly, 0.046, 0.10, 0.055, 0, -0.085, 0.14, 0.35);         // pistol grip
+  C(alu, 0.02, 0.16, 0, 0.01, 0.19);                          // buffer tube
+  C(alu, 0.024, 0.02, 0, 0.01, 0.12);                         // castle nut
+  B(poly, 0.05, 0.07, 0.13, 0, -0.005, 0.27);                 // stock body
+  B(poly, 0.052, 0.095, 0.025, 0, -0.02, 0.345);              // butt pad
+  B(poly, 0.02, 0.045, 0.11, -0.036, 0.02, 0.26);             // cheek sides
+  B(poly, 0.02, 0.045, 0.11, 0.036, 0.02, 0.26);
+  const hg = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.26, 8), poly);
+  hg.rotation.x = Math.PI / 2; hg.position.set(0, 0.01, -0.32); g.add(hg);  // handguard
+  B(poly, 0.028, 0.012, 0.26, 0, 0.042, -0.32);               // handguard rail
+  B(dark, 0.014, 0.02, 0.05, 0, 0.03, -0.44);                 // front sight base
+  B(dark, 0.01, 0.045, 0.012, 0, 0.055, -0.45);               // front sight post
+  C(alu, 0.009, 0.16, 0, 0.01, -0.50);                        // barrel
+  C(dark, 0.016, 0.05, 0, 0.01, -0.585);                      // flash hider
+  C(dark, 0.02, 0.012, 0, 0.01, -0.60);
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, 0.01, -0.63);
+  g.add(muzzle);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  return { group: g, muzzle };
+}
+function buildPistol() {
+  const g = new THREE.Group();
+  const slideM = new THREE.MeshStandardMaterial({ color: 0x2c2f33, roughness: 0.3, metalness: 0.85, envMapIntensity: 1.0 });
+  const frameM = new THREE.MeshStandardMaterial({ color: 0x191b1e, roughness: 0.6, metalness: 0.3 });
+  const B = (mat, w, h, d, x, y, z, rx = 0) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    m.position.set(x, y, z); m.rotation.x = rx; g.add(m); return m;
+  };
+  B(slideM, 0.034, 0.048, 0.20, 0, 0.02, -0.045);             // slide
+  B(slideM, 0.03, 0.05, 0.03, 0, 0.02, -0.155);               // slide front taper
+  B(frameM, 0.006, 0.02, 0.05, 0.015, 0.028, -0.02);          // ejection port
+  B(frameM, 0.008, 0.01, 0.012, 0, 0.048, -0.135);            // front sight
+  B(frameM, 0.014, 0.01, 0.012, 0, 0.048, 0.05);              // rear sight
+  for (let i = 0; i < 4; i++) B(slideM, 0.036, 0.03, 0.006, 0, 0.02, 0.03 - i * 0.016);  // serrations
+  B(frameM, 0.03, 0.038, 0.14, 0, -0.018, -0.01);             // frame
+  B(frameM, 0.03, 0.075, 0.05, 0, -0.075, 0.045, 0.28);       // grip
+  B(frameM, 0.034, 0.02, 0.058, 0, -0.115, 0.062, 0.28);      // mag baseplate
+  B(frameM, 0.028, 0.006, 0.07, 0, -0.045, -0.03);            // trigger guard
+  B(frameM, 0.028, 0.026, 0.006, 0, -0.033, -0.062);
+  B(slideM, 0.008, 0.024, 0.01, 0, -0.038, -0.015, 0.2);      // trigger
+  const muzzle = new THREE.Object3D();
+  muzzle.position.set(0, 0.02, -0.185);
+  g.add(muzzle);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  return { group: g, muzzle };
 }
 function buildKnife() {
   const g = new THREE.Group();
-  const grip = new THREE.MeshStandardMaterial({ color: 0x232527, roughness: 0.6, metalness: 0.2 });
-  const blade = new THREE.MeshStandardMaterial({ color: 0xb9bfc6, roughness: 0.22, metalness: 1.0, envMapIntensity: 1.3 });
-  const B = (mat, w, h, d, x, y, z) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-    m.position.set(x, y, z); g.add(m); return m;
-  };
-  B(grip, 0.035, 0.05, 0.15, 0, 0, 0.05);
-  B(grip, 0.075, 0.018, 0.02, 0, 0, -0.03);
-  B(blade, 0.012, 0.045, 0.30, 0, 0.005, -0.19);
-  B(blade, 0.012, 0.028, 0.10, 0, 0.012, -0.38);
+  const steel = new THREE.MeshStandardMaterial({ color: 0xc4cbd3, roughness: 0.2, metalness: 1.0, envMapIntensity: 1.5 });
+  const spine = new THREE.MeshStandardMaterial({ color: 0x8e959c, roughness: 0.35, metalness: 1.0, envMapIntensity: 1.1 });
+  const gripM = new THREE.MeshStandardMaterial({ color: 0x26282b, roughness: 0.55, metalness: 0.25 });
+  const pinM = new THREE.MeshStandardMaterial({ color: 0x9aa1a8, roughness: 0.3, metalness: 1.0 });
+  // clip-point blade: a real 2D profile, extruded with a beveled edge
+  const s = new THREE.Shape();
+  s.moveTo(0, -0.013);
+  s.lineTo(0, 0.045);
+  s.lineTo(0.16, 0.045);
+  s.quadraticCurveTo(0.265, 0.038, 0.325, 0.004);
+  s.quadraticCurveTo(0.18, -0.026, 0, -0.013);
+  const blade = new THREE.Mesh(new THREE.ExtrudeGeometry(s,
+    { depth: 0.011, bevelEnabled: true, bevelThickness: 0.005, bevelSize: 0.005, bevelSegments: 2, curveSegments: 16 }), steel);
+  blade.rotation.y = Math.PI / 2;
+  blade.position.set(0.008, 0.01, -0.075);
+  g.add(blade);
+  const ric = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.058, 0.05), spine);   // ricasso
+  ric.position.set(0, 0.012, -0.045); g.add(ric);
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.085, 0.018), spine);
+  guard.position.set(0, 0.008, -0.02); g.add(guard);
+  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.019, 0.022, 0.125, 14), gripM);
+  handle.rotation.x = Math.PI / 2; handle.position.set(0, 0.006, 0.05); g.add(handle);
+  for (const z of [0.015, 0.05, 0.085]) {                                          // steel pins
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.05, 8), pinM);
+    p.rotation.z = Math.PI / 2; p.position.set(0, 0.006, z); g.add(p);
+  }
+  const pom = new THREE.Mesh(new THREE.CylinderGeometry(0.023, 0.023, 0.02, 14), spine);
+  pom.rotation.x = Math.PI / 2; pom.position.set(0, 0.006, 0.118); g.add(pom);
   g.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
   return g;
 }
 const VM = {
-  rig: null, ak: null, knife: null, muzzleRef: null,
+  rig: null, models: {}, muzzles: {},
   swayX: 0, swayY: 0, kick: 0, kickR: 0,
-  BASE_RIFLE: { p: [0.235, -0.225, -0.42], r: [0, 0, 0] },
-  BASE_KNIFE: { p: [0.20, -0.22, -0.38], r: [0.12, -0.35, 0.15] },
+  BASE: {
+    ak: { p: [0.235, -0.225, -0.42], r: [0, 0, 0] },
+    m4: { p: [0.235, -0.225, -0.40], r: [0, 0, 0] },
+    pistol: { p: [0.205, -0.20, -0.35], r: [0, 0.05, 0] },
+    knife: { p: [0.20, -0.22, -0.38], r: [0.12, -0.35, 0.15] }
+  },
   build() {
     this.rig = new THREE.Group();
     camera.add(this.rig);
-    this.ak = buildAK(); this.rig.add(this.ak);
-    this.knife = buildKnife(); this.rig.add(this.knife);
-    this.setWeapon('rifle');
+    for (const [id, fn] of [['ak', buildAK], ['m4', buildM4], ['pistol', buildPistol]]) {
+      const w = fn();
+      this.rig.add(w.group); this.models[id] = w.group; this.muzzles[id] = w.muzzle;
+    }
+    this.models.knife = buildKnife();
+    this.rig.add(this.models.knife);
+    this.setWeapon('pistol');
   },
-  setWeapon(w) { this.ak.visible = w === 'rifle'; this.knife.visible = w === 'knife'; },
+  setWeapon(w) { for (const k in this.models) this.models[k].visible = (k === w); },
   muzzleWorld(out) {
-    if (Weapons.current !== 'rifle' || !this.muzzleRef) return out.copy(camera.position);
-    return this.muzzleRef.getWorldPosition(out);
+    const m = this.muzzles[Weapons.current];
+    if (!m) return out.copy(camera.position);
+    return m.getWorldPosition(out);
   },
   update(dt, wp) {
     const ba = player.bobAmp * 0.016;
@@ -1114,14 +1245,15 @@ const VM = {
     this.swayY += (clamp(-Input.lookDY * 0.0004, -0.04, 0.04) - this.swayY) * Math.min(1, dt * 9);
     this.kick *= Math.exp(-11 * dt);
     this.kickR *= Math.exp(-9 * dt);
-    const base = Weapons.current === 'rifle' ? this.BASE_RIFLE : this.BASE_KNIFE;
+    const wd = WEAPONS[Weapons.current];
+    const base = this.BASE[Weapons.current];
     let ox = 0, oy = 0, oz = this.kick, rx = this.kickR, ry = 0, rz = 0;
     if (wp.state === 'reload') {
-      const k = Math.sin(Math.PI * Math.min(1, (wp.reloadT / 2.4) * 1.12));
+      const k = Math.sin(Math.PI * Math.min(1, (wp.reloadT / (wd.reloadDur || 2.4)) * 1.12));
       oy -= 0.17 * k; rx -= 0.9 * k; rz += 0.38 * k;
     }
     if (wp.state === 'deploy') {
-      const k = Math.max(0, wp.deployT) / 0.25;
+      const k = Math.max(0, wp.deployT) / (wd.deploy || 0.25);
       oy -= 0.28 * k; rx -= 0.85 * k;
     }
     if (wp.knifeT > 0) {
@@ -1140,9 +1272,9 @@ VM.build();
    8. PLAYER CONTROLLER — CT defender, armor economy, damage direction
    ===================================================================== */
 const player = {
-  pos: new THREE.Vector3(0, 0, -30), vel: new THREE.Vector3(),
+  pos: new THREE.Vector3(0, 0, -21), vel: new THREE.Vector3(),
   yaw: Math.PI, pitch: 0, radius: 0.34,
-  hp: 100, armor: 0, alive: true, grounded: true,
+  hp: 100, armor: 0, helmet: false, alive: true, grounded: true,
   crouchAmt: 0, money: 800, kills: 0,
   stepAcc: 0, bobT: 0, bobAmp: 0, deathT: 0, shake: 0, hurt: 0,
   recoil: { p: 0, y: 0 },
@@ -1151,13 +1283,14 @@ const player = {
   eyeH() { return 1.62 - 0.55 * this.crouchAmt; },
   reset() {
     const keepArmor = this.alive ? this.armor : 0;
-    this.pos.set(0, 0, -30); this.vel.set(0, 0, 0);
+    const keepHelmet = this.alive ? this.helmet : false;
+    this.pos.set(0, 0, -21); this.vel.set(0, 0, 0);
     this.yaw = Math.PI; this.pitch = 0;
-    this.hp = 100; this.armor = keepArmor; this.alive = true; this.crouchAmt = 0;
+    this.hp = 100; this.armor = keepArmor; this.helmet = keepHelmet;
+    this.alive = true; this.crouchAmt = 0;
     this.recoil.p = this.recoil.y = 0;
     this.deathT = 0; this.hurt = 0; this.shake = 0; this.dmgDirT = 0;
-    Weapons.reset();
-    UI.hp(); UI.ammo(); UI.money(); UI.armor();
+    UI.hp(); UI.armor(); UI.money();
   },
   standBlocked() {
     const p = this.pos, r = this.radius;
@@ -1243,9 +1376,11 @@ const player = {
       (this.alive ? -ms * 0.012 * this.bobAmp : 0.55 * Math.min(1, this.deathT * 2)) + (Math.random() - 0.5) * sh * 0.02
     );
   },
-  takeDamage(d, from) {
+  takeDamage(dmg, from) {
     if (!this.alive || Round.state === 'over' || Round.state === 'match') return;
-    if (this.armor > 0) { // kevlar soaks roughly half the hit
+    let d = dmg;
+    if (this.armor > 0) { // kevlar soaks half; helmet shaves another 20%
+      if (this.helmet) d *= 0.8;
       const absorb = Math.min(this.armor, d * 0.5);
       this.armor -= absorb; d -= absorb;
       UI.armor();
@@ -1254,7 +1389,7 @@ const player = {
     this.hurt = Math.min(1, this.hurt + d / 45);
     this.shake = Math.max(this.shake, 0.12);
     AudioSys.hurt();
-    if (from) { // damage direction indicator
+    if (from) {
       const dx = from.pos.x - this.pos.x, dz = from.pos.z - this.pos.z;
       const fX = -Math.sin(this.yaw), fZ = -Math.cos(this.yaw);
       const rX = Math.cos(this.yaw), rZ = -Math.sin(this.yaw);
@@ -1264,19 +1399,22 @@ const player = {
     }
     if (this.hp <= 0) {
       this.hp = 0; this.alive = false; this.deathT = 0;
+      Weapons.losePrimary();
       AudioSys.lose();
-      if (from) UI.feed(from.name, 'AK-47', 'YOU', false, false);
+      if (from) UI.feed(from.name, from.gunName, 'YOU', false, false);
     }
     UI.hp();
   }
 };
 
 /* =====================================================================
-   9. WEAPON SYSTEM — hitscan, recoil pattern, dynamic spread
+   9. WEAPON SYSTEM — 3 guns + knife, per-weapon ammo/recoil/spread
    ===================================================================== */
 const WEAPONS = {
-  rifle: { name: 'AK-47', dmg: 35, interval: 0.1, mag: 30, reserve: 90, baseSpread: 0.0016 },
-  knife: { name: 'KNIFE', dmg: 55, interval: 0.45 }
+  pistol: { name: 'P9 SIDEARM', dmg: 26, interval: 0.16, semi: true, mag: 13, reserve: 39, baseSpread: 0.0022, recoil: 0.85, reloadDur: 1.7, deploy: 0.18, price: 0, slot: 2 },
+  ak: { name: 'AK-47', dmg: 35, interval: 0.1, mag: 30, reserve: 90, baseSpread: 0.0016, recoil: 1.0, reloadDur: 2.4, deploy: 0.25, price: 2700, slot: 1 },
+  m4: { name: 'M4 SENTINEL', dmg: 30, interval: 0.088, mag: 30, reserve: 90, baseSpread: 0.0011, recoil: 0.7, reloadDur: 2.3, deploy: 0.25, price: 3100, slot: 1 },
+  knife: { name: 'KNIFE', dmg: 55, interval: 0.45, slot: 3 }
 };
 const RECOIL = (() => {
   const a = [];
@@ -1296,34 +1434,53 @@ function alertBots(pos, radius) {
     if (b.alive && b.pos.distanceTo(pos) < radius) b.alertT = 6;
 }
 const Weapons = {
-  current: 'rifle', state: 'idle',
-  mag: 30, reserve: 90, sprayIdx: 0,
-  lastShotT: -9, reloadT: 0, deployT: 0, knifeT: 0,
+  current: 'pistol', primary: null, state: 'idle',
+  ammo: { pistol: { mag: 13, res: 39 }, ak: { mag: 30, res: 90 }, m4: { mag: 30, res: 90 } },
+  sprayIdx: 0, lastShotT: -9, reloadT: 0, deployT: 0, knifeT: 0,
   r1: false, r2: false, r3: false,
-  reset() {
-    this.current = 'rifle'; this.state = 'idle';
-    this.mag = 30; this.reserve = 90; this.sprayIdx = 0;
-    this.r1 = this.r2 = this.r3 = false;
-    VM.setWeapon('rifle');
-    UI.ammo(); UI.weaponName();
+  roundReset(survived) {
+    if (!survived) this.primary = null;
+    for (const k in this.ammo) { this.ammo[k].mag = WEAPONS[k].mag; this.ammo[k].res = WEAPONS[k].reserve; }
+    this.current = this.primary || 'pistol';
+    this.state = 'deploy'; this.deployT = WEAPONS[this.current].deploy;
+    this.sprayIdx = 0;
+    VM.setWeapon(this.current);
+    UI.ammo(); UI.weaponName(); UI.inventory();
   },
-  switchTo(w) {
-    if (this.current === w || !player.alive) return;
-    this.current = w; this.state = 'deploy'; this.deployT = 0.25;
-    VM.setWeapon(w);
+  losePrimary() {
+    if (!this.primary) return;
+    this.primary = null;
+    if (WEAPONS[this.current].slot === 1) {
+      this.current = 'pistol'; this.state = 'idle';
+      VM.setWeapon('pistol');
+      UI.ammo(); UI.weaponName(); UI.inventory();
+    }
+  },
+  switchSlot(n) {
+    let id = null;
+    if (n === 1 && this.primary) id = this.primary;
+    if (n === 2) id = 'pistol';
+    if (n === 3) id = 'knife';
+    if (!id || id === this.current || !player.alive) return;
+    this.current = id; this.state = 'deploy'; this.deployT = WEAPONS[id].deploy;
+    this.sprayIdx = 0;
+    VM.setWeapon(id);
     AudioSys.click(700);
     UI.ammo(); UI.weaponName();
-    if (IS_TOUCH) $('btnWpn').textContent = w === 'rifle' ? 'KNIFE' : 'AK-47';
   },
   tryReload() {
-    if (this.current !== 'rifle' || this.state === 'reload' || this.state === 'deploy') return;
-    if (this.mag >= WEAPONS.rifle.mag || this.reserve <= 0) return;
+    const wd = WEAPONS[this.current];
+    if (!wd.mag || this.state === 'reload' || this.state === 'deploy') return;
+    const am = this.ammo[this.current];
+    if (am.mag >= wd.mag || am.res <= 0) return;
     this.state = 'reload'; this.reloadT = 0;
     this.r1 = this.r2 = this.r3 = false;
     AudioSys.reload(0);
   },
   computeSpread() {
-    let s = WEAPONS.rifle.baseSpread;
+    if (this.current === 'knife') return 0.002;
+    const wd = WEAPONS[this.current];
+    let s = wd.baseSpread;
     if (player.crouchAmt > 0.5) s *= 0.65;
     s += (Math.hypot(player.vel.x, player.vel.z) / 4.8) * 0.011;
     if (!player.grounded) s += 0.05;
@@ -1335,42 +1492,51 @@ const Weapons = {
       this.deployT -= dt;
       if (this.deployT <= 0) this.state = 'idle';
     } else if (this.state === 'reload') {
+      const wd = WEAPONS[this.current], am = this.ammo[this.current];
       this.reloadT += dt;
-      if (this.reloadT > 0.5 && !this.r1) { this.r1 = true; AudioSys.reload(1); }
-      if (this.reloadT > 1.5 && !this.r2) { this.r2 = true; AudioSys.reload(2); }
-      if (this.reloadT > 2.15 && !this.r3) { this.r3 = true; AudioSys.reload(3); }
-      if (this.reloadT >= 2.4) {
-        const take = Math.min(WEAPONS.rifle.mag - this.mag, this.reserve);
-        this.mag += take; this.reserve -= take;
+      const d = wd.reloadDur;
+      if (this.reloadT > d * 0.2 && !this.r1) { this.r1 = true; AudioSys.reload(1); }
+      if (this.reloadT > d * 0.62 && !this.r2) { this.r2 = true; AudioSys.reload(2); }
+      if (this.reloadT > d * 0.9 && !this.r3) { this.r3 = true; AudioSys.reload(3); }
+      if (this.reloadT >= d) {
+        const take = Math.min(wd.mag - am.mag, am.res);
+        am.mag += take; am.res -= take;
         this.state = 'idle';
         UI.ammo();
       }
     } else if (player.alive && Round.state !== 'freeze' && Round.state !== 'over' && Round.state !== 'match' && Input.fire) {
-      if (this.current === 'rifle') {
-        if (this.mag > 0) {
-          if (Game.time - this.lastShotT >= WEAPONS.rifle.interval) this.fireRifle();
-        } else if (Input.fireEdge) {
-          AudioSys.dry();
-          this.tryReload();
-        }
-      } else if (Game.time - this.lastShotT >= WEAPONS.knife.interval) {
-        this.swingKnife();
+      if (this.current === 'knife') {
+        if (Game.time - this.lastShotT >= WEAPONS.knife.interval) this.swingKnife();
+      } else {
+        const wd = WEAPONS[this.current], am = this.ammo[this.current];
+        const want = (wd.semi && !IS_TOUCH) ? Input.fireEdge : true;
+        if (am.mag > 0) {
+          if (want && Game.time - this.lastShotT >= wd.interval) this.fireGun();
+        } else if (Input.fireEdge) { AudioSys.dry(); this.tryReload(); }
       }
     }
     Input.fireEdge = false;
     if (Game.time - this.lastShotT > 0.45) this.sprayIdx = 0;
     VM.update(dt, this);
   },
-  fireRifle() {
+  fireGun() {
+    const id = this.current, wd = WEAPONS[id], am = this.ammo[id];
     camera.updateMatrixWorld();
-    this.mag--; this.lastShotT = Game.time;
+    am.mag--; this.lastShotT = Game.time;
     UI.ammo();
-    const pat = RECOIL[Math.min(this.sprayIdx, 29)];
-    this.sprayIdx++;
-    player.recoil.p = Math.min(0.3, player.recoil.p + pat[0]);
-    player.recoil.y += pat[1];
-    VM.kick = Math.min(0.09, VM.kick + 0.045);
-    VM.kickR = Math.min(0.12, VM.kickR + 0.05);
+    if (id === 'pistol') {
+      player.recoil.p = Math.min(0.3, player.recoil.p + 0.021);
+      player.recoil.y += rnd(-0.004, 0.004);
+      VM.kick = Math.min(0.07, VM.kick + 0.05);
+      VM.kickR = Math.min(0.1, VM.kickR + 0.06);
+    } else {
+      const pat = RECOIL[Math.min(this.sprayIdx, 29)];
+      this.sprayIdx++;
+      player.recoil.p = Math.min(0.3, player.recoil.p + pat[0] * wd.recoil);
+      player.recoil.y += pat[1] * wd.recoil;
+      VM.kick = Math.min(0.09, VM.kick + 0.045 * wd.recoil);
+      VM.kickR = Math.min(0.12, VM.kickR + 0.05 * wd.recoil);
+    }
     camera.getWorldDirection(_v1);
     _v2.setFromMatrixColumn(camera.matrixWorld, 0);
     _v3.setFromMatrixColumn(camera.matrixWorld, 1);
@@ -1392,7 +1558,7 @@ const Weapons = {
     let endPoint;
     if (botHit) {
       endPoint = _v2.copy(origin).addScaledVector(_v1, botHit.t);
-      let dmg = WEAPONS.rifle.dmg * (1 - clamp((botHit.t - 12) / 70, 0, 1) * 0.35);
+      let dmg = wd.dmg * (1 - clamp((botHit.t - 12) / 70, 0, 1) * 0.35);
       if (botHit.part === 'head') dmg *= 4;
       bloodFX(endPoint, dmg);
       const wasAlive = botHit.b.alive;
@@ -1408,7 +1574,7 @@ const Weapons = {
     const muz = VM.muzzleWorld(_v3);
     Effects.muzzle(muz);
     tracerFX(muz, endPoint);
-    AudioSys.shot(1, 0);
+    AudioSys.shot(1, 0, id);
     alertBots(player.pos, 38);
   },
   swingKnife() {
@@ -1441,24 +1607,18 @@ const Weapons = {
 };
 
 /* =====================================================================
-   10. BOT AI — finite state machine on a waypoint network,
-       height-aware (walks the apartment balcony and stairs)
+   10. BOT AI — finite state machine, height-aware, pistol round 1
    ===================================================================== */
 const BOT_NAMES = ['VIPER', 'KILO', 'ROGUE'];
-const WP = [ // waypoint nodes [x, z]
-  [-32, 26], [-32, 13], [-32, 0], [-31, -10], [-24, -17],  // 0-4   banana -> B plant
-  [1, 26], [1, 13], [1, 0], [1, -10], [3, -12], [10, -12], [18, -18], // 5-11 mid -> short -> A plant
-  [22, 26], [24, 9], [24, 3], [24, -9.5], [16, -9.5]      // 12-16 rampage -> apps -> balcony -> stairs
-];
-const ROUTE_B = [0, 1, 2, 3, 4];
-const ROUTE_MID = [5, 6, 7, 8, 9, 10, 11];
-const ROUTE_APPS = [12, 13, 14, 15, 16, 11];
-const PLAN_B = { spawn: [-30, 30], route: ROUTE_B };
-const PLAN_MID = { spawn: [1, 30], route: ROUTE_MID };
-const PLAN_APPS = { spawn: [23, 30], route: ROUTE_APPS };
+const ROUTE_B = [[-22, 23], [-22, 12], [-22, 0], [-20.5, -12], [-17, -17]];           // banana -> B
+const ROUTE_MID = [[0, 23], [0, 8], [0, -10], [6.5, -10], [13, -10], [15, -15]];     // mid -> short -> A
+const ROUTE_APPS = [[24, 23], [24, 12], [24, -2], [24, -9], [16.5, -9], [14, -14]];  // apps -> balcony -> A
+const PLAN_B = { spawn: [-22, 24], route: ROUTE_B };
+const PLAN_MID = { spawn: [0, 24], route: ROUTE_MID };
+const PLAN_APPS = { spawn: [24, 24], route: ROUTE_APPS };
 const GUARDS = {
-  A: [[27, -22], [8, -22], [24, -16]],
-  B: [[-33, -23], [-17, -11], [-19, -13]]
+  A: [[25, -18.5], [11, -19], [22, -8]],
+  B: [[-25, -24], [-13, -12], [-22, -7]]
 };
 function buildBotBody(tint) {
   const g = new THREE.Group();
@@ -1512,6 +1672,12 @@ class Bot {
     this.site = site;
     this.pos.set(plan.spawn[0] + rnd(-1, 1), 0, plan.spawn[1] + rnd(-1, 1));
     this.hp = 100; this.alive = true;
+    this.gun = Round.num === 1 ? 'pistol' : 'ak';
+    this.gunName = WEAPONS[this.gun].name;
+    this.gunInt = this.gun === 'pistol' ? 0.34 : 0.115;
+    this.gunD0 = this.gun === 'pistol' ? 7 : 9;
+    this.gunD1 = this.gun === 'pistol' ? 11 : 17;
+    this.gunBurst = this.gun === 'pistol' ? 2 : 3;
     this.state = 'route'; this.prev = 'route';
     this.path = plan.route.slice(); this.wp = 0; this.pathDone = false;
     this.delay = delay; this.stuckT = 0;
@@ -1527,7 +1693,7 @@ class Bot {
     this.group.rotation.set(0, 0, 0);
     this.group.position.copy(this.pos);
   }
-  groundY(dt) { // keep bots glued to platforms / stairs / ground
+  groundY(dt) { // glue bots to platforms / stairs / ground
     let ty = 0;
     const pr = 0.05;
     for (const c of COLLIDERS) {
@@ -1569,7 +1735,7 @@ class Bot {
   }
   followPath(spd, dt) {
     if (this.pathDone) return 0;
-    const node = WP[this.path[this.wp]];
+    const node = this.path[this.wp];
     const dx = node[0] - this.pos.x, dz = node[1] - this.pos.z;
     const d = Math.hypot(dx, dz);
     if (d < 0.95) {
@@ -1608,11 +1774,11 @@ class Bot {
         else if (this.burst > 0) {
           this.shotT -= dt;
           if (this.shotT <= 0) {
-            this.shotT = 0.115; this.burst--;
+            this.shotT = this.gunInt; this.burst--;
             this.fire(dist);
             if (this.burst === 0) this.pauseT = (0.5 + Math.random() * 0.55) / this.skill;
           }
-        } else this.burst = 3 + ((Math.random() * 3) | 0);
+        } else this.burst = this.gunBurst + ((Math.random() * 3) | 0);
       }
     } else {
       this.loseT += dt;
@@ -1625,7 +1791,7 @@ class Bot {
     this.group.updateMatrixWorld(true);
     const muz = this.gunTip.getWorldPosition(_v1).clone();
     const s = AudioSys.spatial(this.pos, 0.9);
-    AudioSys.shot(Math.max(0.06, s.vol), s.pan);
+    AudioSys.shot(Math.max(0.06, s.vol), s.pan, this.gun);
     Effects.muzzle(muz);
     const eye = _v2.set(this.pos.x, this.pos.y + 1.58, this.pos.z);
     const blocked = losBlocked(eye.x, eye.y, eye.z, camera.position.x, camera.position.y, camera.position.z);
@@ -1636,7 +1802,7 @@ class Bot {
     if (!blocked && Math.random() < chance) {
       target.x += rnd(-0.05, 0.05); target.y -= 0.1;
       tracerFX(muz, target);
-      player.takeDamage(9 + Math.random() * 8, this);
+      player.takeDamage(this.gunD0 + Math.random() * (this.gunD1 - this.gunD0), this);
     } else {
       const ang = Math.random() * Math.PI * 2, rad = 0.35 + Math.random() * 1.1;
       target.x += Math.cos(ang) * rad; target.y += rnd(-0.3, 0.5); target.z += Math.sin(ang) * rad;
@@ -1663,7 +1829,7 @@ class Bot {
       player.money = Math.min(16000, player.money + 300);
       player.kills++;
       UI.money();
-      UI.feed('YOU', Weapons.current === 'rifle' ? 'AK-47' : 'KNIFE', this.name, head, true);
+      UI.feed('YOU', WEAPONS[Weapons.current].name, this.name, head, true);
       AudioSys.kill();
     }
     updateAliveDots();
@@ -1699,7 +1865,7 @@ class Bot {
     if (Round.state === 'freeze' || Round.state === 'over' || Round.state === 'match') { this.animLegs(0); return; }
     if (this.delay > 0) { this.delay -= dt; this.animLegs(0); return; }
     this.alertT = Math.max(0, this.alertT - dt);
-    if (player.alive && distXZ(this.pos, player.pos) < 6) this.alertT = Math.max(this.alertT, 1); // hear sneaks
+    if (player.alive && distXZ(this.pos, player.pos) < 6) this.alertT = Math.max(this.alertT, 1);
     this.percT -= dt;
     if (this.percT <= 0) { this.percT = 0.13 + Math.random() * 0.07; this.sense(); }
     let moved = 0;
@@ -1771,7 +1937,7 @@ class Bot {
 const bots = [0, 1, 2].map(i => new Bot(i));
 
 /* =====================================================================
-   11. BOMB & ROUND MANAGER — two bomb sites, random T target
+   11. BOMB & ROUND MANAGER — two sites, random T target, buy freeze
    ===================================================================== */
 function buildBomb() {
   const g = new THREE.Group();
@@ -1805,33 +1971,36 @@ function checkElimination() {
   }
 }
 const Round = {
-  state: 'idle', num: 0, ct: 0, t: 0, site: 'A',
+  state: 'idle', num: 0, ct: 0, t: 0,
   timer: 115, freezeT: 0, overT: 0,
   beepT: 0, defuseTick: 0,
   bomb: { planted: false, bomber: null, site: 'A', pos: new THREE.Vector3(), timer: 0, defuse: 0 },
   startMatch() {
     this.num = 0; this.ct = 0; this.t = 0;
-    player.money = 800; player.kills = 0; player.armor = 0;
+    player.money = 800; player.kills = 0; player.armor = 0; player.helmet = false;
     this.begin();
   },
   begin() {
     this.num++;
-    this.state = 'freeze'; this.freezeT = 3; this.timer = 115;
+    this.state = 'freeze'; this.freezeT = 8; this.timer = 115;
     const b = this.bomb;
     b.planted = false; b.bomber = null; b.timer = 0; b.defuse = 0;
     bombMesh.group.visible = false; bombMesh.light.intensity = 0;
+    const survived = player.alive;
     player.reset();
+    Weapons.roundReset(survived);
     // T side picks a target site each round; bots take staggered routes to it
-    this.site = Math.random() < 0.5 ? 'A' : 'B';
-    const plans = this.site === 'B'
+    const site = Math.random() < 0.5 ? 'A' : 'B';
+    const plans = site === 'B'
       ? [PLAN_B, PLAN_B, PLAN_B]
       : shuffle([PLAN_MID, PLAN_APPS, Math.random() < 0.5 ? PLAN_MID : PLAN_APPS]);
-    bots.forEach((bt, i) => bt.reset(plans[i], 0.5 + i * 0.9 + Math.random() * 0.7, this.site));
+    bots.forEach((bt, i) => bt.reset(plans[i], 0.5 + i * 0.9 + Math.random() * 0.7, site));
     updateAliveDots();
     UI.score();
-    UI.msg('ROUND ' + this.num, 'HOLD SITES A & B — BUY ARMOR ' + (IS_TOUCH ? 'WITH BUTTON' : '[B]'), 2.8);
+    UI.msg('ROUND ' + this.num, 'BUY PHASE — DEFEND SITES A & B', 2.8);
     AudioSys.roundStart();
     document.body.classList.remove('pregame');
+    BuyMenu.show();
   },
   plant(pos, site) {
     const b = this.bomb;
@@ -1874,6 +2043,7 @@ const Round = {
     UI.score(); UI.money();
     if (this.ct >= 8 || this.t >= 8) {
       this.state = 'match';
+      BuyMenu.hide(false);
       setTimeout(() => Overlay.show('match'), 1800);
     }
   },
@@ -1881,7 +2051,7 @@ const Round = {
     switch (this.state) {
       case 'freeze':
         this.freezeT -= dt;
-        if (this.freezeT <= 0) this.state = 'live';
+        if (this.freezeT <= 0) { this.state = 'live'; BuyMenu.hide(false); }
         break;
       case 'live':
         this.timer -= dt;
@@ -1925,10 +2095,10 @@ const Round = {
 };
 
 /* =====================================================================
-   12. UI MANAGER + RADAR (spotted enemies, bomb, site letters)
+   12. UI MANAGER + RADAR
    ===================================================================== */
 const UI = {
-  els: {}, last: {}, msgT: 0, hmT: 0, flashT: 0, armorBtn: null,
+  els: {}, last: {}, msgT: 0, hmT: 0, flashT: 0, shopBtn: null,
   init() {
     ['topbar', 'scoreCT', 'scoreT', 'timer', 'roundlbl', 'killfeed', 'crosshair', 'hitmarker',
      'msg', 'msgtitle', 'msgsub', 'interact', 'interactlabel', 'interactbar', 'money', 'health',
@@ -1949,11 +2119,22 @@ const UI = {
     this.els.armorwrap.style.opacity = player.armor > 0 ? 1 : 0.35;
   },
   ammo() {
-    this.text('mag', String(Weapons.mag));
-    this.text('reserve', '/ ' + Weapons.reserve);
-    this.els.mag.className = Weapons.mag <= 5 ? 'low' : '';
+    if (Weapons.current === 'knife') {
+      this.text('mag', '—'); this.text('reserve', '');
+      this.els.mag.className = '';
+      return;
+    }
+    const am = Weapons.ammo[Weapons.current];
+    this.text('mag', String(am.mag));
+    this.text('reserve', '/ ' + am.res);
+    this.els.mag.className = am.mag <= 5 ? 'low' : '';
   },
   weaponName() { this.text('weaponname', WEAPONS[Weapons.current].name); },
+  inventory() {
+    $('inventory').innerHTML = Weapons.primary
+      ? `<b>1</b> ${WEAPONS[Weapons.primary].name} · <b>2</b> P9 · <b>3</b> KNIFE`
+      : `<b>2</b> P9 · <b>3</b> KNIFE`;
+  },
   money() { this.text('money', '$ ' + player.money); },
   score() {
     this.els.scoreCT.textContent = Round.ct;
@@ -2012,11 +2193,12 @@ const UI = {
       this.flashT -= dt * 1.6;
       this.els.flashwhite.style.opacity = Math.max(0, this.flashT).toFixed(3);
     }
+    if (BuyMenu.open) $('bmtimer').textContent = Math.ceil(Round.freezeT) + 's';
     if (IS_TOUCH) {
-      const show = Round.state === 'freeze';
-      if (this.armorBtn !== show) {
-        this.armorBtn = show;
-        $('btnArmor').style.display = show ? 'flex' : 'none';
+      const show = Round.state === 'freeze' && !BuyMenu.open && Game.started;
+      if (this.shopBtn !== show) {
+        this.shopBtn = show;
+        $('btnShop').style.display = show ? 'flex' : 'none';
       }
     }
   }
@@ -2032,21 +2214,21 @@ const Radar = {
     this.ctx.scale(2, 2);
     this.renderStatic();
   },
-  px(x) { return (x + 36) * (this.size / 72); },
-  pz(z) { return (z + 36) * (this.size / 72); },
+  px(x) { return (x + 28) * (this.size / 56); },
+  pz(z) { return (z + 28) * (this.size / 56); },
   renderStatic() {
     const c = document.createElement('canvas');
     c.width = this.size * 2; c.height = this.size * 2;
     const g = c.getContext('2d'); g.scale(2, 2);
     g.fillStyle = 'rgba(196,190,176,0.10)';
     g.fillRect(0, 0, this.size, this.size);
-    const sc = this.size / 72;
+    const sc = this.size / 56;
     for (const cl of COLLIDERS) {
       const x = this.px(cl.x0), y = this.pz(cl.z0);
       const w = Math.max(1, (cl.x1 - cl.x0) * sc), h = Math.max(1, (cl.z1 - cl.z0) * sc);
-      if (cl.y0 >= 3) g.fillStyle = 'rgba(140,160,185,0.18)';        // rooftops / indoor
-      else if (cl.y1 >= 5) g.fillStyle = 'rgba(226,219,203,0.85)';   // walls
-      else if (cl.y1 >= 0.4) g.fillStyle = 'rgba(226,219,203,0.28)'; // crates / platforms
+      if (cl.y0 >= 3) g.fillStyle = 'rgba(140,160,185,0.18)';
+      else if (cl.y1 >= 5) g.fillStyle = 'rgba(226,219,203,0.85)';
+      else if (cl.y1 >= 0.4) g.fillStyle = 'rgba(226,219,203,0.28)';
       else continue;
       g.fillRect(x, y, w, h);
     }
@@ -2055,13 +2237,13 @@ const Radar = {
     g.fillText('A', this.px(SITE_A.x), this.pz(SITE_A.z));
     g.fillText('B', this.px(SITE_B.x), this.pz(SITE_B.z));
     g.font = '600 10px Rajdhani, Arial';
-    g.fillStyle = 'rgba(140,193,238,0.8)'; g.fillText('CT', this.px(0), this.pz(-30));
-    g.fillStyle = 'rgba(230,189,108,0.8)'; g.fillText('T', this.px(0), this.pz(29));
+    g.fillStyle = 'rgba(140,193,238,0.8)'; g.fillText('CT', this.px(0), this.pz(-21));
+    g.fillStyle = 'rgba(230,189,108,0.8)'; g.fillText('T', this.px(0), this.pz(23));
     this.stat = c;
   },
   frame(dt) {
     this.spotAcc -= dt;
-    if (this.spotAcc <= 0) { // spotting pass: seen in FOV+LOS, or heard firing
+    if (this.spotAcc <= 0) {
       this.spotAcc = 0.12;
       camera.getWorldDirection(_v1);
       for (const b of bots) {
@@ -2103,7 +2285,96 @@ const Radar = {
 Radar.init();
 
 /* =====================================================================
-   13. INPUT HANDLER — keyboard / mouse / multi-touch (iPad)
+   13. BUY MENU — opens every round during freeze time
+   ===================================================================== */
+const BuyMenu = {
+  open: false, rows: {},
+  ITEMS: [
+    { id: 'pistol', name: 'P9 SIDEARM', sub: 'SEMI · 26 DMG · FREE REISSUE', price: 0 },
+    { id: 'ak', name: 'AK-47', sub: 'AUTO · 35 DMG · HEAVY HIT', price: 2700 },
+    { id: 'm4', name: 'M4 SENTINEL', sub: 'AUTO · 30 DMG · LASER', price: 3100 },
+    { id: 'kevlar', name: 'KEVLAR VEST', sub: '100 ARMOR · SOAKS 50%', price: 650 },
+    { id: 'helmet', name: 'VEST + HELMET', sub: 'ARMOR · -20% INCOMING', price: 1000 }
+  ],
+  init() {
+    const list = $('bmitems');
+    this.ITEMS.forEach((it, i) => {
+      const row = document.createElement('div');
+      row.className = 'bmitem';
+      row.innerHTML = `<span class="bmkey">${i + 1}</span><span class="bmname">${it.name}</span><span class="bmsub">${it.sub}</span><span class="bmprice">${it.price ? '$' + it.price : 'FREE'}</span>`;
+      row.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); this.buy(it.id); });
+      list.appendChild(row);
+      this.rows[it.id] = row;
+    });
+    $('bmready').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); this.hide(true); });
+  },
+  owned(id) {
+    if (id === 'kevlar') return player.armor >= 100 && !player.helmet;
+    if (id === 'helmet') return player.helmet && player.armor >= 100;
+    if (id === 'pistol') return false;
+    return Weapons.primary === id;
+  },
+  buy(id) {
+    if (!this.open || Round.state !== 'freeze') return;
+    const it = this.ITEMS.find(x => x.id === id);
+    if (this.owned(id) && id !== 'pistol') return;
+    if (player.money < it.price) { this.deny(); return; }
+    player.money -= it.price;
+    if (id === 'kevlar' || id === 'helmet') {
+      player.armor = 100;
+      if (id === 'helmet') player.helmet = true;
+      UI.armor();
+    } else {
+      const wd = WEAPONS[id];
+      Weapons.ammo[id].mag = wd.mag; Weapons.ammo[id].res = wd.reserve;
+      if (wd.slot === 1) {
+        Weapons.primary = id;
+        Weapons.current = id;
+        Weapons.state = 'deploy'; Weapons.deployT = wd.deploy;
+        Weapons.sprayIdx = 0;
+        VM.setWeapon(id);
+      }
+      UI.ammo(); UI.weaponName(); UI.inventory();
+    }
+    AudioSys.buy();
+    UI.money();
+    this.render();
+  },
+  deny() {
+    AudioSys.dry();
+    const m = $('bmmoney');
+    m.classList.remove('deny'); void m.offsetWidth; m.classList.add('deny');
+  },
+  render() {
+    $('bmmoney').textContent = player.money;
+    for (const it of this.ITEMS) {
+      const row = this.rows[it.id];
+      const own = this.owned(it.id);
+      row.classList.toggle('own', own);
+      row.classList.toggle('cant', !own && player.money < it.price);
+    }
+  },
+  show() {
+    if (this.open || !Game.started) return;
+    this.open = true;
+    this.render();
+    $('buymenu').style.display = 'block';
+    if (!IS_TOUCH && document.pointerLockElement) document.exitPointerLock();
+  },
+  hide(relock) {
+    if (!this.open) return;
+    this.open = false;
+    $('buymenu').style.display = 'none';
+    if (relock && !IS_TOUCH && Game.started && Round.state !== 'match') {
+      try { renderer.domElement.requestPointerLock(); } catch (_) { }
+    }
+  },
+  toggle() { this.open ? this.hide(true) : (Round.state === 'freeze' && this.show()); }
+};
+BuyMenu.init();
+
+/* =====================================================================
+   14. INPUT HANDLER — keyboard / mouse / multi-touch (iPad)
    ===================================================================== */
 const Input = {
   keys: Object.create(null),
@@ -2130,22 +2401,23 @@ const Input = {
     return r;
   }
 };
-function buyArmor() {
-  if (Round.state !== 'freeze' || player.money < 650 || player.armor >= 100) return;
-  player.money -= 650; player.armor = 100;
-  UI.money(); UI.armor();
-  AudioSys.buy();
-}
 addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'Tab') e.preventDefault();
   if (e.repeat) return;
   Input.keys[e.code] = true;
   if (!Game.started || Game.paused) return;
+  if (e.code === 'KeyB') { BuyMenu.toggle(); return; }
+  if (BuyMenu.open) {
+    const n = e.code.startsWith('Digit') ? +e.code.slice(5) : 0;
+    if (n >= 1 && n <= BuyMenu.ITEMS.length) BuyMenu.buy(BuyMenu.ITEMS[n - 1].id);
+    if (e.code === 'Escape') BuyMenu.hide(true);
+    return;
+  }
   if (e.code === 'Space') Input.jumpQ = true;
   if (e.code === 'KeyR') Weapons.tryReload();
-  if (e.code === 'KeyB') buyArmor();
-  if (e.code === 'Digit1') Weapons.switchTo('rifle');
-  if (e.code === 'Digit2') Weapons.switchTo('knife');
+  if (e.code === 'Digit1') Weapons.switchSlot(1);
+  if (e.code === 'Digit2') Weapons.switchSlot(2);
+  if (e.code === 'Digit3') Weapons.switchSlot(3);
 });
 addEventListener('keyup', e => { Input.keys[e.code] = false; });
 addEventListener('contextmenu', e => e.preventDefault());
@@ -2156,7 +2428,7 @@ addEventListener('mousemove', e => {
   }
 });
 renderer.domElement.addEventListener('mousedown', e => {
-  if (!Game.started || IS_TOUCH) return;
+  if (!Game.started || IS_TOUCH || BuyMenu.open) return;
   if (document.pointerLockElement !== renderer.domElement) {
     try { renderer.domElement.requestPointerLock(); } catch (_) { }
     return;
@@ -2165,7 +2437,7 @@ renderer.domElement.addEventListener('mousedown', e => {
 });
 addEventListener('mouseup', e => { if (e.button === 0) Input.fire = false; });
 document.addEventListener('pointerlockchange', () => {
-  if (!IS_TOUCH && Game.started && document.pointerLockElement !== renderer.domElement && Round.state !== 'match') {
+  if (!IS_TOUCH && Game.started && !BuyMenu.open && document.pointerLockElement !== renderer.domElement && Round.state !== 'match') {
     Game.paused = true;
     Overlay.show('pause');
   } else if (document.pointerLockElement === renderer.domElement) {
@@ -2238,9 +2510,13 @@ if (IS_TOUCH) {
     $('btnCrouch').classList.toggle('on', Input.tCrouch);
   });
   bindHold('btnReload', () => Weapons.tryReload());
-  bindHold('btnWpn', () => Weapons.switchTo(Weapons.current === 'rifle' ? 'knife' : 'rifle'));
+  bindHold('btnWpn', () => {
+    if (Weapons.current === 'knife') Weapons.switchSlot(Weapons.primary ? 1 : 2);
+    else if (Weapons.current === 'pistol') Weapons.switchSlot(3);
+    else Weapons.switchSlot(2);
+  });
   bindHold('btnUse', () => { Input.use = true; }, () => { Input.use = false; });
-  bindHold('btnArmor', () => buyArmor());
+  bindHold('btnShop', () => BuyMenu.show());
   $('fsbtn').addEventListener('touchstart', e => {
     e.preventDefault(); e.stopPropagation();
     try { document.documentElement.requestFullscreen(); } catch (_) { }
@@ -2248,7 +2524,7 @@ if (IS_TOUCH) {
 }
 
 /* =====================================================================
-   14. OVERLAY / BOOT / MAIN LOOP
+   15. OVERLAY / BOOT / MAIN LOOP
    ===================================================================== */
 const Overlay = {
   show(type) {
@@ -2258,8 +2534,8 @@ const Overlay = {
       eb.textContent = 'BOMB DEFUSAL · BANANA · MID · APARTMENTS';
       ti.textContent = 'INFERNO PROTOCOL';
       bo.innerHTML = IS_TOUCH
-        ? 'LEFT THUMB — <b>MOVE</b> · RIGHT THUMB — <b>AIM</b><br>BUTTONS — <b>FIRE / JUMP / CROUCH / RELOAD / DEFUSE</b><br>2 SITES. BOTS PICK ONE EACH ROUND — READ THE <b>RADAR</b>, LISTEN, ROTATE.<br>BUY <b>ARMOR $650</b> DURING FREEZE TIME. FIRST TO 8 WINS.'
-        : '<b>WASD</b> MOVE · <b>SPACE</b> JUMP · <b>C</b> CROUCH · <b>SHIFT</b> WALK<br><b>MOUSE</b> AIM + FIRE · <b>R</b> RELOAD · <b>1 / 2</b> WEAPONS · <b>E</b> DEFUSE<br>2 SITES. BOTS PICK ONE EACH ROUND — READ THE <b>RADAR</b>, LISTEN, ROTATE.<br>BUY <b>ARMOR $650</b> WITH <b>B</b> DURING FREEZE TIME. FIRST TO 8 WINS.';
+        ? 'LEFT THUMB — <b>MOVE</b> · RIGHT THUMB — <b>AIM</b><br>BUTTONS — <b>FIRE / JUMP / CROUCH / RELOAD / DEFUSE</b><br><b>SHOP</b> OPENS EVERY ROUND — BUY RIFLES & ARMOR.<br>ROUND 1 IS A PISTOL ROUND. FIRST TO 8 WINS.'
+        : '<b>WASD</b> MOVE · <b>SPACE</b> JUMP · <b>C</b> CROUCH · <b>SHIFT</b> WALK<br><b>MOUSE</b> AIM + FIRE · <b>R</b> RELOAD · <b>1/2/3</b> WEAPONS · <b>E</b> DEFUSE<br><b>BUY MENU</b> OPENS EVERY ROUND (<b>B</b> TO REOPEN) — RIFLES & ARMOR.<br>ROUND 1 IS A PISTOL ROUND. FIRST TO 8 WINS.';
       btn.textContent = 'DEPLOY';
     } else if (type === 'pause') {
       eb.textContent = 'PAUSED';
@@ -2308,8 +2584,8 @@ function tick(now) {
   if (!Game.started) { // menu: slow orbit over the village
     Game.time += dt;
     const a = Game.time * 0.07;
-    camera.position.set(Math.cos(a) * 40, 22, Math.sin(a) * 40);
-    camera.lookAt(0, 0, 2);
+    camera.position.set(Math.cos(a) * 32, 20, Math.sin(a) * 32);
+    camera.lookAt(0, 0, 0);
     Effects.update(dt);
     composer.render();
     return;
