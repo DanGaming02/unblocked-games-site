@@ -142,5 +142,11 @@
     "type": "html",
     "path": "games/SSP.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Bottle Flip Game",
+    "type": "html",
+    "path": "games/BottleFlipGame.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
