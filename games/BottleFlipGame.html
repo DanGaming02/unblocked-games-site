@@ -1,23 +1,766 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bottle Flip Battle</title><script src="https://unpkg.com/peerjs@1.5.5/dist/peerjs.min.js"></script><style>
-:root{font-family:system-ui,Arial;background:#0b1020;color:#f5f7ff}*{box-sizing:border-box}body{margin:0;padding:22px}main{max-width:880px;margin:auto}h1{margin:0 0 5px;font-size:clamp(30px,6vw,46px)}p{color:#b7c4df}section,.panel{background:#18213a;border:1px solid #334361;border-radius:18px;padding:20px;margin:16px 0}input,select,button{font:inherit;border-radius:10px;padding:11px;border:1px solid #596b91}input,select{background:#0d1730;color:white;max-width:100%;width:100%}button{background:#4b81ff;color:white;font-weight:750;cursor:pointer;border:0}button:disabled{opacity:.4;cursor:not-allowed}.secondary{background:#34425f}.danger{background:#9c3554}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.row>*{flex:1}.muted{color:#a6b6d6}.hidden{display:none!important}.players{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}.player{padding:13px;background:#0d1730;border-radius:12px;border:2px solid #34425f}.player.active{border-color:#ffcf4b}.player.dead{opacity:.45}.hp{background:#4e2338;border-radius:20px;height:9px;overflow:hidden;margin:8px 0}.hp>div{background:#3fd889;height:100%;transition:width .3s}.tag{font-size:12px;color:#a6b6d6}.bottle-stage{height:215px;display:grid;place-items:center;overflow:hidden}.bottle{width:64px;height:130px;position:relative;transform-origin:50% 80%;filter:drop-shadow(0 7px 5px #0005)}.bottle .cap{width:27px;height:14px;background:#e9f0ff;border-radius:4px 4px 1px 1px;margin:auto}.bottle .neck{width:25px;height:25px;background:#8bcfff;margin:auto}.bottle .body{height:90px;background:linear-gradient(100deg,#60a8e0,#d2efff 50%,#539cd6);border:4px solid #c7e9ff;border-radius:14px 14px 12px 12px}.bottle.flipping{animation:spin .85s ease-in-out}.bottle.landed{transform:rotate(0deg)}.bottle.missed{transform:rotate(80deg)}@keyframes spin{0%{transform:translateY(0) rotate(0)}45%{transform:translateY(-55px) rotate(205deg)}100%{transform:translateY(0) rotate(360deg)}}.meter{height:46px;border-radius:13px;position:relative;background:linear-gradient(90deg,#11c776 0%,#91cb50 23%,#f44d4d 50%,#91cb50 77%,#11c776 100%);border:3px solid #dbe7ff;overflow:visible;margin:22px 0 14px}.needle{position:absolute;left:50%;top:-10px;height:60px;width:5px;background:white;box-shadow:0 0 5px #000;transform:translateX(-50%);border-radius:3px}.meterlabels{display:flex;justify-content:space-between;font-weight:700;font-size:12px}.big{font-size:23px;font-weight:800}.message{min-height:26px;color:#ffe08c}.note{font-size:13px}code{background:#0a1227;padding:3px 6px;border-radius:5px}#events{max-height:130px;overflow:auto;font-size:13px;color:#c5d3ef}#events div{padding:4px 0;border-bottom:1px solid #2e3b56}
-</style></head><body><main><h1>🍾 Bottle Flip Battle</h1><p>Flip. Stack damage. Knock out the next player. Last one standing wins.</p><section id="setup"><h2>Play online with friends</h2><div class="row"><label>Player name<input id="name" maxlength="18" placeholder="Your name"></label><label>Lobby size<select id="limit"><option>2</option><option>3</option><option>4</option><option>5</option><option selected>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select></label></div><div class="row" style="margin-top:15px"><button id="create">Create lobby</button><input id="joinCode" placeholder="Enter lobby code" maxlength="30"><button id="join">Join lobby</button></div><p id="connectStatus" role="status" class="message"></p><p class="note">Requires internet and PeerJS. Open this file in a browser. Share the lobby code with friends who have the same HTML file. The host must keep their tab open.</p></section><section id="lobby" class="hidden"><h2>Lobby <code id="code"></code></h2><div class="row"><button class="secondary" id="copy">Copy lobby code</button><span id="capacity" class="muted"></span></div><div id="lobbyPlayers" class="players" style="margin:15px 0"></div><p id="lobbyStatus" class="message"></p><div class="row"><button id="start">Start match</button><button id="leave" class="danger">Leave lobby</button></div></section><section id="game" class="hidden"><div class="row"><div><div class="muted">Current player</div><div id="turnName" class="big"></div></div><div><div class="muted">Stacked damage</div><div id="stack" class="big">0</div></div></div><div id="players" class="players" style="margin:16px 0"></div><div class="bottle-stage"><div id="bottle" class="bottle"><div class="cap"></div><div class="neck"></div><div class="body"></div></div></div><div id="meter" class="meter"><div id="needle" class="needle"></div></div><div class="meterlabels"><span>GREEN • SAFER</span><span>RED • RISKY</span><span>GREEN • SAFER</span></div><p id="status" class="message" role="status"></p><button id="flip" style="width:100%;font-size:21px;padding:17px">FLIP! (Space)</button><p class="note">The indicator moves back and forth. Stop it near a green edge to improve your chance of landing. Each successful flip adds 10 damage. Missing deals the full stack to the next living player.</p><h3>Match events</h3><div id="events"></div><button id="exitGame" class="secondary">Leave match</button></section></main><script>
-(()=>{'use strict';
-const $=id=>document.getElementById(id);let peer=null,hostConn=null,connections=new Map(),isHost=false,me='',room='',state=null,phase='setup',timer=0,position=.5,direction=1,last=0,busy=false,turnStarted=0,localNonce=0;
-const id=()=>Math.random().toString(36).slice(2,8).toUpperCase();const clean=s=>String(s||'').trim().slice(0,18)||'Player';const safe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function msg(s){$('connectStatus').textContent=s;$('lobbyStatus').textContent=s}function show(p){phase=p;['setup','lobby','game'].forEach(x=>$(x).classList.toggle('hidden',x!==p))}function name(){return clean($('name').value)}
-function newPeer(peerId,onReady){if(typeof Peer==='undefined'){msg('PeerJS could not load. Check your internet connection.');return}peer=new Peer(peerId,{debug:0});peer.on('open',onReady);peer.on('error',e=>msg('Connection error: '+e.message));peer.on('disconnected',()=>{msg('Disconnected from signaling server; attempting to reconnect.');try{peer.reconnect()}catch(e){}})}
-function emit(){if(!isHost||!state)return;for(const c of connections.values())if(c.open)c.send({type:'state',state});render()}function log(s){state.events.unshift(s);state.events=state.events.slice(0,14)}function nextAlive(i){for(let n=1;n<=state.players.length;n++){let j=(i+n)%state.players.length;if(state.players[j].hp>0)return j}return i}
-function onHostData(c,data){if(!data||typeof data!=='object')return;if(data.type==='hello'){if(state.started){c.send({type:'error',message:'Match already started'});setTimeout(()=>c.close(),150);return}if(state.players.length>=state.max){c.send({type:'error',message:'Lobby full'});setTimeout(()=>c.close(),150);return}if(state.players.some(p=>p.id===c.peer)){c.close();return}state.players.push({id:c.peer,name:clean(data.name),hp:100});connections.set(c.peer,c);log(clean(data.name)+' joined');emit();return}if(!state.players.some(p=>p.id===c.peer))return;if(data.type==='flip'&&state.started&&!state.winner&&state.players[state.turn]?.id===c.peer)resolveFlip(data.position)}
-function removePlayer(id){if(!state)return;const ix=state.players.findIndex(p=>p.id===id);if(ix<0)return;const p=state.players[ix];if(state.started){p.hp=0;log(p.name+' disconnected');if(state.turn===ix){state.stack=0;state.turn=nextAlive(ix);state.turnKey++;}finishCheck()}else{state.players.splice(ix,1);log(p.name+' left')}emit()}
-function setupHost(){isHost=true;me='bfb-'+id().toLowerCase();room=me.slice(4).toUpperCase();newPeer(me,()=>{state={max:Number($('limit').value),players:[{id:me,name:name(),hp:100}],started:false,turn:0,turnKey:0,stack:0,winner:null,events:[]};show('lobby');emit();msg('Lobby ready. Share the code!')});peer.on('connection',c=>{c.on('data',d=>onHostData(c,d));c.on('close',()=>{connections.delete(c.peer);removePlayer(c.peer)});c.on('error',()=>{connections.delete(c.peer);removePlayer(c.peer)})})}
-function setupGuest(){const code=$('joinCode').value.trim().toUpperCase().replace(/[^A-Z0-9]/g,'');if(!code){msg('Enter a lobby code first.');return}room=code;me='bfb-guest-'+id().toLowerCase()+'-'+Date.now().toString(36);newPeer(me,()=>{hostConn=peer.connect('bfb-'+code.toLowerCase(),{reliable:true});let connected=false;hostConn.on('open',()=>{connected=true;hostConn.send({type:'hello',name:name()});msg('Connected. Waiting for host…')});hostConn.on('data',d=>{if(d?.type==='error'){msg(d.message);return}if(d?.type==='state'){state=d.state;show(state.started?'game':'lobby');render()}});hostConn.on('close',()=>{if(phase!=='setup')alert('Host disconnected. Match ended.');reset()});hostConn.on('error',e=>msg('Host connection failed: '+e.message));setTimeout(()=>{if(!connected)msg('Could not reach this lobby. Check the code and make sure the host is online.')},9000)})}
-function finishCheck(){const alive=state.players.filter(p=>p.hp>0);if(alive.length<=1){state.winner=alive[0]?.id||'none';log(alive[0]?alive[0].name+' wins the battle!':'No players remaining');state.stack=0}}
-function resolveFlip(raw){if(!state?.started||state.winner||busy)return;const x=Number(raw);if(!Number.isFinite(x)||x<0||x>1)return;busy=true;const actor=state.players[state.turn];const quality=Math.abs(x-.5)*2;const chance=.12+.83*Math.pow(quality,1.25);const success=Math.random()<chance;if(success){state.stack+=10;log(actor.name+' landed! Stack: '+state.stack)}else{const targetIndex=nextAlive(state.turn);const target=state.players[targetIndex];const damage=state.stack;target.hp=Math.max(0,target.hp-damage);log(actor.name+' missed! '+target.name+' took '+damage+' damage');state.stack=0;finishCheck();if(!state.winner){state.turn=target.hp>0?targetIndex:nextAlive(targetIndex)}}state.turnKey++;state.lastFlip={by:actor.id,success,at:Date.now(),position:x};emit();setTimeout(()=>{busy=false},400)}
-function flip(){if(phase!=='game'||!state||state.winner||state.players[state.turn]?.id!==me||busy)return;const x=position;if(isHost)resolveFlip(x);else if(hostConn?.open){hostConn.send({type:'flip',position:x});busy=true;setTimeout(()=>{busy=false},900)}}
-function render(){if(!state)return;$('code').textContent=room;$('capacity').textContent=state.players.length+'/'+state.max+' players';const cards=state.players.map((p,i)=>`<div class="player ${state.started&&i===state.turn&&!state.winner?'active':''} ${p.hp<=0?'dead':''}"><b>${safe(p.name)}${p.id===me?' (you)':''}</b><div class="tag">${state.started?p.hp+' / 100 HP':i===0?'Host':'Ready'}</div>${state.started?`<div class="hp"><div style="width:${p.hp}%"></div></div>`:''}</div>`).join('');$('lobbyPlayers').innerHTML=cards;$('players').innerHTML=cards;$('start').classList.toggle('hidden',!isHost);$('start').disabled=state.players.length<2;$('turnName').textContent=state.winner?(state.players.find(p=>p.id===state.winner)?.name||'Nobody')+' wins!':state.players[state.turn]?.name||'—';$('stack').textContent=state.stack+' ⚔️';$('flip').disabled=!!state.winner||state.players[state.turn]?.id!==me;$('status').textContent=state.winner?'🏆 Game over! Last player standing wins.':state.players[state.turn]?.id===me?'Your turn! Stop the needle near GREEN.':'Waiting for '+state.players[state.turn]?.name+' to flip…';$('events').innerHTML=state.events.map(s=>'<div>'+safe(s)+'</div>').join('');if(state.lastFlip){$('bottle').classList.remove('flipping','landed','missed');$('bottle').classList.add(state.lastFlip.success?'landed':'missed')}if(state.started&&phase==='lobby')show('game')}
-function animate(t){const dt=Math.min(40,t-(last||t));last=t;if(phase==='game'&&state?.started&&!state.winner){position+=direction*dt*.00085;if(position>1){position=2-position;direction=-1}if(position<0){position=-position;direction=1}$('needle').style.left=(position*100)+'%'}requestAnimationFrame(animate)}requestAnimationFrame(animate);
-function reset(){try{peer?.destroy()}catch(e){}peer=null;hostConn=null;connections.clear();isHost=false;state=null;busy=false;show('setup')}
-$('create').onclick=()=>{if(peer)return;msg('Creating lobby…');setupHost()};$('join').onclick=()=>{if(peer)return;msg('Joining lobby…');setupGuest()};$('start').onclick=()=>{if(!isHost||state.started||state.players.length<2)return;state.started=true;state.turn=Math.floor(Math.random()*state.players.length);state.turnKey++;log(state.players[state.turn].name+' was randomly chosen to start!');show('game');emit()};$('flip').onclick=flip;document.addEventListener('keydown',e=>{if(e.code==='Space'&&phase==='game'&&!['INPUT','TEXTAREA','BUTTON'].includes(document.activeElement.tagName)){e.preventDefault();flip()}});$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(room);msg('Lobby code copied!')}catch(e){msg('Lobby code: '+room+' (copy it manually)')}};$('leave').onclick=reset;$('exitGame').onclick=reset;
-})();
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#121612">
+  <meta name="description" content="A free multiplayer bottle-flip battle. Land flips, stack damage, and be the last player standing. Create a room and play with friends through PeerJS.">
+  <title>Flip Royale — Last bottle standing</title>
+  <script id="peerjs-library" src="https://cdn.jsdelivr.net/npm/peerjs@1.5.5/dist/peerjs.min.js" async></script>
+  <style>
+    :root { color-scheme:dark; --bg:#111511; --panel:#1c221c; --line:#343c32; --text:#f0f0df; --muted:#adb4a5; --lime:#d3f769; --red:#ff6960; --green:#82cc81; --mono:ui-monospace,SFMono-Regular,Consolas,monospace; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button,input,select { font:inherit; }
+    button { cursor:pointer; }
+    button:disabled { cursor:not-allowed; }
+    button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible { outline:3px solid var(--lime); outline-offset:4px; }
+    button { -webkit-tap-highlight-color:transparent; }
+    svg { display:block; }
+    .icon { width:19px; height:19px; flex-shrink:0; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .shell { max-width:1300px; margin:auto; padding:0 36px 26px; }
+    .header { display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:96px; border-bottom:1px solid var(--line); }
+    .brand { display:flex; align-items:center; gap:12px; font-weight:850; font-size:22px; letter-spacing:-1px; }
+    .brand-mark { width:38px; height:40px; background:var(--lime); color:#1b2714; display:grid; place-items:center; transform:rotate(-7deg); border-radius:9px; }
+    .brand-mark .icon { height:26px; width:26px; transform:rotate(7deg); }
+    .brand span.slash { color:var(--lime); margin:0 2px; }
+    .header-actions { display:flex; align-items:center; gap:24px; }
+    .status { font:11px var(--mono); letter-spacing:1.3px; display:flex; align-items:center; gap:8px; color:var(--muted); }
+    .dot { width:6px; height:6px; border-radius:50%; background:var(--lime); box-shadow:0 0 12px #d3f76955; }
+    .text-button { color:var(--text); background:none; border:0; padding:8px 0; font-weight:600; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .text-button:hover { color:var(--lime); }
+    .icon-button { border:1px solid var(--line); background:transparent; color:var(--muted); border-radius:50%; width:38px; height:38px; display:grid; place-items:center; padding:0; }
+    .icon-button:hover { color:var(--text); border-color:#657458; }
+    .intro { padding:32px 0 27px; display:flex; justify-content:space-between; gap:30px; align-items:flex-end; }
+    .eyebrow { color:var(--lime); font:10px var(--mono); letter-spacing:2px; text-transform:uppercase; }
+    h1 { margin:8px 0 3px; font-size:clamp(32px,4vw,50px); font-weight:850; letter-spacing:-2.3px; line-height:1.1; }
+    .intro p { margin:10px 0 0; color:var(--muted); font-size:14px; }
+    .edition { display:flex; gap:8px; align-items:center; padding-bottom:5px; color:var(--muted); font:11px var(--mono); white-space:nowrap; }
+    .edition strong { color:var(--text); font-weight:500; }
+    .grid { display:grid; grid-template-columns:minmax(0,1fr) 345px; gap:22px; align-items:start; }
+    .arena { border:1px solid var(--line); border-radius:19px; overflow:hidden; background:var(--panel); }
+    .arena-head { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:18px 24px; border-bottom:1px solid #343c325c; }
+    .arena-title { display:flex; align-items:center; gap:9px; color:var(--muted); font:10px var(--mono); letter-spacing:1.8px; }
+    .live-label { color:var(--lime); border:1px solid #d3f7693d; padding:5px 9px; border-radius:20px; font:9px var(--mono); letter-spacing:1.1px; }
+    .stage { height:335px; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 70%,#45503938,transparent 65%); }
+    .stage::before { content:""; position:absolute; width:320px; height:320px; border:1px solid #58604826; border-radius:50%; left:50%; top:36px; transform:translateX(-50%); box-shadow:0 0 0 40px #5860480a,0 0 0 80px #58604807; }
+    .stage-grid { position:absolute; inset:0; background-image:linear-gradient(#5563450c 1px,transparent 1px),linear-gradient(90deg,#5563450c 1px,transparent 1px); background-size:36px 36px; mask-image:linear-gradient(transparent,#000); }
+    .turn-label { position:absolute; left:24px; top:17px; font-size:12px; color:var(--muted); z-index:2; }
+    .turn-label strong { display:block; color:var(--text); font-size:16px; margin-top:1px; max-width:240px; overflow:hidden; text-overflow:ellipsis; }
+    .damage-hud { position:absolute; right:24px; top:19px; text-align:right; z-index:2; }
+    .damage-hud .hud-label { font:9px var(--mono); color:var(--muted); letter-spacing:1.2px; }
+    .damage-value { display:flex; gap:5px; align-items:center; justify-content:flex-end; font-weight:800; font-size:36px; letter-spacing:-2px; line-height:1.2; }
+    .damage-value .icon { color:var(--red); width:22px; height:25px; }
+    .damage-value.hot { color:var(--red); }
+    .bottle-position { position:absolute; width:110px; height:205px; bottom:57px; left:calc(50% - 55px); z-index:3; }
+    .bottle { width:110px; height:205px; transform-origin:50% 95%; filter:drop-shadow(8px 12px 7px #0005); --finish-angle:720deg; }
+    .bottle-svg { width:100%; height:100%; }
+    .shadow { position:absolute; width:100px; height:10px; background:#080e0999; bottom:51px; left:calc(50% - 50px); border-radius:50%; filter:blur(4px); z-index:2; }
+    .table { position:absolute; bottom:0; left:0; right:0; height:57px; border-top:1px solid #66725a; background:linear-gradient(#35402b,#272e22); }
+    .table::after { content:""; position:absolute; inset:6px 0 0; background:repeating-linear-gradient(0deg,transparent 0 12px,#7281630e 12px 13px); }
+    .table-caption { position:absolute; left:24px; bottom:19px; color:#9ca78b; z-index:3; font:9px var(--mono); letter-spacing:1.6px; }
+    .stage-cross { position:absolute; right:24px; bottom:19px; color:#9ca78b; z-index:3; font:14px var(--mono); }
+    .result { position:absolute; left:50%; bottom:75px; transform:translateX(-50%) rotate(-4deg); z-index:4; padding:7px 14px; border-radius:6px; background:var(--lime); color:#1c2814; font-size:21px; font-weight:900; letter-spacing:-.8px; opacity:0; pointer-events:none; box-shadow:3px 4px 0 #101610; transition:opacity .15s; white-space:nowrap; }
+    .result.visible { opacity:1; }
+    .result.miss { background:var(--red); color:#301717; transform:translateX(-50%) rotate(4deg); }
+    @keyframes bottleFlip { 0% { transform:translateY(0) rotate(0); } 30% { transform:translateY(-105px) rotate(220deg); } 62% { transform:translateY(-125px) rotate(440deg); } 84% { transform:translateY(-42px) rotate(645deg); } 100% { transform:translateY(var(--finish-y,0px)) rotate(var(--finish-angle)); } }
+    @keyframes shadowFlip { 0%,100% { transform:scaleX(1); opacity:1; } 50% { transform:scaleX(.5); opacity:.25; } }
+    .timing { padding:21px 24px 24px; border-top:1px solid var(--line); }
+    .timing-head { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-bottom:23px; }
+    .timing-title { font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; }
+    .timing-title .icon { color:var(--muted); width:16px; height:16px; }
+    .odds { color:var(--muted); font:11px var(--mono); }
+    .odds strong { color:var(--text); font-weight:600; }
+    .meter-wrap { position:relative; }
+    .meter { height:21px; border-radius:5px; background:linear-gradient(90deg,#75ca7e 0%,#b5d37a 20%,#ecaa68 35%,#ff7661 45%,#ff5756 50%,#ff7661 55%,#ecaa68 65%,#b5d37a 80%,#75ca7e 100%); box-shadow:inset 0 2px 4px #17221c44; position:relative; }
+    .meter::after { content:""; position:absolute; left:50%; top:0; height:100%; border-left:1px solid #fff5; }
+    .needle { position:absolute; width:4px; top:-7px; bottom:-6px; background:#f6f6e4; box-shadow:0 0 0 2px #161d16; border-radius:3px; left:50%; transform:translateX(-50%); z-index:2; }
+    .needle::before { content:""; position:absolute; width:10px; height:7px; top:-5px; left:-3px; background:#f6f6e4; clip-path:polygon(0 0,100% 0,50% 100%); }
+    .meter-labels { display:flex; justify-content:space-between; color:var(--muted); font:9px var(--mono); letter-spacing:.6px; margin-top:13px; }
+    .meter-labels .best { color:#ff9083; }
+    .flip-button { margin-top:22px; width:100%; border:1px solid var(--lime); background:var(--lime); color:#202914; font-weight:800; font-size:16px; border-radius:9px; min-height:53px; display:flex; align-items:center; justify-content:center; gap:10px; transition:background .15s,transform .15s; }
+    .flip-button:not(:disabled):hover { background:#e1ff92; transform:translateY(-1px); }
+    .flip-button:disabled { background:#30382b; border-color:#47513c; color:#a1ae8e; }
+    .key { font:10px var(--mono); border:1px solid #17200f44; padding:2px 5px; border-radius:4px; margin-left:2px; color:#283718; }
+    .flip-button:disabled .key { display:none; }
+    .arena-hint { min-height:20px; margin:10px 0 0; text-align:center; color:var(--muted); font-size:11px; }
+    .room-panel { border:1px solid var(--line); border-radius:19px; padding:25px 24px 21px; background:#1a201a; }
+    .room-eyebrow { color:var(--muted); font:9px var(--mono); letter-spacing:1.8px; display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .room-eyebrow .icon { height:15px; width:15px; color:var(--lime); }
+    h2 { font-size:23px; line-height:1.2; letter-spacing:-.7px; margin:0; }
+    .room-subtitle { font-size:12px; color:var(--muted); margin:8px 0 23px; }
+    .tabs { display:grid; grid-template-columns:1fr 1fr; background:#111711; padding:4px; border-radius:8px; border:1px solid #2f382b; margin-bottom:21px; gap:3px; }
+    .tab { border:0; background:none; color:var(--muted); font-size:12px; padding:9px 2px; border-radius:5px; font-weight:650; }
+    .tab.active { background:#34412b; color:var(--lime); box-shadow:0 2px 3px #0003; }
+    label,.field-label { display:block; font-size:11px; font-weight:600; color:#c1c7b7; margin-bottom:8px; }
+    input,select { width:100%; min-height:44px; color:var(--text); background:#121912; border:1px solid #3c4736; border-radius:7px; padding:10px 12px; font-size:13px; }
+    input::placeholder { color:#7e8a72; }
+    select { appearance:auto; }
+    .field { margin-bottom:17px; }
+    .code-input { font:20px var(--mono); letter-spacing:4px; text-transform:uppercase; }
+    .field-note { margin:7px 0 0; color:#a2ac95; font-size:10px; }
+    .primary { width:100%; display:flex; justify-content:center; align-items:center; gap:9px; background:var(--lime); color:#1e2a12; border:1px solid var(--lime); border-radius:8px; min-height:46px; font-size:13px; font-weight:800; padding:10px 12px; }
+    .primary:hover:not(:disabled) { background:#e0ff8d; }
+    .primary:disabled { color:#a8b295; border-color:#44513a; background:#313d29; }
+    .secondary { width:100%; display:flex; justify-content:center; align-items:center; gap:8px; background:transparent; color:var(--text); border:1px solid #3d4935; border-radius:8px; min-height:44px; font-size:12px; font-weight:600; padding:8px 12px; }
+    .secondary:hover { border-color:#7e9860; background:#283421; }
+    .divider { display:flex; align-items:center; gap:10px; font:9px var(--mono); color:#86927b; margin:20px 0 16px; }
+    .divider::before,.divider::after { content:""; height:1px; flex:1; background:var(--line); }
+    .tiny-note { margin:16px 0 0; font-size:10px; color:#9aaa89; text-align:center; }
+    .error { margin:12px 0 0; color:#ffae9f; font-size:12px; border:1px solid #ff69604a; border-radius:7px; padding:10px; background:#ff696009; }
+    .progress { color:var(--lime); font-size:12px; margin:12px 0 0; }
+    [hidden] { display:none!important; }
+    .room-code-box { display:flex; align-items:center; justify-content:space-between; background:#10180f; border:1px dashed #54673e; padding:12px 13px; border-radius:9px; margin:18px 0 10px; }
+    .room-code { font:24px var(--mono); color:var(--lime); letter-spacing:4px; font-weight:700; }
+    .room-code-box .icon-button { width:31px; height:31px; border-radius:6px; }
+    .copy-status { color:var(--lime); font-size:11px; text-align:center; min-height:16px; margin-top:5px; }
+    .roster-heading { display:flex; justify-content:space-between; align-items:center; font:10px var(--mono); letter-spacing:.6px; color:var(--muted); margin:19px 0 11px; }
+    .roster-heading strong { color:var(--text); font-weight:500; }
+    .roster { display:flex; flex-direction:column; gap:8px; margin-bottom:19px; }
+    .player { display:flex; align-items:center; gap:9px; background:#222b1e; border:1px solid #35442c; border-radius:8px; padding:10px; position:relative; }
+    .player.active { border-color:#a8c755; background:#303d22; }
+    .player.out { opacity:.5; background:#1c211b; border-color:#343a30; }
+    .avatar { width:32px; height:32px; border-radius:8px; display:grid; place-items:center; font-weight:750; color:#182214; background:var(--lime); flex-shrink:0; font-size:14px; }
+    .player-body { flex:1; min-width:0; }
+    .player-name { font-size:12px; font-weight:650; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .player-meta { font:8px var(--mono); color:#b5c2a0; letter-spacing:.6px; margin-top:2px; display:flex; gap:7px; }
+    .player-hp { font:11px var(--mono); color:var(--text); text-align:right; flex-shrink:0; }
+    .player-hp span { color:#9dba83; font-size:8px; }
+    .hp-track { height:3px; border-radius:3px; margin-top:6px; background:#445136; overflow:hidden; }
+    .hp-fill { height:100%; background:var(--lime); transition:width .3s; }
+    .empty-slot { border:1px dashed #3b4931; border-radius:8px; padding:11px; display:flex; align-items:center; gap:9px; color:#91a07f; font-size:11px; }
+    .empty-slot .icon { width:16px; height:16px; }
+    .room-limit { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 0 15px; }
+    .room-limit label { margin:0; font-size:11px; }
+    .room-limit select { min-height:34px; width:100px; padding:4px 8px; font-size:12px; }
+    .leave-button { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; background:none; border:0; color:var(--muted); font-size:11px; padding:15px 5px 0; }
+    .leave-button:hover { color:#ffae9f; }
+    .leave-button .icon { width:13px; height:13px; }
+    .activity { margin-top:16px; border-top:1px solid var(--line); padding-top:14px; }
+    .activity-head { font:9px var(--mono); letter-spacing:1px; color:var(--muted); margin-bottom:9px; }
+    .activity-list { display:flex; flex-direction:column; gap:7px; max-height:112px; overflow:auto; }
+    .activity-item { font-size:10px; color:#b7c2a7; line-height:1.5; padding-left:9px; border-left:2px solid #60784a; overflow-wrap:anywhere; }
+    .activity-item.hit { border-color:var(--red); }
+    .rules-strip { display:grid; grid-template-columns:repeat(3,1fr); margin-top:22px; gap:22px; }
+    .rule { display:flex; align-items:flex-start; gap:12px; padding:16px 0; border-top:1px solid var(--line); }
+    .rule-number { color:#9db07e; font:11px var(--mono); padding-top:3px; }
+    .rule h3 { font-size:12px; margin:0 0 5px; font-weight:700; }
+    .rule p { font-size:11px; margin:0; color:var(--muted); }
+    .footer { display:flex; justify-content:space-between; gap:20px; margin-top:22px; color:#91a080; font:9px var(--mono); letter-spacing:1px; }
+    .footer span:last-child { text-align:right; }
+    dialog { color:var(--text); background:#1c251b; border:1px solid #64714e; border-radius:18px; padding:30px; width:min(440px,calc(100% - 32px)); box-shadow:0 24px 80px #0008; }
+    dialog::backdrop { background:#070d09c7; backdrop-filter:blur(5px); }
+    .dialog-top { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:20px; }
+    .dialog-top h2 { font-size:24px; }
+    .dialog-top .icon-button { width:30px; height:30px; flex-shrink:0; }
+    .dialog-copy { font-size:13px; color:#c2ccb5; }
+    .dialog-copy ol { padding-left:21px; }
+    .dialog-copy li { padding-left:5px; margin:13px 0; }
+    .dialog-copy strong { color:var(--text); }
+    .dialog-note { font-size:11px; padding:12px; border:1px solid #435334; border-radius:8px; color:var(--muted); margin:20px 0 0; }
+    .winner-icon { width:63px; height:63px; display:grid; place-items:center; background:var(--lime); color:#293a16; border-radius:17px; margin:0 auto 20px; transform:rotate(-8deg); box-shadow:4px 4px 0 #4d6331; }
+    .winner-icon .icon { width:35px; height:35px; transform:rotate(8deg); }
+    .winner-content { text-align:center; }
+    .winner-content h2 { font-size:32px; letter-spacing:-1.3px; overflow-wrap:anywhere; }
+    .winner-content p { color:var(--muted); font-size:12px; margin:8px 0 20px; }
+    .winner-stats { display:grid; grid-template-columns:1fr 1fr; margin-bottom:23px; border:1px solid #465237; border-radius:9px; padding:15px; }
+    .winner-stats div+div { border-left:1px solid #465237; }
+    .winner-stats strong { display:block; color:var(--lime); font-size:27px; letter-spacing:-1px; }
+    .winner-stats span { color:var(--muted); font:9px var(--mono); }
+    .winner-close { position:absolute; top:15px; right:15px; }
+    .winner-content .secondary { margin-top:10px; }
+    .copy-fallback { margin:10px 0; font-size:11px; letter-spacing:0; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); z-index:20; max-width:calc(100% - 32px); padding:10px 18px; border:1px solid #6a8050; background:#26331f; color:var(--text); font-size:12px; border-radius:9px; box-shadow:0 10px 35px #0007; }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media(max-width:1000px) { .shell { padding:0 24px 24px; } .grid { grid-template-columns:minmax(0,1fr) 305px; gap:17px; } .room-panel { padding:23px 20px 20px; } .stage { height:319px; } .rules-strip { gap:17px; } .edition { display:none; } }
+    @media(max-width:760px) { .shell { padding:0 16px 20px; max-width:580px; } .header { min-height:75px; } .header-actions { gap:13px; } .header-actions>.status { display:none; } .brand { font-size:18px; gap:9px; } .brand-mark { width:31px; height:34px; } .intro { padding:25px 0 22px; } h1 { font-size:35px; letter-spacing:-1.5px; } .intro p { font-size:12px; max-width:310px; } .grid { grid-template-columns:1fr; gap:19px; } .arena-head { padding:14px 19px; } .stage { height:302px; } .turn-label { left:19px; } .damage-hud { right:19px; } .timing { padding:20px 19px; } .room-panel { padding:24px; } .rules-strip { grid-template-columns:1fr; gap:0; margin-top:24px; } .rule { padding:14px 0; } .footer { font-size:8px; line-height:1.7; gap:10px; } .key { display:none; } }
+    @media(max-width:400px) { .header { gap:10px; } .brand { font-size:16px; gap:8px; } .brand-mark { width:28px; height:30px; } .brand-mark .icon { width:22px; height:22px; } .header-actions { gap:9px; } .header .text-button { font-size:12px; } .header .icon-button { width:32px; height:32px; } .turn-label strong { max-width:170px; font-size:14px; } .damage-value { font-size:30px; } }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after { transition:none!important; } }
+  </style>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+    <symbol id="i-bottle" viewBox="0 0 24 24"><path d="M9 3h6M10 3v4L7 11v8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-8l-3-4V3M7 14h10M7 17h10"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3"/><path d="M3 20v-3a6 6 0 0 1 12 0v3M16 4a3 3 0 0 1 0 6M21 20v-3a6 6 0 0 0-4-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M5 9a8 8 0 0 1 14-3M19 3v4h-4M19 15a8 8 0 0 1-14 3M5 21v-4h4"/></symbol>
+    <symbol id="i-fire" viewBox="0 0 24 24"><path d="M12 3c1 5-4 6-3 10 2-1 3-3 3-3 0 4 4 4 4 7a4 4 0 0 1-8 0c-4-4-1-8 4-14Z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M15 8V4H4v11h4"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 13 4-4M8 15l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0M13 9l1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" transform="translate(1 1)"/></symbol>
+    <symbol id="i-exit" viewBox="0 0 24 24"><path d="M10 4H4v16h6M10 12h11M16 7l5 5-5 5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4M17 8a6 6 0 0 1 0 8M20 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-muted" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4M17 9l5 6M22 9l-5 6"/></symbol>
+    <symbol id="i-aim" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v6a5 5 0 0 1-10 0V3ZM7 5H3v3a4 4 0 0 0 4 4M17 5h4v3a4 4 0 0 1-4 4M12 14v6M8 21h8"/></symbol>
+  </svg>
+  <div class="shell">
+    <header class="header">
+      <div class="brand"><div class="brand-mark"><svg class="icon"><use href="#i-bottle"/></svg></div><div>FLIP<span class="slash">//</span>ROYALE</div></div>
+      <div class="header-actions">
+        <div class="status"><span class="dot"></span><span id="connectionLabel">FREE MULTIPLAYER</span></div>
+        <button class="text-button" id="rulesButton">How to play <span aria-hidden="true">↗</span></button>
+        <button class="icon-button" id="soundButton" aria-label="Turn sound on" aria-pressed="false"><svg class="icon"><use id="soundIcon" href="#i-muted"/></svg></button>
+      </div>
+    </header>
+    <main>
+      <div class="intro">
+        <div><div class="eyebrow">THE BOTTLE-FLIP BATTLE</div><h1>Flip. Stack. Survive.</h1><p>One bottle. Your friends. Only one player left standing.</p></div>
+        <div class="edition"><strong>2–8 PLAYERS</strong><span> / </span><span>100 HP EACH</span></div>
+      </div>
+      <div class="grid">
+        <section class="arena" aria-label="Bottle flip arena">
+          <div class="arena-head"><div class="arena-title"><svg class="icon" style="width:14px;height:14px"><use href="#i-aim"/></svg> THE ARENA</div><div class="live-label" id="roundLabel">READY WHEN YOU ARE</div></div>
+          <div class="stage">
+            <div class="stage-grid"></div>
+            <div class="turn-label"><span id="turnEyebrow">MAKE IT COUNT</span><strong id="turnName">Your next streak starts here.</strong></div>
+            <div class="damage-hud"><div class="hud-label">DAMAGE STACK</div><div class="damage-value" id="damageValue"><svg class="icon"><use href="#i-fire"/></svg><span id="stackNumber">0</span></div></div>
+            <div class="shadow" id="bottleShadow"></div>
+            <div class="bottle-position"><div class="bottle" id="bottle">
+              <svg class="bottle-svg" viewBox="0 0 110 205" aria-label="A water bottle ready to flip" role="img">
+                <defs>
+                  <linearGradient id="plastic" x1="0" x2="1"><stop stop-color="#809386" stop-opacity=".7"/><stop offset=".2" stop-color="#d7e2c7" stop-opacity=".48"/><stop offset=".45" stop-color="#a9c0a4" stop-opacity=".22"/><stop offset=".75" stop-color="#708e76" stop-opacity=".5"/><stop offset="1" stop-color="#283d2d" stop-opacity=".85"/></linearGradient>
+                  <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a9d9b1" stop-opacity=".48"/><stop offset="1" stop-color="#4b8e66" stop-opacity=".78"/></linearGradient>
+                  <linearGradient id="label" x1="0" x2="1"><stop stop-color="#b3d745"/><stop offset=".3" stop-color="#ddf779"/><stop offset="1" stop-color="#92b83f"/></linearGradient>
+                  <clipPath id="bottleClip"><path d="M43 26h24v20c0 9 24 20 24 38v100q0 14-13 14H32q-13 0-13-14V84c0-18 24-29 24-38Z"/></clipPath>
+                </defs>
+                <path d="M43 26h24v20c0 9 24 20 24 38v100q0 14-13 14H32q-13 0-13-14V84c0-18 24-29 24-38Z" fill="url(#plastic)" stroke="#c1d2b3" stroke-opacity=".65" stroke-width="1.3"/>
+                <g clip-path="url(#bottleClip)"><path d="M15 147q20-7 40-1t40-3v63H15Z" fill="url(#water)"/><path d="M25 81h60M22 91h66M21 102h68M21 160h68M21 171h68M23 184h65" stroke="#d1e2c1" stroke-opacity=".18" stroke-width="2"/><path d="M30 81v102" stroke="#eefada" stroke-opacity=".25" stroke-width="5" stroke-linecap="round"/><path d="M78 80v105" stroke="#213825" stroke-opacity=".35" stroke-width="6"/></g>
+                <rect x="39" y="14" width="32" height="17" rx="4" fill="#d6ed8b"/><path d="M43 17v11M47 17v11M51 17v11M55 17v11M59 17v11M63 17v11M67 17v11" stroke="#9caf5d" stroke-width="1.4"/><path d="M44 37h22M43 44h24" stroke="#cbdcb0" stroke-opacity=".5" stroke-width="2"/>
+                <path d="M18 105q36 6 74 0v44q-38 6-74 0Z" fill="url(#label)"/>
+                <path d="M21 110q33 5 67 0M21 145q34 5 67 0" stroke="#7d9f34" stroke-width=".6"/>
+                <text x="55" y="129" text-anchor="middle" fill="#293819" font-family="system-ui,sans-serif" font-weight="900" font-size="19" letter-spacing="-1">FLIP.</text>
+                <text x="55" y="140" text-anchor="middle" fill="#425b24" font-family="monospace" font-size="6.5" letter-spacing="2">ROYALE</text>
+                <path d="M32 197q5-7 11 0M49 198q6-7 12 0M67 198q5-7 11-1" fill="none" stroke="#e3ecca" stroke-opacity=".3" stroke-width="2"/>
+              </svg>
+            </div></div>
+            <div class="result" id="flipResult" aria-hidden="true">LANDED! +10</div>
+            <div class="table"></div><div class="table-caption">THE LAST BOTTLE STANDING</div><div class="stage-cross" aria-hidden="true">+</div>
+          </div>
+          <div class="timing">
+            <div class="timing-head"><div class="timing-title"><svg class="icon"><use href="#i-aim"/></svg>Time your flip</div><div class="odds"><strong id="chanceNumber">95%</strong> land chance</div></div>
+            <div class="meter-wrap"><div class="meter" id="timingMeter" role="meter" aria-label="Landing chance. Aim at the red center." aria-valuemin="12" aria-valuemax="95" aria-valuenow="95"><div class="needle" id="needle"></div></div></div>
+            <div class="meter-labels"><span>12% · RISKY</span><span class="best">RED = BEST · 95%</span><span>RISKY · 12%</span></div>
+            <button class="flip-button" id="flipButton" disabled><svg class="icon"><use href="#i-flip"/></svg><span id="flipButtonLabel">Create a lobby to play</span><span class="key" aria-hidden="true">SPACE</span></button>
+            <p class="arena-hint" id="arenaHint">Stop the marker in the red. Green is the lowest chance.</p>
+          </div>
+        </section>
+        <aside class="room-panel" aria-label="Multiplayer lobby">
+          <div id="setupView">
+            <div class="room-eyebrow"><svg class="icon"><use href="#i-users"/></svg> BETTER WITH FRIENDS</div>
+            <h2>Your crew. Your lobby.</h2><p class="room-subtitle">Create a room, send the code, settle the score.</p>
+            <div class="tabs" role="tablist" aria-label="Lobby options"><button class="tab active" id="hostTab" role="tab" aria-selected="true" aria-controls="hostFields">Host a lobby</button><button class="tab" id="joinTab" role="tab" aria-selected="false" aria-controls="joinFields" tabindex="-1">Join a lobby</button></div>
+            <div class="field"><label for="nickname">Your nickname</label><input id="nickname" maxlength="18" placeholder="e.g. Bottle Boss" autocomplete="nickname" value="Player" spellcheck="false"></div>
+            <div id="hostFields" role="tabpanel" aria-labelledby="hostTab"><div class="field"><label for="maxPlayers">Lobby size</label><select id="maxPlayers"><option value="2">2 players</option><option value="3">3 players</option><option value="4" selected>4 players</option><option value="5">5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option></select><p class="field-note">Your spot counts. Start with any 2 or more players.</p></div><button class="primary" id="createButton">Create lobby<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+            <div id="joinFields" role="tabpanel" aria-labelledby="joinTab" hidden><div class="field"><label for="joinCode">Room code</label><input class="code-input" id="joinCode" placeholder="ABC123" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false"><p class="field-note">Ask your friend for their six-character room code.</p></div><button class="primary" id="joinButton">Join lobby<svg class="icon"><use href="#i-arrow"/></svg></button></div>
+            <p class="progress" id="connectionProgress" role="status" hidden></p><p class="error" id="connectionError" role="alert" hidden></p>
+            <div class="divider">OR WARM UP FIRST</div><button class="secondary" id="practiceButton"><svg class="icon"><use href="#i-flip"/></svg>Try a practice round</button><p class="tiny-note">Free to play. The host keeps the room open.</p>
+          </div>
+          <div id="lobbyView" hidden>
+            <div class="room-eyebrow"><svg class="icon"><use href="#i-users"/></svg><span id="lobbyEyebrow">YOUR LOBBY</span></div><h2 id="lobbyTitle">The crew is assembling.</h2>
+            <div id="inviteArea"><div class="room-code-box"><span class="room-code" id="roomCode">------</span><button class="icon-button" id="copyCodeButton" aria-label="Copy room code"><svg class="icon"><use href="#i-copy"/></svg></button></div><button class="secondary" id="inviteButton"><svg class="icon"><use href="#i-link"/></svg>Copy invite link</button><div class="copy-status" id="copyStatus" role="status"></div><input id="copyFallback" class="copy-fallback" aria-label="Select and copy this invite" readonly hidden></div>
+            <p class="room-subtitle" id="practiceNote" hidden>A quick duel against Rivet, your practice opponent.</p>
+            <div class="roster-heading"><span>THE PLAYERS</span><strong id="playerCount">1 / 4</strong></div><div class="roster" id="roster"></div>
+            <div class="room-limit" id="limitControl"><label for="lobbyMax">Player limit</label><select id="lobbyMax"><option value="2">2 players</option><option value="3">3 players</option><option value="4">4 players</option><option value="5">5 players</option><option value="6">6 players</option><option value="7">7 players</option><option value="8">8 players</option></select></div>
+            <button class="primary" id="startButton" disabled>Waiting for players</button><p class="field-note" id="lobbyHint" style="text-align:center">Invite at least one friend to start.</p>
+            <button class="secondary" id="backLobbyButton" hidden style="margin-top:10px">Back to lobby</button>
+            <div class="activity" id="activityArea" hidden><div class="activity-head">LATEST ACTION</div><div class="activity-list" id="activityList"></div></div>
+            <button class="leave-button" id="leaveButton"><svg class="icon"><use href="#i-exit"/></svg><span id="leaveLabel">Leave lobby</span></button>
+          </div>
+        </aside>
+      </div>
+      <div class="rules-strip" aria-label="Game rules"><div class="rule"><span class="rule-number">01 /</span><div><h3>Land it.</h3><p>Aim for the red center. It gives you the best odds.</p></div></div><div class="rule"><span class="rule-number">02 /</span><div><h3>Stack it.</h3><p>Every landing adds 10 damage. Keep flipping.</p></div></div><div class="rule"><span class="rule-number">03 /</span><div><h3>Pass the pain.</h3><p>Miss, and the next player takes your whole stack.</p></div></div></div>
+    </main>
+    <footer class="footer"><span>AIM FOR RED. PLAY FOR KEEPS.</span><span>FREE PEERJS MULTIPLAYER · NO PAID SERVER</span></footer>
+  </div>
+  <dialog id="rulesDialog" aria-labelledby="rulesTitle"><div class="dialog-top"><h2 id="rulesTitle">A bottle. A battle.</h2><button class="icon-button" id="closeRulesButton" aria-label="Close rules"><svg class="icon"><use href="#i-x"/></svg></button></div><div class="dialog-copy"><ol><li><strong>Create or join a lobby.</strong> The host picks a 2–8 player limit. Everyone starts with 100 health, and a random player goes first.</li><li><strong>Click Flip or press Space.</strong> Stop the moving marker near the red center for up to a 95% chance of landing. Green edges give only 12%. Even a perfect hit can miss.</li><li><strong>Land to build your stack.</strong> Each successful flip adds 10 damage. You keep your turn and must flip again.</li><li><strong>Miss to unleash it.</strong> The next living player in the roster takes the entire stack. It resets to zero, and the next surviving player takes their turn.</li><li><strong>Be the last one standing.</strong> Zero health means elimination. The host can start a rematch with a fresh random starter.</li></ol></div><div class="dialog-note">Keep the host’s tab open. A player who disconnects forfeits; leaving on your turn passes your stack to the next player. Some restricted networks can block direct peer connections.</div></dialog>
+  <dialog id="winnerDialog" aria-labelledby="winnerTitle"><button class="icon-button winner-close" id="closeWinnerButton" aria-label="Close results"><svg class="icon"><use href="#i-x"/></svg></button><div class="winner-content"><div class="winner-icon"><svg class="icon"><use href="#i-trophy"/></svg></div><div class="eyebrow" style="margin-bottom:8px">LAST PLAYER STANDING</div><h2 id="winnerTitle">You win!</h2><p id="winnerSubtitle">One bottle. One champion.</p><div class="winner-stats"><div><strong id="winnerLands">0</strong><span>FLIPS LANDED</span></div><div><strong id="winnerStreak">0</strong><span>BEST STREAK</span></div></div><button class="primary" id="rematchButton">Play again<svg class="icon"><use href="#i-flip"/></svg></button><button class="secondary" id="winnerLobbyButton">Back to lobby</button></div></dialog>
+  <dialog id="leaveDialog" aria-labelledby="leaveTitle"><div class="dialog-top"><h2 id="leaveTitle">Leave the lobby?</h2><button class="icon-button" id="cancelLeaveX" aria-label="Stay in lobby"><svg class="icon"><use href="#i-x"/></svg></button></div><p class="dialog-copy" id="leaveMessage">Leaving during a game counts as a forfeit.</p><button class="primary" id="confirmLeaveButton">Leave lobby</button><button class="secondary" id="cancelLeaveButton" style="margin-top:10px">Stay in the game</button></dialog>
+  <div class="toast" id="toast" role="status" hidden></div><div class="sr-only" id="gameAnnouncement" role="status" aria-live="polite" aria-atomic="true"></div>
+  <noscript><p style="padding:24px;text-align:center">Enable JavaScript to play Flip Royale.</p></noscript>
+  <script id="game-rules">
+    /* The host owns this rules engine. Guests only send flip requests. */
+    const FlipRules = (() => {
+      const HEALTH = 100, DAMAGE = 10, LIMIT = 8;
+      const live = s => s.players.filter(p => p.connected && p.hp > 0);
+      const joined = s => s.players.filter(p => p.connected);
+      const cleanName = name => String(name || 'Player').replace(/[\u0000-\u001f\u007f]/g, '').replace(/\s+/g, ' ').trim().slice(0,18) || 'Player';
+      const chance = position => .12 + .83 * Math.pow(1 - Math.abs(position - .5) * 2, 1.25);
+      const player = (id,name) => ({id, name:cleanName(name), connected:true, hp:HEALTH, lands:0, streak:0, bestStreak:0, damageDealt:0});
+      const log = (s,text,hit=false) => { s.events.unshift({text,hit}); s.events = s.events.slice(0,14); };
+      function create(hostId,name,max=4) {
+        return {version:1,hostId,max:Math.min(LIMIT,Math.max(2,Math.trunc(max)||4)),players:[player(hostId,name)],phase:'lobby',activeId:null,stack:0,turn:0,round:0,seq:0,revision:1,busy:false,last:null,winnerId:null,events:[]};
+      }
+      function add(s,id,name) {
+        if (s.phase !== 'lobby') return {ok:false,error:'This game has already started. Ask the host to return to the lobby.'};
+        if (s.players.some(p=>p.id===id)) return {ok:false,error:'You are already in this lobby.'};
+        if (joined(s).length >= s.max) return {ok:false,error:'This lobby is full. Ask the host to raise the player limit.'};
+        s.players.push(player(id,name)); s.revision++; log(s, cleanName(name)+' joined the lobby.'); return {ok:true};
+      }
+      function setMax(s,max) {
+        if (s.phase!=='lobby' || !Number.isInteger(max) || max<2 || max>LIMIT || max<joined(s).length) return false;
+        s.max=max; s.revision++; return true;
+      }
+      function start(s,random) {
+        if (s.busy || (s.phase!=='lobby' && s.phase!=='finished') || joined(s).length<2) return false;
+        s.players=s.players.filter(p=>p.connected).map(p=>player(p.id,p.name));
+        s.phase='playing'; s.stack=0; s.turn=1; s.round++; s.last=null; s.winnerId=null; s.events=[];
+        const index=Math.min(s.players.length-1,Math.max(0,Math.floor(random()*s.players.length)));
+        s.activeId=s.players[index].id; s.revision++; log(s,s.players[index].name+' was randomly chosen to start.'); return true;
+      }
+      function next(s,id) {
+        const i=s.players.findIndex(p=>p.id===id);
+        for(let step=1;step<s.players.length;step++) {
+          const p=s.players[(i+step+s.players.length)%s.players.length];
+          if(p.connected && p.hp>0) return p;
+        }
+        return null;
+      }
+      function finishIfNeeded(s) {
+        const survivors=live(s);
+        if(survivors.length<=1) { s.phase='finished'; s.activeId=null; s.winnerId=survivors[0]?.id||null; return true; }
+        return false;
+      }
+      function passDamage(s,actor) {
+        const target=next(s,actor.id), damage=s.stack;
+        if(target) { target.hp=Math.max(0,target.hp-damage); actor.damageDealt+=damage; }
+        s.stack=0; actor.streak=0;
+        return {targetId:target?.id||null,targetName:target?.name||'',damage,eliminated:!!target && target.hp===0};
+      }
+      function flip(s,id,position,random) {
+        if(s.phase!=='playing' || s.busy || s.activeId!==id || !Number.isFinite(position) || position<0 || position>1) return false;
+        const actor=s.players.find(p=>p.id===id);
+        if(!actor || !actor.connected || actor.hp<=0) return false;
+        const odds=chance(position), landed=random()<odds;
+        const event={kind:'flip',seq:++s.seq,actorId:id,actorName:actor.name,position,chance:odds,landed,damage:0,targetId:null,targetName:'',eliminated:false};
+        if(landed) {
+          s.stack+=DAMAGE; actor.lands++; actor.streak++; actor.bestStreak=Math.max(actor.bestStreak,actor.streak);
+          event.stack=s.stack; log(s,actor.name+' landed! Stack: '+s.stack+' damage.');
+        } else {
+          Object.assign(event,passDamage(s,actor));
+          log(s,actor.name+' missed. '+event.targetName+' takes '+event.damage+' damage'+(event.eliminated?' and is out.':'.'),true);
+          s.activeId=next(s,id)?.id||null; s.turn++; finishIfNeeded(s);
+        }
+        s.last=event; s.busy=true; s.revision++; return true;
+      }
+      function settle(s) { if(!s.busy) return false; s.busy=false; s.revision++; return true; }
+      function remove(s,id) {
+        const p=s.players.find(p=>p.id===id);
+        if(!p || !p.connected) return false;
+        if(s.phase==='lobby') { s.players=s.players.filter(q=>q.id!==id); log(s,p.name+' left the lobby.'); }
+        else {
+          const wasActive=s.activeId===id;
+          p.connected=false; p.hp=0;
+          log(s,p.name+' disconnected and forfeited.',true);
+          if(s.phase==='playing') {
+            if(wasActive) {
+              const hit=passDamage(s,p);
+              if(hit.targetId) log(s,hit.targetName+' takes the abandoned '+hit.damage+' damage stack'+(hit.eliminated?' and is out.':'.'),true);
+              s.activeId=next(s,id)?.id||null; s.turn++;
+            }
+            finishIfNeeded(s);
+          }
+        }
+        s.revision++; return true;
+      }
+      function lobby(s) {
+        if(s.phase!=='finished' || s.busy) return false;
+        s.players=s.players.filter(p=>p.connected).map(p=>player(p.id,p.name)); s.phase='lobby'; s.activeId=null; s.stack=0; s.last=null; s.winnerId=null; s.events=[]; s.revision++; return true;
+      }
+      return {HEALTH,DAMAGE,LIMIT,create,add,setMax,start,next,live,joined,chance,cleanName,flip,settle,remove,lobby};
+    })();
+    globalThis.FlipRules=FlipRules;
+  </script>
+  <script id="game-client">
+    (() => {
+      'use strict';
+      const $=id=>document.getElementById(id);
+      const ANIMATION_MS=1450, PREFIX='fliproyale-v1-', CODE_ALPHABET='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let mode='none',state=null,me=null,peer=null,hostConnection=null,connections=new Map(),roomCode='',session=0;
+      let connectionTimer=null,settleTimer=null,botTimer=null,heartbeatTimer=null,reconnectTimer=null,animationTimer=null,resultTimer=null;
+      let isConnecting=false,requestPending=false,uiAnimating=false,seenFlip=0,shownWinnerRound=0,aim=.5,meterEpoch=performance.now(),lastMeter=0,muted=true,audio=null,toastTimer=null;
+      let guestLastSeen=0,lastAnnouncement='',setupTab='host';
+      const isOwner=()=>mode==='host'||mode==='practice';
+      const random=()=>{ const value=new Uint32Array(1); crypto.getRandomValues(value); return value[0]/4294967296; };
+      const icon=name=>'<svg class="icon" aria-hidden="true"><use href="#i-'+name+'"/></svg>';
+      const esc=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      function showToast(message) { $('toast').textContent=message; $('toast').hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>$('toast').hidden=true,4000); }
+      function announce(message) { if(message!==lastAnnouncement) { $('gameAnnouncement').textContent=message; lastAnnouncement=message; } }
+      function dialogOpen(id) { const el=$(id); if(!el.open) el.showModal(); }
+      function dialogClose(id) { if($(id).open) $(id).close(); }
+      function sound(kind) {
+        if(muted) return;
+        try {
+          audio ||= new (window.AudioContext||window.webkitAudioContext)();
+          if(audio.state==='suspended') audio.resume();
+          const notes=kind==='land'?[523,659,784]:kind==='win'?[523,659,784,1047]:kind==='flip'?[320]:[200,130];
+          notes.forEach((frequency,index)=>{
+            const oscillator=audio.createOscillator(),gain=audio.createGain(),t=audio.currentTime+index*.09;
+            oscillator.type=kind==='miss'?'triangle':'sine'; oscillator.frequency.value=frequency;
+            gain.gain.setValueAtTime(0,t); gain.gain.linearRampToValueAtTime(.075,t+.012); gain.gain.exponentialRampToValueAtTime(.001,t+.16);
+            oscillator.connect(gain); gain.connect(audio.destination); oscillator.start(t); oscillator.stop(t+.18);
+          });
+        } catch {}
+      }
+      function setTab(tab,focus=false) {
+        setupTab=tab; const hosting=tab==='host';
+        $('hostTab').classList.toggle('active',hosting); $('joinTab').classList.toggle('active',!hosting);
+        $('hostTab').setAttribute('aria-selected',String(hosting)); $('joinTab').setAttribute('aria-selected',String(!hosting));
+        $('hostTab').tabIndex=hosting?0:-1; $('joinTab').tabIndex=hosting?-1:0;
+        $('hostFields').hidden=!hosting; $('joinFields').hidden=hosting;
+        $('connectionError').hidden=true;
+        if(focus) (hosting?$('hostTab'):$('joinTab')).focus();
+      }
+      function connectionUI(pending,message='') {
+        isConnecting=pending;
+        for(const id of ['createButton','joinButton','practiceButton','hostTab','joinTab','nickname','maxPlayers','joinCode']) $(id).disabled=pending;
+        $('connectionProgress').hidden=!pending; $('connectionProgress').textContent=message;
+      }
+      function clearTimers() {
+        for(const timer of [connectionTimer,settleTimer,botTimer,reconnectTimer,animationTimer,resultTimer]) clearTimeout(timer);
+        clearInterval(heartbeatTimer);
+        connectionTimer=settleTimer=botTimer=reconnectTimer=animationTimer=resultTimer=heartbeatTimer=null;
+      }
+      function resetBottle() {
+        $('bottle').style.animation='none'; $('bottle').style.transform='rotate(0deg)'; $('bottleShadow').style.animation='none'; $('flipResult').classList.remove('visible','miss');
+      }
+      function cleanup() {
+        session++; clearTimers(); mode='none'; state=null; me=null; requestPending=false; uiAnimating=false; seenFlip=0; shownWinnerRound=0;
+        const previousPeer=peer; peer=null; connections.clear(); hostConnection=null; roomCode='';
+        if(previousPeer && !previousPeer.destroyed) previousPeer.destroy();
+        connectionUI(false); resetBottle(); dialogClose('winnerDialog'); dialogClose('leaveDialog');
+        $('copyFallback').hidden=true; $('copyStatus').textContent=''; lastAnnouncement=''; render();
+      }
+      function fail(message) {
+        cleanup(); $('connectionError').textContent=message; $('connectionError').hidden=false; announce(message);
+      }
+      async function loadPeerJS() {
+        if(typeof window.Peer==='function') return;
+        const script=$('peerjs-library');
+        await new Promise((resolve,reject)=>{
+          const timeout=setTimeout(()=>finish(new Error('The multiplayer library could not load. Check your internet connection and refresh.')),12000);
+          const loaded=()=>finish(typeof window.Peer==='function'?null:new Error('PeerJS did not load. Refresh to retry.'));
+          const failed=()=>finish(new Error('The PeerJS download was blocked. Refresh or try another network. Practice mode is still available.'));
+          function finish(error) { clearTimeout(timeout); script.removeEventListener('load',loaded); script.removeEventListener('error',failed); error?reject(error):resolve(); }
+          script.addEventListener('load',loaded,{once:true}); script.addEventListener('error',failed,{once:true});
+        });
+      }
+      function errorMessage(error) {
+        const type=error?.type;
+        if(type==='peer-unavailable') return 'Room not found. Check the code and make sure the host’s tab is open.';
+        if(type==='unavailable-id') return 'That room code is already taken. Click Create lobby to get a new code.';
+        if(type==='browser-incompatible') return 'This browser does not support multiplayer. Try a recent Chrome, Firefox, Edge, or Safari.';
+        if(type==='webrtc') return 'A direct connection could not be made. Try another network; some networks block WebRTC.';
+        return 'Could not reach the multiplayer service. Check your connection and try again.';
+      }
+      function safeSend(conn,message) {
+        if(!conn?.open) return false;
+        try { conn.send(message); return true; } catch { return false; }
+      }
+      function emit() {
+        if(!state) return;
+        if(mode==='host') for(const record of connections.values()) safeSend(record.conn,{type:'state',code:roomCode,state});
+        render();
+      }
+      function scheduleFinish() {
+        const currentSession=session;
+        clearTimeout(settleTimer);
+        settleTimer=setTimeout(()=>{
+          if(currentSession!==session || !isOwner() || !state) return;
+          FlipRules.settle(state); emit(); scheduleBot();
+        },ANIMATION_MS);
+      }
+      function executeFlip(id,position) {
+        if(!isOwner() || !state || !FlipRules.flip(state,id,position,random)) return false;
+        emit(); scheduleFinish(); return true;
+      }
+      function removeConnection(id,conn) {
+        const record=connections.get(id);
+        if(mode!=='host' || !record || record.conn!==conn) return;
+        connections.delete(id);
+        if(state && FlipRules.remove(state,id)) emit();
+      }
+      function acceptConnection(conn,currentSession) {
+        let admitted=false;
+        const helloTimeout=setTimeout(()=>{if(!admitted) conn.close();},10000);
+        function reject(message) { safeSend(conn,{type:'rejected',message}); setTimeout(()=>conn.close(),200); }
+        conn.on('data',data=>{
+          if(currentSession!==session || mode!=='host' || !data || typeof data!=='object') return;
+          if(!admitted) {
+            if(data.type!=='hello' || data.version!==1 || typeof data.name!=='string' || data.name.length>100) { reject('This client is not compatible with the lobby. Refresh the game and try again.'); return; }
+            const result=FlipRules.add(state,conn.peer,data.name);
+            if(!result.ok) { reject(result.error); return; }
+            admitted=true; clearTimeout(helloTimeout); connections.set(conn.peer,{conn,lastSeen:Date.now()}); emit();
+            return;
+          }
+          const record=connections.get(conn.peer); if(!record || record.conn!==conn) return;
+          record.lastSeen=Date.now();
+          if(data.type==='ping') { safeSend(conn,{type:'pong'}); return; }
+          if(data.type==='pong') return;
+          if(data.type==='leave') { removeConnection(conn.peer,conn); conn.close(); return; }
+          if(data.type==='flip') {
+            if(data.turn!==state.turn || data.seq!==state.seq || !executeFlip(conn.peer,data.position)) safeSend(conn,{type:'notice',message:'Wait for your turn and the current flip to finish.'});
+          }
+        });
+        conn.on('close',()=>{clearTimeout(helloTimeout); if(currentSession===session) removeConnection(conn.peer,conn);});
+        conn.on('error',()=>{clearTimeout(helloTimeout); if(currentSession===session) {removeConnection(conn.peer,conn);conn.close();}});
+      }
+      function attachPeerEvents(currentSession) {
+        const thisPeer=peer;
+        thisPeer.on('error',error=>{
+          if(currentSession!==session) return;
+          if(!isConnecting && error.type==='network' && (mode==='host'||mode==='guest')) { showToast('Signaling is reconnecting. Existing players can keep playing.'); return; }
+          if(!isConnecting && error.type==='peer-unavailable' && mode==='host') return;
+          fail(errorMessage(error));
+        });
+        thisPeer.on('disconnected',()=>{
+          if(currentSession!==session) return;
+          $('connectionLabel').textContent='RECONNECTING';
+          clearTimeout(reconnectTimer); reconnectTimer=setTimeout(()=>{
+            if(currentSession===session && !thisPeer.destroyed && thisPeer.disconnected) try{thisPeer.reconnect();}catch{}
+          },2000);
+        });
+        thisPeer.on('close',()=>{if(currentSession===session) fail('The multiplayer connection closed. Create or join a lobby again.');});
+        thisPeer.on('connection',conn=>{if(currentSession!==session || mode!=='host') conn.close();else acceptConnection(conn,currentSession);});
+      }
+      function startHeartbeat(currentSession) {
+        heartbeatTimer=setInterval(()=>{
+          if(currentSession!==session) return;
+          const now=Date.now();
+          if(mode==='host') for(const [id,record] of connections) {
+            if(now-record.lastSeen>20000) { removeConnection(id,record.conn); record.conn.close(); }
+            else safeSend(record.conn,{type:'ping'});
+          }
+          if(mode==='guest' && hostConnection) {
+            if(now-guestLastSeen>20000) { fail('The host stopped responding. This lobby has closed.'); return; }
+            safeSend(hostConnection,{type:'ping'});
+          }
+        },4000);
+      }
+      async function createLobby() {
+        if(isConnecting) return;
+        const name=FlipRules.cleanName($('nickname').value),max=Number($('maxPlayers').value);
+        cleanup(); mode='host'; const currentSession=session;
+        $('connectionError').hidden=true; connectionUI(true,'Connecting to the free multiplayer service…');
+        try {
+          await loadPeerJS(); if(currentSession!==session) return;
+          roomCode=Array.from({length:6},()=>CODE_ALPHABET[Math.floor(random()*CODE_ALPHABET.length)]).join('');
+          peer=new window.Peer(PREFIX+roomCode,{debug:0,secure:true}); attachPeerEvents(currentSession);
+          connectionTimer=setTimeout(()=>{if(currentSession===session)fail('The multiplayer service did not respond. Try again or use practice mode.');},16000);
+          peer.on('open',id=>{
+            if(currentSession!==session) return;
+            clearTimeout(reconnectTimer);
+            if(state) { $('connectionLabel').textContent='ROOM ONLINE'; return; }
+            clearTimeout(connectionTimer); me=id; state=FlipRules.create(id,name,max); connectionUI(false); startHeartbeat(currentSession); emit(); announce('Lobby created. Share room code '+roomCode+'.');
+          });
+          try{localStorage.setItem('flip-royale-name',name);}catch{}
+        } catch(error) { if(currentSession===session) fail(error.message||'Could not create a lobby. Try again.'); }
+      }
+      async function joinLobby() {
+        if(isConnecting) return;
+        const code=$('joinCode').value.toUpperCase().trim(),name=FlipRules.cleanName($('nickname').value);
+        if(!/^[A-HJ-NP-Z2-9]{6}$/.test(code)) { $('connectionError').textContent='Enter a valid six-character room code.'; $('connectionError').hidden=false; $('joinCode').focus(); return; }
+        cleanup(); mode='guest'; roomCode=code; const currentSession=session;
+        $('connectionError').hidden=true; connectionUI(true,'Finding room '+code+'…');
+        try {
+          await loadPeerJS(); if(currentSession!==session) return;
+          peer=new window.Peer({debug:0,secure:true}); attachPeerEvents(currentSession);
+          connectionTimer=setTimeout(()=>{if(currentSession===session)fail('Could not connect to this room. Check the code, keep the host online, or try another network.');},20000);
+          peer.on('open',id=>{
+            if(currentSession!==session) return;
+            if(hostConnection) { $('connectionLabel').textContent='ROOM ONLINE'; return; }
+            me=id; hostConnection=peer.connect(PREFIX+code,{reliable:true,serialization:'json',metadata:{game:'flip-royale',version:1}});
+            const conn=hostConnection;
+            conn.on('open',()=>{if(currentSession===session){guestLastSeen=Date.now();connectionUI(true,'Joining the lobby…');safeSend(conn,{type:'hello',version:1,name});}});
+            conn.on('data',data=>{
+              if(currentSession!==session || !data || typeof data!=='object') return;
+              guestLastSeen=Date.now();
+              if(data.type==='ping') {safeSend(conn,{type:'pong'});return;}
+              if(data.type==='pong') return;
+              if(data.type==='rejected') {fail(String(data.message||'The lobby rejected this connection.'));return;}
+              if(data.type==='notice') {requestPending=false;showToast(String(data.message));render();return;}
+              if(data.type==='host-left') {fail('The host left. This lobby has closed. Create a new room to keep playing.');return;}
+              if(data.type==='state' && data.state?.version===1 && Array.isArray(data.state.players) && data.state.players.length<=8) {
+                if(state && data.state.revision<=state.revision) return;
+                if(!data.state.players.some(p=>p.id===me)) {fail('You are no longer in this lobby. Join the room again.');return;}
+                state=data.state; requestPending=false; clearTimeout(connectionTimer);
+                if(isConnecting) {connectionUI(false);startHeartbeat(currentSession);announce('Joined room '+roomCode+'.');}
+                render();
+              }
+            });
+            conn.on('close',()=>{if(currentSession===session)fail('The connection to the host was lost. Keep the host’s tab open and join again.');});
+            conn.on('error',()=>{if(currentSession===session)fail('Could not establish the peer connection. Try another network or check the room code.');});
+          });
+          try{localStorage.setItem('flip-royale-name',name);}catch{}
+        } catch(error) { if(currentSession===session) fail(error.message||'Could not join this lobby. Try again.'); }
+      }
+      function practice() {
+        const name=FlipRules.cleanName($('nickname').value);
+        cleanup(); mode='practice'; me='practice-you'; state=FlipRules.create(me,name,2); FlipRules.add(state,'practice-bot','Rivet');
+        $('connectionError').hidden=true; startGame();
+      }
+      function scheduleBot() {
+        clearTimeout(botTimer);
+        if(mode!=='practice' || !state || state.phase!=='playing' || state.busy || state.activeId!=='practice-bot') return;
+        const currentSession=session;
+        botTimer=setTimeout(()=>{if(currentSession===session)executeFlip('practice-bot',.08+random()*.84);},1000+random()*450);
+      }
+      function startGame() {
+        if(!isOwner() || !state || !FlipRules.start(state,random)) return;
+        dialogClose('winnerDialog'); requestPending=false; meterEpoch=performance.now(); resetBottle(); emit(); scheduleBot();
+      }
+      function backToLobby() {
+        if(!isOwner() || !state || !FlipRules.lobby(state)) return;
+        dialogClose('winnerDialog'); resetBottle(); emit();
+      }
+      function requestFlip() {
+        if(!state || state.phase!=='playing' || state.activeId!==me || state.busy || uiAnimating || requestPending || $('rulesDialog').open || $('winnerDialog').open || $('leaveDialog').open) return;
+        sound('flip');
+        if(isOwner()) executeFlip(me,aim);
+        else {
+          requestPending=true; render();
+          if(!safeSend(hostConnection,{type:'flip',position:aim,turn:state.turn,seq:state.seq})) fail('The host is offline. Join a new lobby to keep playing.');
+        }
+      }
+      function animateFlip(event) {
+        seenFlip=event.seq; uiAnimating=true; aim=event.position; meterEpoch=performance.now();
+        clearTimeout(animationTimer); clearTimeout(resultTimer);
+        const bottle=$('bottle'); bottle.style.animation='none'; bottle.style.transform=''; bottle.style.setProperty('--finish-angle',event.landed?'720deg':'810deg'); bottle.style.setProperty('--finish-y',event.landed?'0px':'-43px');
+        void bottle.offsetWidth;
+        const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if(reduced) bottle.style.transform=event.landed?'rotate(0deg)':'translateY(-43px) rotate(90deg)';
+        else bottle.style.animation='bottleFlip 1.2s cubic-bezier(.4,0,.5,1) forwards';
+        $('bottleShadow').style.animation=reduced?'none':'shadowFlip 1.2s ease-in-out'; $('flipResult').classList.remove('visible','miss');
+        const currentSession=session;
+        resultTimer=setTimeout(()=>{
+          if(currentSession!==session) return;
+          $('flipResult').textContent=event.landed?'LANDED! +10':'MISSED!'; $('flipResult').classList.toggle('miss',!event.landed); $('flipResult').classList.add('visible');
+          sound(event.landed?'land':'miss');
+          announce(event.landed?event.actorName+' landed. Damage stack is '+event.stack+'.':event.actorName+' missed. '+event.targetName+' takes '+event.damage+' damage'+(event.eliminated?' and is eliminated.':'.'));
+        },1200);
+        animationTimer=setTimeout(()=>{if(currentSession===session){uiAnimating=false;render();}},ANIMATION_MS);
+      }
+      function renderRoster() {
+        const colors=['#d3f769','#a3cbe0','#edb7a1','#baa9ed','#edda8a','#b4dfc2','#e6accc','#b5bc93'];
+        $('roster').innerHTML=state.players.map((p,index)=>{
+          const active=state.phase==='playing'&&state.activeId===p.id,out=state.phase!=='lobby'&&(!p.connected||p.hp<=0);
+          const badges=[p.id===me?'YOU':'',p.id===state.hostId&&mode!=='practice'?'HOST':'',active?'TURN':'',!p.connected?'LEFT':out?'OUT':''].filter(Boolean).map(esc).join(' · ');
+          const hp=state.phase==='lobby'?'READY':out?'OUT':p.hp+' <span>HP</span>';
+          return '<div class="player'+(active?' active':'')+(out?' out':'')+'"><div class="avatar" style="background:'+colors[index%colors.length]+'">'+esc(Array.from(p.name)[0]?.toUpperCase()||'?')+'</div><div class="player-body"><div class="player-name">'+esc(p.name)+'</div><div class="player-meta">'+badges+'</div>'+(state.phase!=='lobby'?'<div class="hp-track"><div class="hp-fill" style="width:'+Math.max(0,Math.min(100,p.hp))+'%;'+(p.hp<=30?'background:#ff8871':'')+'"></div></div>':'')+'</div><div class="player-hp">'+hp+'</div></div>';
+        }).join('');
+        if(state.phase==='lobby') {
+          const empty=state.max-FlipRules.joined(state).length;
+          for(let i=0;i<empty;i++) $('roster').insertAdjacentHTML('beforeend','<div class="empty-slot">'+icon('plus')+'<span>Waiting for a friend…</span></div>');
+        }
+      }
+      function renderWinner() {
+        if(state.phase!=='finished' || state.busy || uiAnimating) return;
+        const champion=state.players.find(p=>p.id===state.winnerId);
+        $('winnerTitle').textContent=champion?(champion.id===me?'You win!':champion.name+' wins!'):'No players remain.';
+        $('winnerSubtitle').textContent=champion?'The flips were risky. The victory is yours.':'Return to the lobby to start again.';
+        $('winnerLands').textContent=champion?.lands||0; $('winnerStreak').textContent=champion?.bestStreak||0;
+        $('rematchButton').disabled=!isOwner()||FlipRules.joined(state).length<2;
+        $('rematchButton').innerHTML=isOwner()?'Play again'+icon('flip'):'Waiting for the host…';
+        $('winnerLobbyButton').hidden=!isOwner();
+        if(shownWinnerRound!==state.round) {shownWinnerRound=state.round;dialogOpen('winnerDialog');sound('win');announce(champion?champion.name+' is the last player standing.':'The round ended.');}
+      }
+      function render() {
+        const playing=!!state;
+        $('setupView').hidden=playing; $('lobbyView').hidden=!playing;
+        $('connectionLabel').textContent=mode==='practice'?'PRACTICE MODE':playing?'ROOM ONLINE':'FREE MULTIPLAYER';
+        if(!state) {
+          $('roundLabel').textContent='READY WHEN YOU ARE'; $('turnEyebrow').textContent='MAKE IT COUNT'; $('turnName').textContent='Your next streak starts here.';
+          $('stackNumber').textContent='0'; $('damageValue').classList.remove('hot'); $('flipButton').disabled=true; $('flipButtonLabel').textContent='Create a lobby to play';
+          $('arenaHint').textContent='Stop the marker in the red. Green is the lowest chance.'; return;
+        }
+        if(state.last?.kind==='flip' && state.last.seq>seenFlip) animateFlip(state.last);
+        if(!state.last && !uiAnimating) { resetBottle(); dialogClose('winnerDialog'); }
+        const waiting=state.phase==='lobby',finished=state.phase==='finished',busy=state.busy||uiAnimating;
+        const active=state.players.find(p=>p.id===state.activeId),self=state.players.find(p=>p.id===me),survivors=FlipRules.live(state).length,joined=FlipRules.joined(state).length;
+        $('lobbyEyebrow').textContent=mode==='practice'?'PRACTICE ROOM':isOwner()?'YOUR LOBBY':'FRIEND’S LOBBY';
+        $('lobbyTitle').textContent=waiting?'The crew is assembling.':finished?'We have a champion.':'Last player standing.';
+        $('inviteArea').hidden=mode==='practice'; $('practiceNote').hidden=mode!=='practice'; $('roomCode').textContent=roomCode;
+        $('playerCount').textContent=waiting?joined+' / '+state.max:survivors+' / '+state.players.length+' ALIVE'; renderRoster();
+        $('limitControl').hidden=!waiting||!isOwner()||mode==='practice'; $('lobbyMax').value=String(state.max);
+        for(const option of $('lobbyMax').options) option.disabled=Number(option.value)<joined;
+        $('startButton').hidden=!waiting&&!finished;
+        $('startButton').disabled=!isOwner()||joined<2||busy;
+        $('startButton').textContent=finished?(isOwner()?'Play again':'Waiting for rematch…'):!isOwner()?'Waiting for the host…':joined<2?'Waiting for players':'Start game';
+        $('lobbyHint').hidden=!waiting&&!finished;
+        $('lobbyHint').textContent=finished?(joined<2?'Invite another player from the lobby.':'A fresh round. A fresh random starter.'):isOwner()?(joined<2?'Invite at least one friend to start.':'The first player will be chosen at random.'):'You’re in! The host will start the game.';
+        $('backLobbyButton').hidden=!finished||!isOwner(); $('backLobbyButton').disabled=busy;
+        $('leaveLabel').textContent=mode==='practice'?'Exit practice':isOwner()?'Close lobby':'Leave lobby';
+        $('roundLabel').textContent=waiting?'WAITING FOR FRIENDS':finished?'ROUND COMPLETE':'ROUND '+state.round+' · TURN '+state.turn;
+        $('stackNumber').textContent=String(state.stack); $('damageValue').classList.toggle('hot',state.stack>0);
+        if(busy && state.last) { $('turnEyebrow').textContent='BOTTLE IN THE AIR'; $('turnName').textContent=state.last.actorName+' is flipping…'; }
+        else if(waiting) { $('turnEyebrow').textContent='LOBBY OPEN'; $('turnName').textContent='Bring your friends to the table.'; }
+        else if(finished) { $('turnEyebrow').textContent='LAST PLAYER STANDING'; $('turnName').textContent=state.players.find(p=>p.id===state.winnerId)?.name||'Round over'; }
+        else { $('turnEyebrow').textContent=active?.id===me?'YOUR TURN':'CURRENT TURN'; $('turnName').textContent=active?.id===me?'Make your flip count.':(active?.name||'Next player')+'’s turn'; }
+        const canFlip=state.phase==='playing'&&state.activeId===me&&!busy&&!requestPending;
+        $('flipButton').disabled=!canFlip;
+        $('flipButtonLabel').textContent=waiting?'Waiting for the game to start':busy?'Flipping…':finished?'Round complete':requestPending?'Sending flip…':self?.hp<=0?'You’re out — watch the battle':canFlip?'Flip the bottle':'Watching '+(active?.name||'the next player');
+        if(waiting) $('arenaHint').textContent='A random player starts. Everyone begins with 100 HP.';
+        else if(busy) $('arenaHint').textContent='Will it land? The stack is on the line.';
+        else if(finished) $('arenaHint').textContent='One bottle. One champion. Ready for a rematch?';
+        else if(canFlip) $('arenaHint').textContent=state.stack>0?'You landed! Flip again. '+state.stack+' damage is waiting for the next player.':'Click or press Space. Red gives you the best landing chance.';
+        else if(self?.hp<=0) $('arenaHint').textContent='You have been eliminated. Stay for the result or the next round.';
+        else $('arenaHint').textContent=(active?.name||'The active player')+' keeps flipping until they miss.';
+        $('activityArea').hidden=state.events.length===0;
+        $('activityList').innerHTML=state.events.slice(0,4).map(event=>'<div class="activity-item'+(event.hit?' hit':'')+'">'+esc(event.text)+'</div>').join('');
+        if(!busy && !waiting && !finished && active) announce(active.name+'’s turn. '+state.stack+' damage stacked.');
+        renderWinner();
+      }
+      function updateMeter(now) {
+        if(!state?.busy && !uiAnimating && !requestPending) aim=.5-.5*Math.cos((now-meterEpoch)/850);
+        const percentage=Math.round(FlipRules.chance(aim)*100);
+        $('needle').style.left=(aim*100)+'%';
+        if(now-lastMeter>90) { $('chanceNumber').textContent=percentage+'%'; $('timingMeter').setAttribute('aria-valuenow',String(percentage)); lastMeter=now; }
+        requestAnimationFrame(updateMeter);
+      }
+      async function copy(value,message) {
+        try { await navigator.clipboard.writeText(value); $('copyStatus').textContent=message; $('copyFallback').hidden=true; }
+        catch { $('copyFallback').value=value; $('copyFallback').hidden=false; $('copyFallback').focus(); $('copyFallback').select(); $('copyStatus').textContent='Select and copy the text below.'; }
+      }
+      function requestLeave() {
+        if(mode==='practice') {cleanup();return;}
+        $('leaveMessage').textContent=mode==='host'?'You are the host. Leaving closes this room for everyone.':'Leaving during the game counts as a forfeit. Your current stack will pass to the next player.';
+        dialogOpen('leaveDialog');
+      }
+      function leave() {
+        if(mode==='host') for(const record of connections.values()) safeSend(record.conn,{type:'host-left'});
+        else if(mode==='guest') safeSend(hostConnection,{type:'leave'});
+        cleanup();
+      }
+      $('hostTab').addEventListener('click',()=>setTab('host'));
+      $('joinTab').addEventListener('click',()=>setTab('join'));
+      for(const id of ['hostTab','joinTab']) $(id).addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();setTab(event.key==='Home'?'host':event.key==='End'?'join':setupTab==='host'?'join':'host',true);}});
+      $('createButton').addEventListener('click',createLobby); $('joinButton').addEventListener('click',joinLobby); $('practiceButton').addEventListener('click',practice);
+      $('joinCode').addEventListener('input',()=>{$('joinCode').value=$('joinCode').value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,6);});
+      $('joinCode').addEventListener('keydown',event=>{if(event.key==='Enter')joinLobby();});
+      $('nickname').addEventListener('keydown',event=>{if(event.key==='Enter')setupTab==='host'?createLobby():$('joinCode').focus();});
+      $('flipButton').addEventListener('click',requestFlip); $('startButton').addEventListener('click',startGame); $('rematchButton').addEventListener('click',startGame);
+      $('backLobbyButton').addEventListener('click',backToLobby); $('winnerLobbyButton').addEventListener('click',backToLobby);
+      $('lobbyMax').addEventListener('change',()=>{if(isOwner()&&state){if(FlipRules.setMax(state,Number($('lobbyMax').value)))emit();else render();}});
+      $('copyCodeButton').addEventListener('click',()=>copy(roomCode,'Room code copied!'));
+      $('inviteButton').addEventListener('click',()=>{const url=new URL(location.href);url.searchParams.set('room',roomCode);url.hash='';copy(url.href,'Invite copied! Send it to your friends.');});
+      $('leaveButton').addEventListener('click',requestLeave); $('confirmLeaveButton').addEventListener('click',leave);
+      $('cancelLeaveButton').addEventListener('click',()=>dialogClose('leaveDialog')); $('cancelLeaveX').addEventListener('click',()=>dialogClose('leaveDialog'));
+      $('rulesButton').addEventListener('click',()=>dialogOpen('rulesDialog')); $('closeRulesButton').addEventListener('click',()=>dialogClose('rulesDialog'));
+      $('closeWinnerButton').addEventListener('click',()=>dialogClose('winnerDialog'));
+      $('soundButton').addEventListener('click',()=>{muted=!muted;$('soundButton').setAttribute('aria-label',muted?'Turn sound on':'Turn sound off');$('soundButton').setAttribute('aria-pressed',String(!muted));$('soundIcon').setAttribute('href',muted?'#i-muted':'#i-volume');sound('land');});
+      document.addEventListener('keydown',event=>{
+        const tag=event.target.tagName;
+        if(event.code==='Space' && !['INPUT','SELECT','TEXTAREA','BUTTON'].includes(tag) && !event.target.isContentEditable) { if(state?.phase==='playing'&&state.activeId===me){event.preventDefault();if(!event.repeat)requestFlip();} }
+      });
+      window.addEventListener('pagehide',()=>{if(mode==='guest')safeSend(hostConnection,{type:'leave'});if(peer&&!peer.destroyed)peer.destroy();});
+      try { const stored=localStorage.getItem('flip-royale-name'); if(stored)$('nickname').value=FlipRules.cleanName(stored); } catch {}
+      const code=new URL(location.href).searchParams.get('room')?.toUpperCase();
+      if(code && /^[A-HJ-NP-Z2-9]{6}$/.test(code)){setTab('join');$('joinCode').value=code;}
+      render(); requestAnimationFrame(updateMeter);
+      /* A narrow read-only hook for automated rule and transport verification. */
+      globalThis.FlipRoyale={getSnapshot:()=>state?JSON.parse(JSON.stringify(state)):null,getMode:()=>mode};
+    })();
+  </script>
+</body>
+</html>
