@@ -148,5 +148,11 @@
     "type": "html",
     "path": "games/BottleFlipGame.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Frutiger Aero Clicker",
+    "type": "html",
+    "path": "games/FA.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
