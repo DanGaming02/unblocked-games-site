@@ -84,9 +84,17 @@
   .dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 2px rgba(9,84,130,.28)}
   .dot.f{background:radial-gradient(circle at 35% 30%,#eafff0,#4ecf77);box-shadow:0 0 7px rgba(78,207,119,.85)}
   .done-msg{font-size:13px;font-weight:800;color:#0b5e8f;margin-top:8px;line-height:1.4}
-  .bp{height:10px;border-radius:6px;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 3px rgba(9,84,130,.25);margin-top:11px;overflow:hidden}
+  .bprow{display:flex;align-items:center;gap:9px;margin-top:11px}
+  .bp{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.55);box-shadow:inset 0 1px 3px rgba(9,84,130,.25);overflow:hidden}
   .bp i{display:block;height:100%;width:0;border-radius:6px;
     background:linear-gradient(180deg,#b9f2c9,#4ecf77);box-shadow:0 0 8px rgba(78,207,119,.8);transition:width .2s linear}
+  #bpTime{font-size:13px;font-weight:900;color:#0b5e8f;min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
+
+  /* floating build timer above the site */
+  #siteTimer{position:absolute;z-index:4;display:none;transform:translate(-50%,-100%);
+    padding:4px 14px;font-weight:900;font-size:13.5px;color:#0b5e8f;pointer-events:none;white-space:nowrap;
+    border-radius:999px;animation:chipBob 1s ease-in-out infinite alternate}
+  @keyframes chipBob{from{margin-top:0}to{margin-top:-5px}}
 
   .btn-buy{cursor:pointer;font-family:inherit;font-weight:900;color:#0b5e8f;
     border:1px solid rgba(255,255,255,.75);border-radius:12px;
@@ -150,8 +158,8 @@
   .ppY{transform:scaleY(0);transform-origin:50% 100%}
   .ppD{transform:translateY(-46px);opacity:0}
   .ppO{opacity:0;transition:opacity .8s ease}
-  .pop-in{transform:scale(1) translateY(0)!important;opacity:1!important}
-  #lhB{transform-box:view-box;transform-origin:180px 632px;animation:beamSpin 9s linear infinite}
+  .pop-in{transform:none;opacity:1}
+  #lhB{transform-box:view-box;transform-origin:180px 571px;animation:beamSpin 9s linear infinite}
   @keyframes beamSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
   .rip{fill:none;stroke:#fff;stroke-width:3;transform-box:fill-box;transform-origin:center;
     animation:rip .95s cubic-bezier(.2,.6,.4,1) forwards}
@@ -246,10 +254,10 @@
       <stop offset=".55" stop-color="#cdeffb" stop-opacity=".5"/>
       <stop offset="1" stop-color="#9fd4f0" stop-opacity=".55"/>
     </radialGradient>
-    <linearGradient id="beamGL" gradientUnits="userSpaceOnUse" x1="180" y1="632" x2="-150" y2="632">
+    <linearGradient id="beamGL" gradientUnits="userSpaceOnUse" x1="180" y1="571" x2="-150" y2="571">
       <stop offset="0" stop-color="#fff3b0" stop-opacity=".5"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/>
     </linearGradient>
-    <linearGradient id="beamGR" gradientUnits="userSpaceOnUse" x1="180" y1="632" x2="510" y2="632">
+    <linearGradient id="beamGR" gradientUnits="userSpaceOnUse" x1="180" y1="571" x2="510" y2="571">
       <stop offset="0" stop-color="#fff3b0" stop-opacity=".5"/><stop offset="1" stop-color="#fff3b0" stop-opacity="0"/>
     </linearGradient>
     <filter id="blur4"><feGaussianBlur stdDeviation="4"/></filter>
@@ -289,7 +297,7 @@
       </g></g>
   </g>
 
-  <!-- LANDMARK 3 : rainbow -->
+  <!-- LANDMARK 3 : rainbow — appears instantly, no construction -->
   <g id="lm2" class="lm">
     <g fill="none" stroke-width="15">
       <path class="rb" pathLength="1" d="M240 700 A380 380 0 0 1 1000 700" stroke="#ff98a0"/>
@@ -305,7 +313,7 @@
   <path d="M0 618 C120 556 240 548 360 586 C470 620 560 596 660 566 C770 536 880 548 980 586 C1090 626 1200 622 1300 588 C1400 556 1500 566 1600 606" fill="none" stroke="#eaffdc" stroke-width="4" opacity=".45"/>
   <g id="peopleB"></g>
 
-  <!-- LANDMARK 2 : glass skyscraper + crane -->
+  <!-- LANDMARK 2 : glass skyscraper + crane + door -->
   <g id="lm1" class="lm">
     <g id="twr">
       <rect x="1211" y="432" width="78" height="300" rx="7" fill="url(#towerG)" stroke="#8fd0ea" stroke-width="1.5"/>
@@ -324,6 +332,10 @@
       <circle cx="1250" cy="394" r="5" fill="#ff7b7b">
         <animate attributeName="opacity" values="1;.15;1" dur="1.6s" repeatCount="indefinite"/>
       </circle>
+    </g>
+    <g id="twD" class="pp">
+      <path d="M1235 732 v-26 a15 15 0 0 1 30 0 v26 z" fill="#0d6da3" opacity=".9"/>
+      <path d="M1235 732 v-26 a15 15 0 0 1 30 0 v26" fill="none" stroke="#9fd4f0" stroke-width="2"/>
     </g>
   </g>
   <g id="cons1" class="cons">
@@ -441,35 +453,38 @@
     <ellipse id="m3b" class="pp" cx="1522" cy="704" rx="20" ry="5" fill="#6ba84f"/>
   </g>
 
-  <!-- LANDMARK 6 : cozy cottages -->
+  <!-- LANDMARK 6 : big cozy cottages (person-sized doors) -->
   <g id="lm5" class="lm">
-    <ellipse cx="955" cy="712" rx="120" ry="8" fill="#2c7a3d" opacity=".22"/>
-    <g id="ch1w" class="ppY">
-      <rect x="864" y="650" width="72" height="58" rx="6" fill="#f4ead2" stroke="#d9c39a"/>
-      <rect x="864" y="650" width="72" height="10" rx="5" fill="#fff" opacity=".5"/>
-      <rect x="918" y="622" width="12" height="22" rx="2" fill="#c96f4a"/>
-      <circle cx="882" cy="672" r="7" fill="#fffbd6" stroke="#e8cf8f" stroke-width="2"/>
-      <g fill="#fff" opacity=".8">
-        <circle cx="924" cy="616" r="3">
-          <animate attributeName="cy" values="616;594" dur="3s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values=".7;0" dur="3s" repeatCount="indefinite"/>
-        </circle>
-        <circle cx="927" cy="616" r="2.4">
-          <animate attributeName="cy" values="616;594" dur="3s" begin="-1.5s" repeatCount="indefinite"/>
-          <animate attributeName="opacity" values=".7;0" dur="3s" begin="-1.5s" repeatCount="indefinite"/>
-        </circle>
+    <ellipse cx="880" cy="708" rx="105" ry="10" fill="#2c7a3d" opacity=".22"/>
+    <ellipse cx="1064" cy="714" rx="92" ry="9" fill="#2c7a3d" opacity=".22"/>
+    <g transform="translate(880 706) scale(1.9) translate(-900 -708)">
+      <g id="ch1w" class="ppY">
+        <rect x="864" y="650" width="72" height="58" rx="6" fill="#f4ead2" stroke="#d9c39a"/>
+        <rect x="864" y="650" width="72" height="10" rx="5" fill="#fff" opacity=".5"/>
+        <rect x="918" y="622" width="12" height="22" rx="2" fill="#c96f4a"/>
+        <circle cx="882" cy="672" r="7" fill="#fffbd6" stroke="#e8cf8f" stroke-width="2"/>
+        <g fill="#fff" opacity=".8">
+          <circle cx="924" cy="616" r="3">
+            <animate attributeName="cy" values="616;594" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".7;0" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="927" cy="616" r="2.4">
+            <animate attributeName="cy" values="616;594" dur="3s" begin="-1.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values=".7;0" dur="3s" begin="-1.5s" repeatCount="indefinite"/>
+          </circle>
+        </g>
+      </g>
+      <g id="ch1r" class="ppD">
+        <path d="M856 654 L900 616 L944 654 Z" fill="url(#roofR)" stroke="#d97b5a" stroke-width="1.5"/>
+        <path d="M862 650 L898 620" stroke="#fff" stroke-width="3" opacity=".4" stroke-linecap="round"/>
+      </g>
+      <g id="ch1d" class="pp">
+        <path d="M890 708 v-18 a10 10 0 0 1 20 0 v18 z" fill="#a06a3c"/>
+        <path d="M890 708 v-18 a10 10 0 0 1 20 0 v18" fill="none" stroke="#7d5228" stroke-width="1.6"/>
+        <circle cx="906" cy="695" r="1.6" fill="#ffe9a8"/>
       </g>
     </g>
-    <g id="ch1r" class="ppD">
-      <path d="M856 654 L900 616 L944 654 Z" fill="url(#roofR)" stroke="#d97b5a" stroke-width="1.5"/>
-      <path d="M862 650 L898 620" stroke="#fff" stroke-width="3" opacity=".4" stroke-linecap="round"/>
-    </g>
-    <g id="ch1d" class="pp">
-      <path d="M890 708 v-18 a10 10 0 0 1 20 0 v18 z" fill="#a06a3c"/>
-      <path d="M890 708 v-18 a10 10 0 0 1 20 0 v18" fill="none" stroke="#7d5228" stroke-width="1.6"/>
-      <circle cx="906" cy="695" r="1.6" fill="#ffe9a8"/>
-    </g>
-    <g transform="translate(112 42.5) scale(.94)">
+    <g transform="translate(1064 712) scale(1.7) translate(-900 -708)">
       <g id="ch2w" class="ppY">
         <rect x="864" y="650" width="72" height="58" rx="6" fill="#eef7ec" stroke="#bcd9be"/>
         <rect x="864" y="650" width="72" height="10" rx="5" fill="#fff" opacity=".55"/>
@@ -488,33 +503,34 @@
     </g>
   </g>
   <g id="cons5" class="cons">
-    <rect x="1088" y="694" width="26" height="16" rx="2" fill="#c96f4a" opacity=".85"/>
-    <rect x="1092" y="688" width="18" height="6" rx="2" fill="#e8a06a" opacity=".85"/>
-    <rect x="816" y="700" width="22" height="8" rx="2" fill="#c96f4a" opacity=".7"/>
+    <rect x="742" y="700" width="30" height="18" rx="3" fill="#c96f4a" opacity=".85"/>
+    <rect x="748" y="692" width="20" height="8" rx="2" fill="#e8a06a" opacity=".85"/>
+    <rect x="1148" y="702" width="26" height="16" rx="2" fill="#c96f4a" opacity=".85"/>
+    <rect x="1154" y="694" width="18" height="8" rx="2" fill="#e8a06a" opacity=".85"/>
   </g>
 
-  <!-- LANDMARK 8 : glass dome -->
+  <!-- LANDMARK 8 : big glass dome with walk-in door -->
   <g id="lm7" class="lm">
-    <ellipse cx="320" cy="704" rx="70" ry="9" fill="#2c7a3d" opacity=".22"/>
+    <ellipse cx="320" cy="706" rx="92" ry="11" fill="#2c7a3d" opacity=".22"/>
     <g id="dmRing" class="ppB">
-      <rect x="254" y="696" width="132" height="10" rx="5" fill="#e8f4fa" stroke="#bcd9e6"/>
+      <rect x="240" y="696" width="160" height="12" rx="6" fill="#e8f4fa" stroke="#bcd9e6"/>
     </g>
     <g id="dmGlass" class="ppB">
-      <path d="M262 700 A58 58 0 0 1 378 700 Z" fill="url(#domeG)" stroke="#bfe6f7" stroke-width="2"/>
+      <path d="M248 700 A72 72 0 0 1 392 700 Z" fill="url(#domeG)" stroke="#bfe6f7" stroke-width="2"/>
       <g id="dmPlants" class="ppO">
-        <circle cx="300" cy="686" r="10" fill="#57c466"/><circle cx="322" cy="678" r="13" fill="#4cb85c"/><circle cx="344" cy="688" r="8" fill="#57c466"/>
-        <ellipse cx="316" cy="668" rx="5" ry="8" fill="#2f9e4c"/><ellipse cx="328" cy="670" rx="4" ry="7" fill="#2f9e4c"/>
+        <circle cx="284" cy="680" r="12" fill="#57c466"/><circle cx="316" cy="668" r="15" fill="#4cb85c"/><circle cx="350" cy="682" r="10" fill="#57c466"/>
+        <ellipse cx="300" cy="656" rx="6" ry="10" fill="#2f9e4c"/><ellipse cx="318" cy="650" rx="5" ry="9" fill="#2f9e4c"/>
       </g>
-      <path d="M276 660 A50 50 0 0 1 316 646" stroke="#fff" stroke-width="5" fill="none" opacity=".6" stroke-linecap="round"/>
-      <ellipse cx="298" cy="668" rx="10" ry="16" fill="#fff" opacity=".35" transform="rotate(-24 298 668)"/>
+      <path d="M266 654 A62 62 0 0 1 312 634" stroke="#fff" stroke-width="6" fill="none" opacity=".6" stroke-linecap="round"/>
+      <ellipse cx="288" cy="662" rx="12" ry="20" fill="#fff" opacity=".35" transform="rotate(-24 288 662)"/>
     </g>
     <g id="dmD" class="pp">
-      <path d="M308 700 v-14 a12 12 0 0 1 24 0 v14 z" fill="#dff4ff" stroke="#8fd0ea" stroke-width="2"/>
+      <path d="M304 700 v-24 a16 16 0 0 1 32 0 v24 z" fill="#dff4ff" stroke="#8fd0ea" stroke-width="2"/>
     </g>
   </g>
   <g id="cons7" class="cons">
-    <rect x="384" y="692" width="24" height="14" rx="2" fill="#c9d8e2" opacity=".9"/>
-    <rect x="240" y="696" width="18" height="10" rx="2" fill="#c9d8e2" opacity=".8"/>
+    <rect x="404" y="690" width="26" height="16" rx="2" fill="#c9d8e2" opacity=".9"/>
+    <rect x="206" y="694" width="20" height="12" rx="2" fill="#c9d8e2" opacity=".8"/>
   </g>
 
   <!-- front crew walks here -->
@@ -536,32 +552,38 @@
   <ellipse cx="800" cy="742" rx="115" ry="16" fill="#fff" opacity=".3" filter="url(#blur4)"/>
   <use href="#dropShape" transform="matrix(1 0 0 -1 0 1380)" fill="url(#dropG)" opacity=".13" filter="url(#blur4)"/>
 
-  <!-- LANDMARK 9 : lighthouse -->
+  <!-- LANDMARK 9 : big lighthouse with door -->
   <g id="lm8" class="lm">
-    <g id="lhR">
-      <ellipse class="pp" cx="180" cy="770" rx="34" ry="12" fill="#9aa7ad"/>
-      <ellipse class="pp" cx="158" cy="776" rx="18" ry="8" fill="#b4bfc4"/>
-      <ellipse class="pp" cx="202" cy="774" rx="16" ry="7" fill="#8a979d"/>
-    </g>
-    <g id="lhT" class="ppY">
-      <path d="M166 768 L174 652 L186 652 L194 768 Z" fill="#f6fbfd" stroke="#cfe3ec"/>
-      <g clip-path="url(#lhC)">
-        <rect x="158" y="744" width="44" height="14" fill="#ff8f8f"/>
-        <rect x="158" y="712" width="44" height="14" fill="#ff8f8f"/>
-        <rect x="158" y="680" width="44" height="14" fill="#ff8f8f"/>
-        <rect x="158" y="748" width="44" height="6" fill="#fff" opacity=".35"/>
+    <g transform="translate(180 768) scale(1.45) translate(-180 -768)">
+      <g id="lhR">
+        <ellipse class="pp" cx="180" cy="770" rx="34" ry="12" fill="#9aa7ad"/>
+        <ellipse class="pp" cx="158" cy="776" rx="18" ry="8" fill="#b4bfc4"/>
+        <ellipse class="pp" cx="202" cy="774" rx="16" ry="7" fill="#8a979d"/>
       </g>
-      <rect x="171" y="700" width="7" height="52" rx="3" fill="#fff" opacity=".45"/>
+      <g id="lhT" class="ppY">
+        <path d="M166 768 L174 652 L186 652 L194 768 Z" fill="#f6fbfd" stroke="#cfe3ec"/>
+        <g clip-path="url(#lhC)">
+          <rect x="158" y="744" width="44" height="14" fill="#ff8f8f"/>
+          <rect x="158" y="712" width="44" height="14" fill="#ff8f8f"/>
+          <rect x="158" y="680" width="44" height="14" fill="#ff8f8f"/>
+          <rect x="158" y="748" width="44" height="6" fill="#fff" opacity=".35"/>
+        </g>
+        <rect x="171" y="700" width="7" height="52" rx="3" fill="#fff" opacity=".45"/>
+      </g>
+      <g id="lhP" class="pp">
+        <rect x="168" y="640" width="24" height="6" rx="3" fill="#dfeff7"/>
+        <rect x="171" y="624" width="18" height="16" rx="3" fill="#fff7cf" stroke="#cfe3ec"/>
+        <circle cx="180" cy="632" r="5" fill="#ffdf6b"/>
+        <path d="M168 624 L180 610 L192 624 Z" fill="#e85555"/>
+      </g>
     </g>
-    <g id="lhP" class="pp">
-      <rect x="168" y="640" width="24" height="6" rx="3" fill="#dfeff7"/>
-      <rect x="171" y="624" width="18" height="16" rx="3" fill="#fff7cf" stroke="#cfe3ec"/>
-      <circle cx="180" cy="632" r="5" fill="#ffdf6b"/>
-      <path d="M168 624 L180 610 L192 624 Z" fill="#e85555"/>
+    <g id="lhD" class="pp">
+      <path d="M169 768 v-24 a11 11 0 0 1 22 0 v24 z" fill="#7d5228" stroke="#5d3a1a" stroke-width="1.5"/>
+      <circle cx="186" cy="754" r="1.6" fill="#ffe9a8"/>
     </g>
     <g id="lhB" class="ppO">
-      <polygon points="180,632 -160,612 -160,652" fill="url(#beamGL)"/>
-      <polygon points="180,632 520,612 520,652" fill="url(#beamGR)"/>
+      <polygon points="180,571 -160,551 -160,591" fill="url(#beamGL)"/>
+      <polygon points="180,571 520,551 520,591" fill="url(#beamGR)"/>
     </g>
   </g>
 
@@ -605,7 +627,7 @@
     <animate attributeName="opacity" values=".35;1;.35" dur="2.6s" repeatCount="indefinite"/>
   </text>
 
-  <!-- LANDMARK 7 : hot-air balloon (drift driven by JS) -->
+  <!-- LANDMARK 7 : hot-air balloon (JS-driven drift) -->
   <g id="lm6" class="lm">
     <g id="lm6drift"><g id="lm6sc">
       <g>
@@ -625,7 +647,7 @@
     <line x1="710" y1="600" x2="738" y2="702" stroke="#7a4a26" stroke-width="1.6"/>
   </g>
 
-  <!-- the big clickable drop (bigger hitbox) -->
+  <!-- the big clickable drop -->
   <g id="dropZone" transform="translate(0,64)">
     <g>
       <animateTransform attributeName="transform" type="translate" values="0 0;0 -12;0 0" dur="3.6s" repeatCount="indefinite"
@@ -649,6 +671,7 @@
 <canvas id="fx"></canvas>
 <div id="floaters"></div>
 <div id="flash"></div>
+<div id="siteTimer" class="glass">⏱ 0:45</div>
 
 <div class="hud-top">
   <div class="counter glass">
@@ -715,30 +738,30 @@ const UPGRADES=[
   {id:'cnn',name:'Hydro Cannon',  desc:'+260 per click',   icon:'cnn',base:65000, growth:1.15,type:'click',val:260},
   {id:'pri',name:'Prism Core',    desc:'×1.5 everything',  icon:'pri',base:150000,growth:5,   type:'gm',   val:1.5},
 ];
-/* Landmark project — much more expensive now, crew builds each one live */
+/* dur = max seconds with the smallest crew (more crew = faster) */
 const LANDMARKS=[
-  {name:'Glossy Tree',    cost:2.5e3,  dur:9 },
-  {name:'Glass Skyscraper',cost:2e4,   dur:11},
-  {name:'Rainbow',        cost:1.5e5,  dur:10},
-  {name:'Wind Turbines',  cost:1e6,    dur:10},
-  {name:'Ferris Wheel',   cost:8e6,    dur:10},
-  {name:'Cozy Cottages',  cost:6e7,    dur:10},
-  {name:'Hot-Air Balloon',cost:5e8,    dur:9 },
-  {name:'Glass Dome',     cost:4e9,    dur:9 },
-  {name:'Lighthouse',     cost:3e10,   dur:10},
-  {name:'Aero Fountain',  cost:2.5e11, dur:8 },
+  {name:'Glossy Tree',    cost:2.5e3,  dur:45},
+  {name:'Glass Skyscraper',cost:2e4,   dur:55},
+  {name:'Rainbow',        cost:1.5e5,  instant:true},
+  {name:'Wind Turbines',  cost:1e6,    dur:50},
+  {name:'Ferris Wheel',   cost:8e6,    dur:55},
+  {name:'Cozy Cottages',  cost:6e7,    dur:60},
+  {name:'Hot-Air Balloon',cost:5e8,    dur:45},
+  {name:'Glass Dome',     cost:4e9,    dur:50},
+  {name:'Lighthouse',     cost:3e10,   dur:55},
+  {name:'Aero Fountain',  cost:2.5e11, dur:40},
 ];
 const SITES=[
-  {x:520, spots:[[496,706],[546,708],[472,702],[562,700]]},
-  {x:1250,spots:[[1176,716],[1316,718],[1210,728],[1298,714]]},
-  {x:620, spots:[[252,692],[986,690],[620,700]]},
-  {x:1470,spots:[[1382,714],[1458,712],[1494,716],[1546,714]]},
-  {x:135, spots:[[92,712],[182,714],[228,706]]},
-  {x:955, spots:[[846,716],[952,712],[1064,714],[1108,708]]},
-  {x:700, spots:[[656,708],[700,714],[748,706]]},
-  {x:320, spots:[[268,700],[376,702],[320,712]]},
-  {x:180, spots:[[248,700],[300,706],[350,712]]},
-  {x:600, spots:[[560,716],[646,712],[520,714]]},
+  {x:520, ty:470, spots:[[494,706],[548,708],[470,702],[560,700]]},
+  {x:1250,ty:390, spots:[[1160,716],[1330,718],[1200,728],[1300,714]]},
+  {x:620, ty:470, spots:[[300,692],[940,690]]},
+  {x:1470,ty:430, spots:[[1380,714],[1456,712],[1496,716],[1548,714]]},
+  {x:135, ty:360, spots:[[88,712],[186,714],[230,706]]},
+  {x:975, ty:490, spots:[[790,708],[968,706],[1150,712],[1000,700]]},
+  {x:700, ty:420, spots:[[660,708],[706,714],[752,706]]},
+  {x:320, ty:560, spots:[[246,700],[398,700],[322,706]]},
+  {x:180, ty:510, spots:[[238,768],[292,772],[128,772]]},
+  {x:600, ty:650, spots:[[558,716],[646,712],[520,714]]},
 ];
 const ICONS={
   sqg:`<svg viewBox="0 0 24 24"><rect x="11.1" y="2.6" width="1.8" height="10.4" rx=".9" fill="${C}"/><rect x="4.6" y="13" width="14.8" height="4.6" rx="2.3" fill="${C}"/><circle cx="8" cy="20.4" r="1.1" fill="${C}" opacity=".55"/><circle cx="13" cy="20.9" r=".9" fill="${C}" opacity=".4"/></svg>`,
@@ -781,8 +804,11 @@ function fmt(n){
   while(n>=1000&&i<u.length-1){n/=1000;i++}
   return (n<100?n.toFixed(1):Math.floor(n))+u[i];
 }
+const fmtTime=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
 function cost(u){return Math.ceil(u.base*Math.pow(u.growth,state.owned[u.id]||0))}
 const prestige=()=>Math.pow(5,state.rebirths||0);
+/* build time: base duration, shrinks with crew — always between 10s and 60s */
+function buildTime(L){return Math.max(10,Math.min(60,L.dur*Math.pow(2/Math.max(2,people.length),.5)))}
 
 function recalc(){
   let fc=0,fs=0,cm=1,gm=1;
@@ -856,17 +882,14 @@ function refreshPanel(){
     rb.classList.toggle('can',building===null&&state.drops>=c);}
   let affordable=state.special<LANDMARKS.length&&building===null&&state.drops>=LANDMARKS[state.special].cost;
   if(!affordable)for(const u of UPGRADES){if(state.drops>=cost(u)){affordable=true;break}}
-  notifyEl.classList.toggle('show',affordable&&!panelOpen);
-  document.title=fmt(state.drops)+' · AeroClick';
+  notifyEl.classList.toggle('show',!panelOpen&&(affordable||building!==null));
+  if(building===null)document.title=fmt(state.drops)+' · AeroClick';
 }
 
-/* ================= THE LITTLE PEOPLE ================= */
+/* ================= THE LITTLE PEOPLE (blue & green only) ================= */
 const PAL=[
   {b1:'#9adcff',b2:'#1478b8',l:'#0d5e94',h1:'#ffffff',h2:'#cdeefb'},
   {b1:'#b2f0bd',b2:'#2f9e4c',l:'#207a38',h1:'#ffffff',h2:'#d8f8de'},
-  {b1:'#ffd9a8',b2:'#f2953f',l:'#c26f1e',h1:'#ffffff',h2:'#ffefd8'},
-  {b1:'#ffc4e2',b2:'#d95fa2',l:'#b03d7e',h1:'#ffffff',h2:'#ffe4f1'},
-  {b1:'#d4c6ff',b2:'#8a6fd9',l:'#6a4fb8',h1:'#ffffff',h2:'#ebe4ff'},
 ];
 (function makePalDefs(){
   const d=$('#scene defs');let s='';
@@ -918,11 +941,11 @@ const peopleB=q('peopleB'),peopleF=q('peopleF');
 
 function addPerson(edge){
   if(people.length>=MAXP)return null;
-  const ci=people.length===0?0:people.length===1?1:2+((Math.random()*(PAL.length-2))|0);
+  const ci=people.length%2; /* strictly alternating blue / green */
   const layer=Math.random()<.35?'B':'F';
   const el=personEl(ci);
   (layer==='B'?peopleB:peopleF).appendChild(el);
-  const p={el,layer,ci,flip:1,state:'idle',t:1+Math.random()*3,after:null,rush:false,faceX:undefined,lastX:undefined,
+  const p={el,layer,ci,flip:1,state:'idle',t:1+Math.random()*3,after:null,rush:false,faceX:undefined,
     s:layer==='B'?.7+Math.random()*.16:.95+Math.random()*.25,
     d:layer==='B'?8+Math.random()*16:16+Math.random()*26};
   p.speed=34*p.s;
@@ -937,10 +960,20 @@ function place(p){
   const fx=p.flip<0?-1:1;
   p.el.setAttribute('transform',`translate(${p.x.toFixed(1)} ${p.y.toFixed(1)}) scale(${(p.s*fx).toFixed(3)} ${p.s.toFixed(3)})`);
 }
+/* doors the little people can walk through (only when that landmark exists) */
+function enterSpots(){
+  const s=[];
+  if(state.special>1)s.push({x:1250,y:729});                 /* skyscraper glass door */
+  if(state.special>5){s.push({x:880,y:704});s.push({x:1064,y:710});} /* cottage doors */
+  if(state.special>7)s.push({x:320,y:698});                  /* dome door */
+  if(state.special>8)s.push({x:180,y:766});                  /* lighthouse door */
+  return s;
+}
 function nextTarget(p){
-  if(state.special>5&&p.layer==='F'&&Math.random()<.15){
-    const d=Math.random()<.5?900:958;      /* walk into a cottage door */
-    p.tx=d;p.d=706-groundY('F',d);p.after='enter';
+  const spots=p.layer==='F'?enterSpots():null;
+  if(spots&&spots.length&&Math.random()<.22){
+    const d=spots[(Math.random()*spots.length)|0];
+    p.tx=d.x;p.d=Math.max(6,d.y-groundY(p.layer,d.x));p.after='enter';
   }else{
     p.tx=40+Math.random()*1520;
     p.d=p.layer==='B'?8+Math.random()*16:16+Math.random()*26;
@@ -1002,84 +1035,74 @@ function pickWorkers(n,site){
     .sort((a,b)=>Math.hypot(a.x-site.x,a.y-site.y)-Math.hypot(b.x-site.x,b.y-site.y))
     .slice(0,n);
 }
+function moveSiteTimer(txt){
+  const chip=q('siteTimer'),site=SITES[building];
+  chip.style.display='block';chip.textContent='⏱ '+txt;
+  const m=q('scene').getScreenCTM();
+  if(!m)return;
+  const p=new DOMPoint(site.x,site.ty).matrixTransform(m);
+  chip.style.left=p.x+'px';chip.style.top=p.y+'px';
+}
 
-/* --- per-landmark build choreographies --- */
+/* --- per-landmark build choreographies (each sums to exactly 1 × duration) --- */
 async function bTree(S){
   show(0);consOn('cons0');popP(q('cons0m'));popP(q('cons0s'),S*.12);
   if(curCrew[0]){curCrew[0].el.classList.remove('working');curCrew[0].el.classList.add('watering');}
-  await tw(S*.34,p=>scY('tr0',692,p));
-  ['lf0','lf1','lf2','lf3'].forEach((id,k)=>popP(q(id),k*210));
+  await tw(S*.45,p=>scY('tr0',692,p));
+  ['lf0','lf1','lf2','lf3'].forEach((id,k)=>popP(q(id),k*260));
   await sleep(S*.2);
-  ['ap0','ap1','ap2'].forEach((id,k)=>popP(q(id),k*180));
+  ['ap0','ap1','ap2'].forEach((id,k)=>popP(q(id),k*220));
   if(curCrew[0]){curCrew[0].el.classList.remove('watering');curCrew[0].el.classList.add('working');}
-  await sleep(S*.1);consOff('cons0');
+  await sleep(S*.35);consOff('cons0');
 }
 async function bTower(S){
   show(1);consOn('cons1');scY('twr',732,0);
-  await tw(S*.6,p=>{scY('twr',732,p);const hy=700-248*p;
+  await tw(S*.68,p=>{scY('twr',732,p);const hy=700-248*p;
     q('hook').setAttribute('transform',`translate(0 ${hy})`);q('cable').setAttribute('y2',hy);});
-  popP(q('ant1'));
-  await sleep(S*.16);
+  popP(q('ant1'));popP(q('twD'));
+  await sleep(S*.18);
   await tw(S*.14,p=>q('cons1').style.opacity=String(1-p));
   consOff('cons1');
 }
-async function bRainbow(S){
-  show(2);
-  const bands=[...document.querySelectorAll('#lm2 .rb')];
-  bands.forEach(b=>{b.style.strokeDasharray='1';b.style.strokeDashoffset='1';});
-  const P=curCrew[0];
-  if(P){P.state='path';
-    const path=q('rb0'),L=path.getTotalLength();let lx=null;
-    await tw(S*.72,p=>{
-      bands.forEach(b=>b.style.strokeDashoffset=String(1-p));
-      const pt=path.getPointAtLength(p*L);
-      if(lx!==null)P.flip=pt.x>=lx?1:-1;lx=pt.x;
-      P.x=pt.x;P.y=pt.y-2;
-    });
-  }
-  bands.forEach(b=>{b.style.strokeDasharray='';b.style.strokeDashoffset='';});
-  await sleep(S*.12);
-}
 async function bTurbs(S){
   show(3);consOn('cons3');popP(q('m3a'));scY('t1s',694,0);scY('t2s',702,0);
-  await tw(S*.13,p=>scY('t1s',694,p));
-  popP(q('tb1'));
-  await sleep(S*.07);
+  await tw(S*.14,p=>scY('t1s',694,p));
+  popP(q('tb1'));await sleep(S*.08);
   popP(q('m3b'));
   await tw(S*.13,p=>scY('t2s',702,p));
   popP(q('tb2'));
-  await sleep(S*.34);consOff('cons3');
+  await sleep(S*.65);consOff('cons3');
 }
 async function bFerris(S){
   show(4);consOn('cons4');popP(q('fwsup'));
-  await sleep(S*.2);
+  await sleep(S*.3);
   popP(q('fwwheel'));
-  await sleep(S*.55);consOff('cons4');
+  await sleep(S*.7);consOff('cons4');
 }
 async function bCottage(S){
   show(5);consOn('cons5');
   popP(q('ch1w'));await sleep(S*.14);popP(q('ch1r'));await sleep(S*.12);popP(q('ch1d'));
-  await sleep(S*.1);
+  await sleep(S*.12);
   popP(q('ch2w'));await sleep(S*.14);popP(q('ch2r'));await sleep(S*.12);popP(q('ch2d'));
-  await sleep(S*.2);consOff('cons5');
+  await sleep(S*.36);consOff('cons5');
 }
 async function bBalloon(S){
   show(6);
   balloon.phase='build';balloon.x=700;balloon.y=566;balloon.sc=.2;
   consOn('cons6');
-  await tw(S*.42,p=>{balloon.sc=.2+.8*p;balloon.y=566-16*p;});
-  await sleep(S*.14);
+  await tw(S*.5,p=>{balloon.sc=.2+.8*p;balloon.y=566-16*p;});
+  await sleep(S*.15);
   consOff('cons6');
-  await tw(S*.24,p=>{balloon.y=550-410*p;balloon.x=700+80*p;});
+  await tw(S*.35,p=>{balloon.y=550-410*p;balloon.x=700+80*p;});
   balloon.phase='drift';
 }
 async function bDome(S){
   show(7);consOn('cons7');popP(q('dmRing'));
-  await sleep(S*.15);
+  await sleep(S*.18);
   popP(q('dmGlass'));
-  await sleep(S*.5);
+  await sleep(S*.52);
   popP(q('dmPlants'));popP(q('dmD'));
-  await sleep(S*.2);consOff('cons7');
+  await sleep(S*.3);consOff('cons7');
 }
 async function bLighthouse(S){
   show(8);
@@ -1087,19 +1110,41 @@ async function bLighthouse(S){
   await sleep(S*.16);
   popP(q('lhT'));await sleep(S*.4);
   popP(q('lhP'));await sleep(S*.14);
-  popP(q('lhB'));await sleep(S*.14);
+  popP(q('lhB'));await sleep(S*.3);
 }
 async function bFountain(S){
   show(9);popP(q('fntB'));
-  await sleep(S*.4);
-  popP(q('fntJ'));
   await sleep(S*.45);
+  popP(q('fntJ'));
+  await sleep(S*.55);
 }
-const BUILDS=[bTree,bTower,bRainbow,bTurbs,bFerris,bCottage,bBalloon,bDome,bLighthouse,bFountain];
+const BUILDS=[bTree,bTower,null,bTurbs,bFerris,bCottage,bBalloon,bDome,bLighthouse,bFountain];
+
+/* rainbow — no construction, it just appears (draws itself in) */
+function revealRainbow(){
+  const el=q('lm2');el.classList.add('on');
+  const bands=[...el.querySelectorAll('.rb')];
+  bands.forEach(b=>{b.style.transition='none';b.style.strokeDasharray='1';b.style.strokeDashoffset='1';});
+  el.getBoundingClientRect();
+  bands.forEach((b,k)=>{
+    b.style.transition=`stroke-dashoffset 1.3s cubic-bezier(.3,0,.2,1) ${k*.12}s`;
+    b.style.strokeDashoffset='0';
+    setTimeout(()=>{b.style.transition='';b.style.strokeDasharray='';b.style.strokeDashoffset='';},1700+k*120);
+  });
+}
 
 function startBuild(i){
+  const L=LANDMARKS[i];
+  if(L.instant){ /* rainbow: magic! */
+    revealRainbow();
+    $('#flash').animate([{opacity:0},{opacity:.55,offset:.2},{opacity:0}],{duration:750});
+    toast(`${LM_ICON[i]}<div><span class="tt">${L.name}</span> appears in the sky · click power ×4 · 2 new builders arrive</div>`);
+    burst(30);sfxLandmark();
+    syncPeople(false);renderSpecial();refreshPanel();save();
+    return;
+  }
   building=i;
-  const L=LANDMARKS[i],site=SITES[i];
+  const site=SITES[i];
   toast(`${LM_ICON[i]}<div>The crew started building <span class="tt">${L.name}</span>…</div>`);
   const n=Math.min(site.spots.length,people.length,4);
   curCrew=pickWorkers(Math.max(1,n),site);
@@ -1108,13 +1153,20 @@ function startBuild(i){
     p.rush=true;p.state='walk';p.after='work';p.faceX=site.x;
     p.tx=sp[0];p.d=Math.max(8,Math.min(sp[1],718)-groundY(p.layer,sp[0]));
   });
-  const D=Math.max(3,L.dur*Math.pow(2/Math.max(2,people.length),.7)),S=D*1000;
-  const t0=performance.now();
-  progTimer=setInterval(()=>setProg(Math.min(.97,(performance.now()-t0)/S)),100);
+  const D=buildTime(L),S=D*1000,t0=performance.now(),end=t0+S;
+  progTimer=setInterval(()=>{
+    const rem=Math.max(0,end-performance.now());
+    setProg(Math.min(.98,1-rem/S));
+    const txt=fmtTime(rem);
+    const bt=q('bpTime');if(bt)bt.textContent=txt;
+    moveSiteTimer(txt);
+    document.title='⏱ '+txt+' · AeroClick';
+  },100);
   tickTimer=setInterval(()=>tone(150+Math.random()*70,80,.06,.03),520);
   curCrew.forEach(p=>p.el.classList.add('working'));
   BUILDS[i](S).then(()=>{
     clearInterval(progTimer);clearInterval(tickTimer);setProg(1);
+    q('siteTimer').style.display='none';
     curCrew.forEach(p=>{
       p.el.classList.remove('working','watering');
       p.el.classList.add('cheer');
@@ -1141,9 +1193,10 @@ function resetLM(i){
   el.classList.remove('on');
   el.querySelectorAll('.pop-in').forEach(e=>e.classList.remove('pop-in'));
   if(i===0)q('tr0').removeAttribute('transform');
-  if(i===1)q('twr').removeAttribute('transform');
+  if(i===1){q('twr').removeAttribute('transform');
+    q('hook').setAttribute('transform','translate(0 700)');q('cable').setAttribute('y2','700');}
   if(i===3){q('t1s').removeAttribute('transform');q('t2s').removeAttribute('transform');}
-  if(i===2)document.querySelectorAll('#lm2 .rb').forEach(b=>{b.style.strokeDasharray='';b.style.strokeDashoffset='';});
+  if(i===2)document.querySelectorAll('#lm2 .rb').forEach(b=>{b.style.transition='';b.style.strokeDasharray='';b.style.strokeDashoffset='';});
   document.querySelectorAll('.cons').forEach(c=>c.style.opacity=0);
 }
 
@@ -1152,11 +1205,10 @@ function renderSpecial(){
   const card=$('#specialCard'),t=state.special;
   const dots=LANDMARKS.map((_,i)=>`<span class="dot${i<t?' f':''}"></span>`).join('');
   if(building!==null){
-    const L=LANDMARKS[building];
     card.innerHTML=`<div class="tag">${STAR} LANDMARK PROJECT · TIER ${building+1}</div>
       <div class="special-main"><div class="lm-icon">${LM_ICON[building]}</div>
-      <div><div class="lm-name">${L.name}</div><div class="lm-eff">under construction…</div></div></div>
-      <div class="bp"><i id="bpFill"></i></div>
+      <div><div class="lm-name">${LANDMARKS[building].name}</div><div class="lm-eff">the crew is building…</div></div></div>
+      <div class="bprow"><div class="bp"><i id="bpFill"></i></div><span id="bpTime">…</span></div>
       <div class="tier-dots">${dots}</div>`;
     return;
   }
@@ -1167,11 +1219,11 @@ function renderSpecial(){
     return;
   }
   const L=LANDMARKS[t];
-  const est=Math.max(3,L.dur*Math.pow(2/Math.max(2,people.length),.7));
+  const timeStr=L.instant?'appears instantly':`≈ ${fmtTime(buildTime(L)*1000)} build`;
   card.innerHTML=`<div class="tag">${STAR} LANDMARK PROJECT · TIER ${t+1}/${LANDMARKS.length}</div>
     <div class="special-main"><div class="lm-icon">${LM_ICON[t]}</div>
       <div><div class="lm-name">${L.name}</div>
-      <div class="lm-eff">Click power ×4 · crew of ${people.length} ${PERSON_MINI} → ~${est.toFixed(0)}s build</div></div></div>
+      <div class="lm-eff">Click power ×4 · ${people.length} builders ${PERSON_MINI} · ${timeStr}</div></div></div>
     <button class="btn-buy buy-big" id="buySpecial"><span>Start building</span><span>${fmt(L.cost)} ${DROP_MINI}</span></button>
     <div class="tier-dots">${dots}</div>`;
   $('#buySpecial').addEventListener('click',buySpecial);
@@ -1213,6 +1265,7 @@ function doRebirth(){
   for(let i=0;i<LANDMARKS.length;i++)resetLM(i);
   balloon.phase='hidden';
   people.slice().forEach(p=>p.el.remove());people.length=0;
+  $('#crewV').textContent=0;
   recalc();renderSpecial();renderRebirth();refreshPanel();syncPeople(false);save();
   $('#flash').animate([{opacity:0},{opacity:.85,offset:.25},{opacity:0}],{duration:1100});
   toast(`${GOLDSTAR}<div><span class="tt">Rebirth!</span> Permanent ×5 bonus &amp; +2 builders joined the valley</div>`);
@@ -1350,7 +1403,7 @@ let armed=false,armT;
   else{clearTimeout(armT);localStorage.removeItem(KEY);location.reload();}
 });
 
-/* ---------------- balloon drift (JS-driven, fixes invisibility) ---------------- */
+/* ---------------- balloon drift ---------------- */
 const balloon={phase:'hidden',x:0,y:140,sc:0};
 function updBalloon(dt){
   if(balloon.phase==='hidden')return;
