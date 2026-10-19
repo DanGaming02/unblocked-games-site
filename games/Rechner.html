@@ -11,7 +11,7 @@ body{color:var(--ink);-webkit-font-smoothing:antialiased}button{-webkit-tap-high
 .fraction:before,.fraction:after{content:none}.fraction i{display:block;width:.55em;height:.55em;border:1px dotted currentColor;font-style:normal}.fraction i:first-child{border-bottom:2px solid currentColor;padding-bottom:2px}.keys .fraction{min-width:.6em;gap:3px}
 /* App-only chrome: the actual device/browser owns clock and connectivity. */
 .status{display:none}.exam .status{display:flex;justify-content:flex-start;height:calc(27 * var(--u));min-height:22px;padding:calc(4 * var(--u)) calc(17 * var(--u));font-size:calc(15 * var(--u));font-weight:400}#timer{left:50%;top:auto;line-height:1}
-html:fullscreen,html:-webkit-full-screen{width:100%;height:100%;background:#fff}#app{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+html:fullscreen,html:-webkit-full-screen{width:100%;height:100%;background:#fff}html.app-fullscreen,html.app-fullscreen body{position:fixed;inset:0;width:100%;height:100%;overflow:hidden;background:#fff}#app{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
 .rail{background:#fdfdfc;border-right-color:#f6f6f4}.algebra{width:calc(34% - 90 * var(--u))}.entry{gap:calc(24 * var(--u));padding-right:calc(23 * var(--u))}.entry input{border-bottom-color:#eaece8}.entry input:focus::placeholder{color:transparent}.rail #menuButton .ui-icon{width:calc(24 * var(--u));height:calc(24 * var(--u))}.rail .icon .ui-icon{stroke-width:2.1}.keyboard{background:#e8e9e6}.keys button{background:#f8f9f5;border-radius:calc(8 * var(--u))}.keys .special{background:#c9cbc8}.tabs .active{background:#b5a5ed}.dialog{background:#fffffd}.primary{background:#6354bd!important}.report header{background:#00866a}.options input{appearance:none;-webkit-appearance:none;border:2px solid #929892;border-radius:50%;position:relative;flex-shrink:0;background:transparent}.options input:checked{border-color:#a49ac9}.options input:checked:after{content:'';position:absolute;inset:3px;background:#6e62b6;border-radius:50%}
 @media(max-width:650px){.algebra{width:31%;min-width:125px}.exam .status{font-size:11px}.entry{gap:9px;padding-right:8px}}
 
@@ -82,33 +82,22 @@ const leftKeys={ '123':['x','y','π','e','□²','□ⁿ','√□','|□|','<','
 function keyboard(tab='123'){const right=['7','8','9','×','÷','4','5','6','+','−','1','2','3','=','⌫','0','.','‹','›','↵'];$('keys').innerHTML='';for(let r=0;r<4;r++){for(let c=0;c<10;c++){if(c===4){$('keys').append(document.createElement('span'));continue}const k=c<4?leftKeys[tab][r*4+c]:right[r*5+c-5],b=action(k,()=>{if(k==='↵')submit();else if(k==='⌫'){const a=input.selectionStart??input.value.length,b=input.selectionEnd??a;input.value=input.value.slice(0,a===b?Math.max(0,a-1):a)+input.value.slice(b);input.focus();input.setSelectionRange(Math.max(0,a-1),Math.max(0,a-1))}else if(k==='‹'||k==='›'){let p=Math.max(0,Math.min(input.value.length,(input.selectionStart??0)+(k==='‹'?-1:1)));input.focus();input.setSelectionRange(p,p)}else insert(({'□²':'^2','□ⁿ':'^','√□':'sqrt(','|□|':'abs(','1/□':'1/','×':'*','÷':'/','−':'-'})[k]||k)});decorateKey(b,k,c);b.onpointerdown=e=>e.preventDefault();if(['⌫','‹','›','↵','ans'].includes(k))b.classList.add('special');$('keys').append(b)}}}keyboard();document.querySelectorAll('[data-keytab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-keytab]').forEach(x=>x.classList.toggle('active',x===b));keyboard(b.dataset.keytab)});$('hideKeys').onclick=()=>$('keyboard').classList.add('hidden');input.onfocus=()=>$('keyboard').classList.remove('hidden');input.onkeydown=e=>{if(e.key==='Enter')submit();if(e.key==='Escape')input.blur()};$('add').onclick=()=>input.value?submit():input.focus();
 function showPanel(name){panel=name;document.querySelectorAll('[data-panel]').forEach(b=>b.classList.toggle('selected',b.dataset.panel===name));$('algebraPanel').classList.toggle('hidden',name!=='algebra');$('otherPanel').classList.toggle('hidden',name==='algebra');const p=$('otherPanel');if(name==='tools'){p.innerHTML='<h3>Werkzeuge</h3><p>Wähle ein Werkzeug und tippe in die Grafik.</p>';p.append(action('Punkt',()=>{tool='point';toast('Tippe in die Grafik, um Punkte zu setzen.')}),action('Verschieben',()=>tool=null),action('Punkte löschen',()=>{points=[];draw()}))}if(name==='table'){const f=expressions.filter(e=>e.isFunction);p.innerHTML='<h3>Wertetabelle</h3>'+(f.length?'<table><tr><th>x</th>'+f.map(e=>'<th>'+escapeHTML(e.text)+'</th>').join('')+'</tr>'+Array.from({length:11},(_,i)=>i-5).map(x=>'<tr><td>'+x+'</td>'+f.map(e=>'<td>'+Number(e.fn(x).toPrecision(6))+'</td>').join('')+'</tr>').join('')+'</table>':'<p>Gib zuerst eine Funktion ein, z. B. x^2.</p>')}if(name==='sheet'){p.innerHTML='<h3>Tabellenkalkulation</h3><p class="note">Zahlen oder einfache Formeln, z. B. =2+3</p><table><tr><th></th><th>A</th><th>B</th></tr>'+Array.from({length:10},(_,i)=>'<tr><th>'+(i+1)+'</th><td><input aria-label="A'+(i+1)+'"></td><td><input aria-label="B'+(i+1)+'"></td></tr>').join('')+'</table>';p.querySelectorAll('input').forEach(i=>i.onchange=()=>{if(i.value.startsWith('=')){try{i.value=compile(i.value.slice(1))(0)}catch{toast('Formel nicht unterstützt.')}}})}}document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>b.dataset.panel==='sheet'?toggleFullscreen():showPanel(b.dataset.panel));
 
-// The existing spreadsheet navigation item doubles as the unobtrusive toggle.
-async function toggleFullscreen(){
-  const root=document.documentElement;
-  const active=document.fullscreenElement||document.webkitFullscreenElement;
-  try{
-    if(active){
-      const exit=document.exitFullscreen||document.webkitExitFullscreen;
-      if(exit)await exit.call(document);
-    }else{
-      const enter=root.requestFullscreen||root.webkitRequestFullscreen;
-      if(!enter){fullscreenUnavailable();return}
-      await enter.call(root);
-    }
-    updateFullscreenState();
-  }catch{fullscreenUnavailable()}
+// Native Fullscreen API removed on purpose: iPadOS Safari draws its own grey
+// exit button (top-left) whenever a page uses it. CSS app-fullscreen instead.
+let appFullscreen=false;
+function toggleFullscreen(){
+  appFullscreen=!appFullscreen;
+  document.documentElement.classList.toggle('app-fullscreen',appFullscreen);
+  updateFullscreenState();
 }
 function updateFullscreenState(){
-  const active=!!(document.fullscreenElement||document.webkitFullscreenElement);
-  document.querySelector('[data-panel="sheet"]').setAttribute('aria-pressed',String(active));
+  document.querySelector('[data-panel="sheet"]').setAttribute('aria-pressed',String(appFullscreen));
   requestAnimationFrame(resize);
 }
 function fullscreenUnavailable(){
   modal('<h2>Vollbild</h2><p>Dieser Browser lässt Vollbild für diese Seite nicht zu.</p><p>Auf dem iPad kannst du die Seite über das Safari-Teilen-Menü zum Home-Bildschirm hinzufügen und von dort öffnen.</p><div class="actions"></div>');
   actions([['OK',close,true]]);
 }
-document.addEventListener('fullscreenchange',updateFullscreenState);
-document.addEventListener('webkitfullscreenchange',updateFullscreenState);
 
 function settings(){modal('<h2>Einstellungen</h2><div class="options"><label><input id="gridCheck" type="checkbox" '+(grid?'checked':'')+'>Koordinatengitter anzeigen</label></div><p class="note">Trigonometrische Funktionen verwenden Bogenmaß.</p><div class="actions"></div>');$('gridCheck').onchange=e=>{grid=e.target.checked;draw()};actions([['Fertig',close,true]])}$('settings').onclick=settings;
 function menu(){input.blur();$('keyboard').classList.add('hidden');const o=$('overlay');o.className='shade drawer-shade';o.innerHTML='<aside class="drawer"><h2>GeoGebra Rechner Suite</h2></aside>';const list=exam?[['×','Alles löschen',clearAll],['⌕','Öffnen',openFile],['▣','Speichern',save],['◌','Rechner wechseln',switchCalc],['▤','Prüfungsprotokoll',()=>report(false)],['⌛','Prüfung beenden',confirmEnd]]:[['×','Alles löschen',clearAll],['⌕','Öffnen',openFile],['⇧','Teilen',shareWork],['▣','Bild exportieren',exportGraph],['⌛','Prüfungsmodus',prepare],['◌','Rechner wechseln',switchCalc],['⚙','Einstellungen',settings],['?','Hilfe & Feedback',help]];list.forEach(([icon,label,fn])=>{const b=action('',()=>{close();fn()});b.innerHTML='<span>'+menuIcon(label)+'</span>'+label;if(!exam&&label==='Rechner wechseln')b.classList.add('separated');o.firstChild.append(b)});o.onclick=e=>{if(e.target===o)close()}}
