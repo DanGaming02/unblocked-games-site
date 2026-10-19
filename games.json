@@ -154,5 +154,11 @@
     "type": "html",
     "path": "games/FA.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Test Rechner",
+    "type": "html",
+    "path": "games/Rechner.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
