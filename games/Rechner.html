@@ -103,6 +103,9 @@ function showPanel(name){panel=name;document.querySelectorAll('[data-panel]').fo
 // away and the system's grey ✕ fades out by itself after a few seconds, just
 // like when a video goes fullscreen. The Home-Screen app (standalone) has no
 // browser chrome at all and gets CSS fullscreen with its own fading grey ✕.
+// A silent, invisible video plays for exactly as long as fullscreen is active:
+// with media playing, iPadOS Safari treats the session like video playback, so
+// the system grey ✕ fades away on its own and the display stays awake.
 const isAppleTouch=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
 if(isStandalone())document.documentElement.classList.add('standalone');   // real status bar exists → the grey replica bar hides
@@ -138,6 +141,7 @@ async function toggleFullscreen(){
     }else{
       const enter=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
       if(!enter)throw Error();
+      fsVideoPlay();                 // silent video starts with fullscreen → grey ✕ fades like video controls
       await enter.call(document.documentElement);
     }
   }catch{
@@ -148,9 +152,10 @@ async function toggleFullscreen(){
 }
 function updateFullscreenState(){
   const native=!!(document.fullscreenElement||document.webkitFullscreenElement);
-  document.documentElement.classList.toggle('sys-fx',native&&isAppleTouch());   // the system already shows its grey ✕
+  document.documentElement.classList.toggle('sys-fx',native&&isAppleTouch());   // system ✕ can still appear – the silent video makes it fade away
   document.querySelector('[data-panel="sheet"]').setAttribute('aria-pressed',String(native||appFullscreen));
   if(native||appFullscreen)fsShowUI();else fsEnd();
+  if(native||appFullscreen)fsVideoPlay();else fsVideoPause();   // plays only while in fullscreen
   requestAnimationFrame(resize);
 }
 document.addEventListener('fullscreenchange',updateFullscreenState);
@@ -158,6 +163,49 @@ document.addEventListener('webkitfullscreenchange',updateFullscreenState);
 document.addEventListener('click',()=>{if(fsActive())fsShowUI()},true);         // any tap brings the controls back
 document.addEventListener('mousemove',()=>{if(fsActive()&&!document.documentElement.classList.contains('fs-ui'))fsShowUI()},{passive:true});
 $('fsExit').onclick=toggleFullscreen;
+// Invisible silent video (1 px, opacity 0, no sound, looping). While fullscreen
+// is active it plays, so iPadOS Safari treats the session like video playback:
+// the system's grey ✕ button fades away just like the video player controls –
+// and the screen won't dim or lock. Generated at runtime, nothing downloaded.
+const fsVideo=document.createElement('video');
+fsVideo.id='fsVideo';
+fsVideo.muted=true;fsVideo.loop=true;fsVideo.playsInline=true;
+fsVideo.setAttribute('muted','');fsVideo.setAttribute('playsinline','');
+fsVideo.setAttribute('webkit-playsinline','');
+fsVideo.setAttribute('aria-hidden','true');fsVideo.setAttribute('disablepictureinpicture','');
+fsVideo.style.cssText='position:fixed;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1;margin:0;padding:0;border:0';
+document.body.append(fsVideo);
+function fsVideoPlay(){try{const p=fsVideo.play();if(p&&p.catch)p.catch(()=>{})}catch{}}
+function fsVideoPause(){try{fsVideo.pause()}catch{}}
+async function initFsVideo(){
+  try{
+    const c=document.createElement('canvas');c.width=c.height=2;   // 2x2 black pixels, nothing to see
+    const cx=c.getContext('2d');cx.fillStyle='#000';cx.fillRect(0,0,2,2);
+    const cap=c.captureStream||c.webkitCaptureStream;if(!cap)return;
+    const stream=cap.call(c,15);
+    if(window.MediaRecorder){
+      const mime=['video/webm;codecs=vp9','video/webm','video/mp4;codecs=avc1','video/mp4'].find(t=>{try{return MediaRecorder.isTypeSupported(t)}catch{return false}});   // webm first (Chromium), Safari falls through to mp4
+      if(mime){
+        const chunks=[],rec=new MediaRecorder(stream,{mimeType:mime});
+        rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
+        rec.start(100);
+        const paint=setInterval(()=>cx.fillRect(0,0,2,2),80);
+        await new Promise(r=>setTimeout(r,420));
+        await new Promise(r=>{const done=()=>r();rec.onstop=done;setTimeout(done,800);try{rec.stop()}catch{done()}});   // race: a stalled stop() can never hang the init
+        clearInterval(paint);
+        if(chunks.length){
+          fsVideo.src=URL.createObjectURL(new Blob(chunks,{type:mime.split(';')[0]}));
+          fsVideo.onloadedmetadata=()=>{if(fsActive())fsVideoPlay()};
+          return;
+        }
+      }
+    }
+    fsVideo.srcObject=stream;                                       // live stream fallback: stays "playing"
+    setInterval(()=>cx.fillRect(0,0,2,2),200);
+    if(fsActive())fsVideoPlay();
+  }catch{}
+}
+initFsVideo();
 function fullscreenUnavailable(){
   modal('<h2>Vollbild</h2><p>Dieser Browser lässt Vollbild für diese Seite nicht zu.</p><p>Auf dem iPad kannst du die Seite über das Safari-Teilen-Menü zum Home-Bildschirm hinzufügen und von dort öffnen.</p><div class="actions"></div>');
   actions([['OK',close,true]]);
