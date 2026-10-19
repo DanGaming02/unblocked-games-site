@@ -33,8 +33,18 @@ html:fullscreen,html:-webkit-full-screen{width:100%;height:100%;background:#fff}
    im Prüfungsmodus grün, passend zur grünen Leiste wie in der echten App).
    Ohne safe-area (Safari/Desktop) ist der Gradient wirkungslos. */
 .exam #app{background:linear-gradient(to bottom,var(--green) env(safe-area-inset-top),rgba(0,0,0,0) env(safe-area-inset-top))}
+/* Video-Style-Vollbild: Die Steuerung erscheint kurz und blendet wie beim Video-Player von selbst aus */
+#fsExit{position:fixed;top:calc(env(safe-area-inset-top) + 2 * var(--u));left:calc(env(safe-area-inset-left) + 5 * var(--u));z-index:4;width:calc(30 * var(--u));height:calc(30 * var(--u));border-radius:50%;background:rgba(96,99,97,.55);color:#fff;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s ease;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 1px 4px #0002}
+#fsExit .ui-icon{width:calc(17 * var(--u));height:calc(17 * var(--u))}
+html.app-fullscreen.fs-ui #fsExit,html:fullscreen.fs-ui #fsExit,html:-webkit-full-screen.fs-ui #fsExit{opacity:1;pointer-events:auto}
+html.sys-fx #fsExit{display:none}
+.status{transition:background-color 200ms ease,color 160ms ease,height .35s ease,padding .35s ease,opacity .25s ease}
+html.standalone .status{height:0;min-height:0;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden}
+html.app-fullscreen:not(.fs-ui) .status,html:fullscreen:not(.fs-ui) .status,html:-webkit-full-screen:not(.fs-ui) .status{height:0;min-height:0;padding-top:0;padding-bottom:0;opacity:0;overflow:hidden}
+html.standalone.app-fullscreen.fs-ui .status{height:calc(35 * var(--u));min-height:25px;padding-top:calc(6 * var(--u));padding-bottom:calc(6 * var(--u));opacity:1;overflow:visible}
+html.standalone:has(#app.exam) .status,html.app-fullscreen:has(#app.exam) .status,html:fullscreen:has(#app.exam) .status,html:-webkit-full-screen:has(#app.exam) .status{height:calc(35 * var(--u));min-height:25px;padding-top:calc(6 * var(--u));padding-bottom:calc(6 * var(--u));opacity:1;overflow:visible}
 </style></head><body>
-<div id="app"><div class="status"><span id="appTitle"></span><span id="timer"></span></div><div class="workspace"><nav class="rail"><button id="menuButton" aria-label="Menü">☰</button><button data-panel="algebra" class="selected"><span class="icon">▦</span>Algebra</button><button data-panel="tools"><span class="icon">◯△</span>Werkzeuge</button><button data-panel="table"><span class="icon">▥</span>Tabelle</button><button data-panel="sheet" aria-label="Tabellenkalkulation" aria-pressed="false"><span class="icon">▦</span>Tabellenkalkul<br>ation</button></nav><section class="algebra"><div id="algebraPanel"><div id="rows"></div><div class="entry"><button id="add" aria-label="Eingabe hinzufügen">+</button><input id="input" placeholder="Eingabe…" autocomplete="off" inputmode="none" aria-label="Mathematische Eingabe"></div><div id="error" class="error"></div></div><div id="otherPanel" class="panel hidden"></div><div class="brand">◌ &nbsp;GeoGebra Rechner Suite</div></section><section class="graph"><canvas id="graph"></canvas><button class="gear" id="settings" aria-label="Einstellungen">⚙</button><div class="zoom"><button id="zoomOut" aria-label="Verkleinern">−</button><button id="home" aria-label="Ansicht zurücksetzen">⌂</button><button id="zoomIn" aria-label="Vergrößern">+</button></div></section></div><section id="keyboard" class="keyboard"><div class="tabs"><button data-keytab="123" class="active">123</button><button data-keytab="fx">f(x)</button><button data-keytab="abc">ABC</button><button data-keytab="symbols">#&¬</button><button class="hide" id="hideKeys" aria-label="Tastatur ausblenden">•••</button></div><div id="keys" class="keys"></div></section></div><div id="overlay" class="hidden"></div><input type="file" id="file" accept="application/json,.json" hidden>
+<div id="app"><div class="status"><span id="appTitle"></span><span id="timer"></span></div><div class="workspace"><nav class="rail"><button id="menuButton" aria-label="Menü">☰</button><button data-panel="algebra" class="selected"><span class="icon">▦</span>Algebra</button><button data-panel="tools"><span class="icon">◯△</span>Werkzeuge</button><button data-panel="table"><span class="icon">▥</span>Tabelle</button><button data-panel="sheet" aria-label="Tabellenkalkulation" aria-pressed="false"><span class="icon">▦</span>Tabellenkalkul<br>ation</button></nav><section class="algebra"><div id="algebraPanel"><div id="rows"></div><div class="entry"><button id="add" aria-label="Eingabe hinzufügen">+</button><input id="input" placeholder="Eingabe…" autocomplete="off" inputmode="none" aria-label="Mathematische Eingabe"></div><div id="error" class="error"></div></div><div id="otherPanel" class="panel hidden"></div><div class="brand">◌ &nbsp;GeoGebra Rechner Suite</div></section><section class="graph"><canvas id="graph"></canvas><button class="gear" id="settings" aria-label="Einstellungen">⚙</button><div class="zoom"><button id="zoomOut" aria-label="Verkleinern">−</button><button id="home" aria-label="Ansicht zurücksetzen">⌂</button><button id="zoomIn" aria-label="Vergrößern">+</button></div></section></div><section id="keyboard" class="keyboard"><div class="tabs"><button data-keytab="123" class="active">123</button><button data-keytab="fx">f(x)</button><button data-keytab="abc">ABC</button><button data-keytab="symbols">#&¬</button><button class="hide" id="hideKeys" aria-label="Tastatur ausblenden">•••</button></div><div id="keys" class="keys"></div></section></div><button id="fsExit" aria-label="Vollbild beenden"><svg class="ui-icon" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m6 5 16 18M22 5 6 23"/></svg></button><div id="overlay" class="hidden"></div><input type="file" id="file" accept="application/json,.json" hidden>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),app=$('app'),input=$('input'),canvas=$('graph'),ctx=canvas.getContext('2d');let expressions=[],points=[],exam=false,start=null,end=null,reportBlob=null,reportURL=null,scale=65,zoomFactor=1,panX=0,panY=0,grid=true,tool=null,lastAnswer=0,panel='algebra';const colors=['#6554c0','#d14f59','#198a78','#297ac0','#df9026'];
@@ -87,49 +97,67 @@ const leftKeys={ '123':['x','y','π','e','□²','□ⁿ','√□','|□|','<','
 function keyboard(tab='123'){const right=['7','8','9','×','÷','4','5','6','+','−','1','2','3','=','⌫','0','.','‹','›','↵'];$('keys').innerHTML='';for(let r=0;r<4;r++){for(let c=0;c<10;c++){if(c===4){$('keys').append(document.createElement('span'));continue}const k=c<4?leftKeys[tab][r*4+c]:right[r*5+c-5],b=action(k,()=>{if(k==='↵')submit();else if(k==='⌫'){const a=input.selectionStart??input.value.length,b=input.selectionEnd??a;input.value=input.value.slice(0,a===b?Math.max(0,a-1):a)+input.value.slice(b);input.focus();input.setSelectionRange(Math.max(0,a-1),Math.max(0,a-1))}else if(k==='‹'||k==='›'){let p=Math.max(0,Math.min(input.value.length,(input.selectionStart??0)+(k==='‹'?-1:1)));input.focus();input.setSelectionRange(p,p)}else insert(({'□²':'^2','□ⁿ':'^','√□':'sqrt(','|□|':'abs(','1/□':'1/','×':'*','÷':'/','−':'-'})[k]||k)});decorateKey(b,k,c);b.onpointerdown=e=>e.preventDefault();if(['⌫','‹','›','↵','ans'].includes(k))b.classList.add('special');$('keys').append(b)}}}keyboard();document.querySelectorAll('[data-keytab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-keytab]').forEach(x=>x.classList.toggle('active',x===b));keyboard(b.dataset.keytab)});$('hideKeys').onclick=()=>$('keyboard').classList.add('hidden');input.onfocus=()=>$('keyboard').classList.remove('hidden');input.onkeydown=e=>{if(e.key==='Enter')submit();if(e.key==='Escape')input.blur()};$('add').onclick=()=>input.value?submit():input.focus();
 function showPanel(name){panel=name;document.querySelectorAll('[data-panel]').forEach(b=>b.classList.toggle('selected',b.dataset.panel===name));$('algebraPanel').classList.toggle('hidden',name!=='algebra');$('otherPanel').classList.toggle('hidden',name==='algebra');const p=$('otherPanel');if(name==='tools'){p.innerHTML='<h3>Werkzeuge</h3><p>Wähle ein Werkzeug und tippe in die Grafik.</p>';p.append(action('Punkt',()=>{tool='point';toast('Tippe in die Grafik, um Punkte zu setzen.')}),action('Verschieben',()=>tool=null),action('Punkte löschen',()=>{points=[];draw()}))}if(name==='table'){const f=expressions.filter(e=>e.isFunction);p.innerHTML='<h3>Wertetabelle</h3>'+(f.length?'<table><tr><th>x</th>'+f.map(e=>'<th>'+escapeHTML(e.text)+'</th>').join('')+'</tr>'+Array.from({length:11},(_,i)=>i-5).map(x=>'<tr><td>'+x+'</td>'+f.map(e=>'<td>'+Number(e.fn(x).toPrecision(6))+'</td>').join('')+'</tr>').join('')+'</table>':'<p>Gib zuerst eine Funktion ein, z. B. x^2.</p>')}if(name==='sheet'){p.innerHTML='<h3>Tabellenkalkulation</h3><p class="note">Zahlen oder einfache Formeln, z. B. =2+3</p><table><tr><th></th><th>A</th><th>B</th></tr>'+Array.from({length:10},(_,i)=>'<tr><th>'+(i+1)+'</th><td><input aria-label="A'+(i+1)+'"></td><td><input aria-label="B'+(i+1)+'"></td></tr>').join('')+'</table>';p.querySelectorAll('input').forEach(i=>i.onchange=()=>{if(i.value.startsWith('=')){try{i.value=compile(i.value.slice(1))(0)}catch{toast('Formel nicht unterstützt.')}}})}}document.querySelectorAll('[data-panel]').forEach(b=>b.onclick=()=>b.dataset.panel==='sheet'?toggleFullscreen():showPanel(b.dataset.panel));
 
-// Device-aware fullscreen. iPadOS/iOS Safari draws its own persistent grey exit
-// button (top-left) whenever a page uses the native Fullscreen API – that
-// overlay belongs to the system and cannot be hidden from inside the page.
-// So: real native fullscreen on desktop browsers (no persistent ✕ there),
-// ✕-free CSS fullscreen on iPad/iPhone Safari, and the Home-Screen app
-// (standalone) is already chrome-free by definition.
+// Video-style fullscreen, just like the iPad video player: the chrome appears
+// for a moment after entering, then fades away on its own – any tap brings it
+// back briefly. iPad Safari uses the native Fullscreen API: Safari's bars slide
+// away and the system's grey ✕ fades out by itself after a few seconds, just
+// like when a video goes fullscreen. The Home-Screen app (standalone) has no
+// browser chrome at all and gets CSS fullscreen with its own fading grey ✕.
 const isAppleTouch=()=>/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 const isStandalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
-let appFullscreen=false;
-async function toggleFullscreen(){
-  if(isStandalone()){                    // launched from Home Screen: no browser chrome at all
-    appFullscreen=!appFullscreen;
-    document.documentElement.classList.toggle('app-fullscreen',appFullscreen);
-    updateFullscreenState();
-    return;
-  }
-  if(!isAppleTouch()){                   // desktop browsers: native API, no persistent ✕
-    try{
-      const active=document.fullscreenElement||document.webkitFullscreenElement;
-      if(active){
-        const exit=document.exitFullscreen||document.webkitExitFullscreen;
-        if(exit)await exit.call(document);
-      }else{
-        const enter=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
-        if(!enter)throw Error();
-        await enter.call(document.documentElement);
-      }
-    }catch{fullscreenUnavailable();return}
-    updateFullscreenState();
-    return;
-  }
-  appFullscreen=!appFullscreen;          // iPad/iPhone Safari: CSS-only, never triggers the grey ✕
-  document.documentElement.classList.toggle('app-fullscreen',appFullscreen);
+if(isStandalone())document.documentElement.classList.add('standalone');   // real status bar exists → the grey replica bar hides
+let appFullscreen=false,fsUiTimer=null;
+const fsActive=()=>!!(document.fullscreenElement||document.webkitFullscreenElement)||appFullscreen;
+function fsShowUI(){                     // tap: controls appear …
+  if(!fsActive())return;
+  document.documentElement.classList.add('fs-ui');
+  clearTimeout(fsUiTimer);
+  fsUiTimer=setTimeout(fsHideUI,3000);
+}
+function fsHideUI(){                     // … and fade away by themselves, like a video
+  if(!fsActive())return;
+  const a=document.activeElement;
+  if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')){fsShowUI();return}
+  document.documentElement.classList.remove('fs-ui');
+}
+function fsEnd(){clearTimeout(fsUiTimer);fsUiTimer=null;document.documentElement.classList.remove('fs-ui')}
+function setCssFullscreen(on){
+  appFullscreen=on;
+  document.documentElement.classList.toggle('app-fullscreen',on);
+  if(on)fsShowUI();else fsEnd();
   updateFullscreenState();
-  toast(appFullscreen?'Vollbild an. Ganz ohne Safari-Leisten: Teilen → „Zum Home-Bildschirm hinzufügen“.':'Vollbild aus.');
+}
+async function toggleFullscreen(){
+  if(isStandalone()){setCssFullscreen(!appFullscreen);return}           // Home-Screen app: already chrome-free
+  if(isAppleTouch()&&!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen)){setCssFullscreen(!appFullscreen);return}   // no Fullscreen API, e.g. iPhone Safari
+  const active=document.fullscreenElement||document.webkitFullscreenElement;
+  try{
+    if(active){
+      const exit=document.exitFullscreen||document.webkitExitFullscreen;
+      if(exit)await exit.call(document);
+    }else{
+      const enter=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+      if(!enter)throw Error();
+      await enter.call(document.documentElement);
+    }
+  }catch{
+    if(isAppleTouch()){setCssFullscreen(!appFullscreen)}else{fullscreenUnavailable()}
+    return;
+  }
+  updateFullscreenState();
 }
 function updateFullscreenState(){
-  const active=!!(document.fullscreenElement||document.webkitFullscreenElement)||appFullscreen;
-  document.querySelector('[data-panel="sheet"]').setAttribute('aria-pressed',String(active));
+  const native=!!(document.fullscreenElement||document.webkitFullscreenElement);
+  document.documentElement.classList.toggle('sys-fx',native&&isAppleTouch());   // the system already shows its grey ✕
+  document.querySelector('[data-panel="sheet"]').setAttribute('aria-pressed',String(native||appFullscreen));
+  if(native||appFullscreen)fsShowUI();else fsEnd();
   requestAnimationFrame(resize);
 }
 document.addEventListener('fullscreenchange',updateFullscreenState);
 document.addEventListener('webkitfullscreenchange',updateFullscreenState);
+document.addEventListener('click',()=>{if(fsActive())fsShowUI()},true);         // any tap brings the controls back
+document.addEventListener('mousemove',()=>{if(fsActive()&&!document.documentElement.classList.contains('fs-ui'))fsShowUI()},{passive:true});
+$('fsExit').onclick=toggleFullscreen;
 function fullscreenUnavailable(){
   modal('<h2>Vollbild</h2><p>Dieser Browser lässt Vollbild für diese Seite nicht zu.</p><p>Auf dem iPad kannst du die Seite über das Safari-Teilen-Menü zum Home-Bildschirm hinzufügen und von dort öffnen.</p><div class="actions"></div>');
   actions([['OK',close,true]]);
