@@ -160,5 +160,11 @@
     "type": "html",
     "path": "games/Rechner.html",
     "thumbnail": "default-thumbnail.jpg"
+  },
+  {
+    "name": "Tiktok 2",
+    "type": "html",
+    "path": "games/Tiktok2.html",
+    "thumbnail": "default-thumbnail.jpg"
   }
 ]
