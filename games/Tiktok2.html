@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<title>Loop — Make your moment</title>
+<style>
+:root{color-scheme:dark;--bg:#08090b;--panel:#111215;--line:#242529;--muted:#82858f;--accent:#caff57}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:#f6f6f7;font-family:system-ui,sans-serif}
+button,input,textarea{font:inherit}
+button,a{-webkit-tap-highlight-color:transparent}
+button{color:inherit;cursor:pointer;background:none;border:0}
+button:disabled{opacity:.45;cursor:wait}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+a{color:inherit;text-decoration:none}
+.sidebar{width:252px;position:fixed;inset:0 auto 0 0;border-right:1px solid var(--line);padding:35px 25px;z-index:5;background:var(--bg)}
+.brand{font-weight:700;font-size:43px;letter-spacing:-3px;display:flex;align-items:center;gap:9px}
+.brand-icon{color:var(--accent);font-size:53px;transform:rotate(-12deg)}
+.brand-dot{color:var(--accent);margin-left:-8px}
+.search-button{display:flex;gap:12px;align-items:center;background:#191a1e;width:100%;border-radius:8px;padding:13px 12px;margin:31px 0 26px;color:#92949d;font-size:14px}
+.search-button kbd{margin-left:auto;border:1px solid #393b40;border-radius:3px;padding:0 5px}
+nav .nav-item{display:flex;align-items:center;gap:17px;width:100%;font-weight:600;text-align:left;padding:15px 12px;margin:5px 0;border-radius:8px}
+.nav-item span{font-size:25px;width:25px}
+.nav-item.active{background:#1c2214;color:var(--accent)}
+.sidebar-divider{height:1px;background:var(--line);margin:27px 0}
+.side-label{font-size:10px;color:var(--muted);letter-spacing:1.5px}
+.side-copy{font-size:15px;line-height:1.8;color:#b2b3bb}
+.primary{background:var(--accent);color:#171b0e;border-radius:6px;padding:15px 20px;font-weight:700;font-size:14px}
+.sidebar .primary{width:100%;font-size:12px;margin-top:10px;padding:14px 10px}
+.sidebar-bottom{position:absolute;bottom:29px;font-size:9px;color:#92949c;line-height:2}
+.sidebar-bottom p{color:#62646f;margin-top:18px}
+.sidebar-bottom small{font-size:9px;color:#62646f}
+.live-dot{display:inline-block;width:5px;height:5px;background:var(--accent);border-radius:50%;margin-right:5px}
+main{margin-left:252px;height:100dvh;position:relative;overflow:hidden}
+header{height:89px;display:flex;align-items:center;justify-content:space-between;margin:0 42px;border-bottom:1px solid var(--line)}
+.feed-tabs{height:100%;display:flex;gap:31px;align-items:center}
+.feed-tabs button{height:100%;font-size:14px;color:var(--muted);position:relative;padding:0 4px}
+.feed-tabs button.selected{color:#fff;font-weight:700}
+.feed-tabs button.selected:after{content:'';height:3px;background:var(--accent);position:absolute;bottom:0;left:0;right:0;border-radius:3px}
+.header-actions{display:flex;gap:14px}
+.upload-button{border:1px solid #37393e;border-radius:6px;padding:9px 17px;font-size:13px}
+.account-button{background:#eee;color:#101114;padding:10px 18px;border-radius:6px;font-size:12px;font-weight:700}
+.account-button span{margin-left:18px}
+.feed{height:calc(100dvh - 143px);overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none}
+.feed::-webkit-scrollbar{display:none}
+.empty-state{position:relative;isolation:isolate;min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:45px 22px;overflow:hidden}
+.empty-mark{width:56px;height:56px;border:1px solid #39432c;border-radius:16px;background:#1a2113;color:var(--accent);font-size:38px;transform:rotate(-10deg);margin-bottom:28px}
+.eyebrow{font-size:10px;letter-spacing:2.7px;color:#a2a68f}
+.empty-state h1{font-size:clamp(48px,5.7vw,83px);letter-spacing:-4px;line-height:1.06;margin:17px 0 20px;font-weight:500}
+.empty-state em{font-style:normal;color:var(--accent)}
+.empty-copy{font-size:14px;line-height:1.9;color:#92959f;margin:0 0 30px}
+.empty-state .primary{padding:16px 25px}
+.empty-state .primary span{margin-left:30px}
+.empty-tags{display:flex;gap:25px;margin-top:30px;color:#757a81;font-size:10px}
+.empty-grid{position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 45%,#b6ff3110,transparent 55%),linear-gradient(#ffffff03 1px,transparent 1px),linear-gradient(90deg,#ffffff03 1px,transparent 1px);background-size:auto,70px 70px,70px 70px;mask-image:radial-gradient(ellipse,#000,transparent 72%)}
+.feed-controls{position:absolute;right:30px;top:48%;display:grid;gap:12px}
+.feed-controls button{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:#141519;color:#b4b6bc}
+.feed-footer{height:54px;margin:0 42px;display:flex;align-items:center;justify-content:space-between;font-size:9px;letter-spacing:1.4px;color:#6c707a;border-top:1px solid var(--line)}
+.mobile-nav{display:none}
+dialog{color:#f8f8f8;background:#141519;border:1px solid #34363a;border-radius:16px;padding:36px;max-width:440px;width:calc(100% - 32px);max-height:85dvh}
+dialog::backdrop{background:#000b;backdrop-filter:blur(8px)}
+.close{position:absolute;right:12px;top:8px;font-size:29px;color:#aaa}
+dialog h2{font-size:27px;margin:5px 0 12px}
+dialog p{font-size:13px;color:#979ba6;line-height:1.7}
+form{display:grid;gap:15px;margin-top:24px}
+label{font-size:12px;display:grid;gap:8px}
+input,textarea{width:100%;background:#090a0c;color:#fff;border:1px solid #34363d;border-radius:6px;padding:12px;outline-color:var(--accent)}
+textarea{resize:vertical}
+.text-button{color:var(--accent);font-size:13px;padding:15px 0}
+.form-error{color:#ff9aab;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#272b20;color:#e6ffc0;padding:13px 22px;border:1px solid #4b5936;border-radius:8px;font-size:13px;z-index:30;display:none;max-width:90%}
+.video-post{height:100%;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;gap:17px;padding:20px 65px 20px 20px}
+.video-frame{height:100%;aspect-ratio:9/16;max-width:100%;position:relative;background:#111;border-radius:14px;overflow:hidden}
+.video-frame video{height:100%;width:100%;object-fit:contain;cursor:pointer}
+.video-shade{position:absolute;bottom:0;left:0;right:0;padding:70px 20px 22px;background:linear-gradient(transparent,#000c);pointer-events:none}
+.video-shade button{pointer-events:auto;font-weight:700}
+.video-shade p{font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.sound-button{position:absolute;right:14px;top:14px;background:#0008;border-radius:50%;padding:10px}
+.video-actions{display:grid;gap:20px;align-self:flex-end;padding-bottom:18px;text-align:center}
+.video-actions button{display:grid;justify-items:center;gap:5px;font-size:11px}
+.video-actions b{border-radius:50%;background:#202125;width:44px;height:44px;display:grid;place-items:center;font-size:24px}
+.liked{color:#fc587e}
+.avatar{width:52px;height:52px;background:#2c361f;color:var(--accent);border-radius:50%;display:grid;place-items:center;font-size:24px;margin-bottom:15px}
+.comment{border-bottom:1px solid #303238;padding:12px 0;font-size:13px;overflow-wrap:anywhere}
+.comment b{color:var(--accent)}
+.comment p{margin:7px 0;color:#eee}
+.results button{display:block;padding:13px 0;color:var(--accent)}
+@media(min-width:1500px){
+ .empty-state h1{font-size:88px}
+}
+@media(max-width:1000px){
+ .sidebar{width:210px;padding:25px 17px}
+ main{margin-left:210px}
+ header{margin:0 25px}
+ .feed-controls{right:15px}
+ .feed-footer{margin:0 25px}
+ .empty-state h1{font-size:65px}
+}
+@media(max-width:700px){
+ .sidebar{display:none}
+ main{margin-left:0;height:calc(100dvh - 65px - env(safe-area-inset-bottom))}
+ header{height:66px;margin:0 18px}
+ .feed-tabs{gap:20px}
+ .feed-tabs button{font-size:13px}
+ .header-actions{gap:8px}
+ .upload-button{padding:8px}
+ .upload-button span{display:none}
+ .account-button{padding:9px 12px}
+ .account-button span{margin-left:8px}
+ .feed{height:calc(100% - 66px)}
+ .feed-footer,.feed-controls{display:none}
+ .empty-state{padding:25px 20px}
+ .empty-state h1{font-size:62px;letter-spacing:-3px}
+ .empty-copy{font-size:12px}
+ .eyebrow{font-size:8px;letter-spacing:1.8px}
+ .empty-tags{font-size:9px;gap:17px}
+ .mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;height:calc(65px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);align-items:center;justify-content:space-around;background:#0d0e10;border-top:1px solid var(--line)}
+ .mobile-nav button{font-size:24px;display:grid;gap:2px;justify-items:center;min-width:48px}
+ .mobile-nav small{font-size:9px;color:#a1a4ab}
+ .mobile-nav .mobile-plus{background:var(--accent);color:#080a04;width:43px;min-width:43px;height:30px;border-radius:7px;font-size:27px;line-height:28px}
+ .video-post{padding:0;gap:0;position:relative}
+ .video-frame{width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+ .video-actions{position:absolute;right:10px;bottom:12px}
+ .video-shade{padding-right:65px}
+ .empty-mark{margin-bottom:18px}
+ dialog{padding:29px 24px}
+ .toast{bottom:85px}
+}
+@media(prefers-reduced-motion:reduce){
+ *{scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+ <a class="brand" href="./">
+  <span class="brand-icon">♪</span> loop<span class="brand-dot">.</span>
+ </a>
+ <button class="search-button" id="search-button">
+  ⌕ <span>Find a creator</span><kbd>/</kbd>
+ </button>
+ <nav>
+  <button class="nav-item active" data-feed="all"><span>⌂</span> For you</button>
+  <button class="nav-item" data-feed="following"><span>♧</span> Following</button>
+  <button class="nav-item" id="explore"><span>◈</span> Explore</button>
+  <button class="nav-item" id="profile"><span>◎</span> Your profile</button>
+ </nav>
+ <div class="sidebar-divider"></div>
+ <p class="side-label">YOUR NEXT OBSESSION</p>
+ <p class="side-copy">Fresh perspectives.<br>Endless possibilities.</p>
+ <button class="primary" id="sidebar-login">Log in to your world ↗</button>
+ <div class="sidebar-bottom">
+  <span class="live-dot"></span> A little less scroll. A little more you.
+  <p>About · Community · Privacy</p>
+  <small>© 2026 Loop. Make your moment.</small>
+ </div>
+</aside>
+
+<main>
+ <header>
+  <div class="feed-tabs">
+   <button class="selected" data-feed="all">For you</button>
+   <button data-feed="following">Following</button>
+  </div>
+  <div class="header-actions">
+   <button class="upload-button" id="upload">＋ <span>Upload</span></button>
+   <button class="account-button" id="account">Log in <span>↗</span></button>
+  </div>
+ </header>
+
+ <section class="feed" id="feed" aria-label="Video feed">
+  <div class="empty-state" id="empty">
+   <span class="empty-mark">♪</span>
+   <p class="eyebrow">THE NEXT BIG THING STARTS WITH YOU</p>
+   <h1>Your world.<br>Your <em>moment.</em></h1>
+   <p class="empty-copy" id="empty-copy">
+    A home for real creators and the things they love.<br>
+    Be the first to put something out into the world.
+   </p>
+   <button class="primary" id="first-upload">
+    Create your first moment <span>↗</span>
+   </button>
+   <div class="empty-tags">
+    <span>✦ Find your people</span>
+    <span>◉ Share your perspective</span>
+   </div>
+   <div class="empty-grid" aria-hidden="true"></div>
+  </div>
+ </section>
+
+ <div class="feed-controls">
+  <button id="previous" aria-label="Previous video">↑</button>
+  <button id="next" aria-label="Next video">↓</button>
+ </div>
+
+ <footer class="feed-footer">
+  <span><i class="live-dot"></i> MADE FOR YOUR CURIOSITY</span>
+  <span>Scroll to discover ↓</span>
+ </footer>
+</main>
+
+<nav class="mobile-nav">
+ <button data-feed="all">⌂<small>Home</small></button>
+ <button id="mobile-search">⌕<small>Search</small></button>
+ <button id="mobile-upload" class="mobile-plus" aria-label="Upload">＋</button>
+ <button data-feed="following">♧<small>Following</small></button>
+ <button id="mobile-profile">◎<small>Profile</small></button>
+</nav>
+
+<dialog id="modal">
+ <button class="close" id="close-modal" aria-label="Close">×</button>
+ <div id="modal-content"></div>
+</dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(async () => {
+"use strict";
+
+// Public anon key only. NEVER use a Supabase service-role key here.
+const SUPABASE_URL = "https://dctzzaodhqrquzhufilk.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjdHp6YW9kaHFycXV6aHVmaWxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNjI3OTYsImV4cCI6MjEwODYzODc5Nn0.vf8i5266qhX7NyB7SfrrMtZY5WQWeLn_qFh5xf1e_ao";
+
+const $ = selector => document.querySelector(selector);
+const escape = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[character]));
+
+let db, user, observer;
+let mode = "all";
+let generation = 0;
+let toastTimer;
+
+function toast(message) {
+ $("#toast").textContent = message;
+ $("#toast").style.display = "block";
+ clearTimeout(toastTimer);
+ toastTimer = setTimeout(() => $("#toast").style.display = "none", 4500);
+}
+
+function modal(html) {
+ $("#modal-content").innerHTML = html;
+ if (!$("#modal").open) $("#modal").showModal();
+}
+
+$("#close-modal").onclick = () => $("#modal").close();
+
+$("#modal").addEventListener("click", event => {
+ if (event.target !== $("#modal")) return;
+ const bounds = event.target.getBoundingClientRect();
+ if (
+  event.clientX < bounds.left || event.clientX > bounds.right ||
+  event.clientY < bounds.top || event.clientY > bounds.bottom
+ ) {
+  event.target.close();
+ }
+});
+
+function connection() {
+ if (db) return true;
+ modal(`
+  <h2>Connection unavailable.</h2>
+  <p>The Supabase connection is loading or could not be established.
+  Check your internet connection and make sure this preview allows
+  external JavaScript and Supabase requests. Then reload the page.</p>
+ `);
+ return false;
+}
+
+function requireUser() {
+ if (!connection()) return false;
+ if (!user) {
+  auth();
+  return false;
+ }
+ return true;
+}
+
+function accountUI() {
+ $("#account").textContent = user
+  ? "@" + (user.user_metadata?.username || "you")
+  : "Log in ↗";
+ $("#sidebar-login").textContent = user
+  ? "Your profile ↗"
+  : "Log in to your world ↗";
+}
+
+function auth(signup = false) {
+ if (!connection()) return;
+
+ modal(`
+  <p class="eyebrow">WELCOME TO LOOP</p>
+  <h2>${signup ? "Find your people." : "Your world awaits."}</h2>
+  <p>${signup
+   ? "Create your account and make your first moment."
+   : "Log in to pick up where you left off."}</p>
+
+  <form id="auth-form">
+   <label>Username
+    <input name="username" required pattern="[a-z0-9_]{3,24}"
+     minlength="3" maxlength="24" autocomplete="username"
+     placeholder="your_name" autocapitalize="none">
+   </label>
+   <label>Password
+    <input name="password" type="password" required minlength="10"
+     autocomplete="${signup ? "new-password" : "current-password"}"
+     placeholder="At least 10 characters">
+   </label>
+
+   ${signup ? `
+    <label>Email
+     <span style="color:#858994">Optional · private contact only</span>
+     <input name="email" type="email" maxlength="254"
+      autocomplete="email" placeholder="you@example.com">
+    </label>
+    <p>Email is not verified or used for password recovery in this
+    version. Keep your password safe.</p>
+   ` : ""}
+
+   <div class="form-error" role="alert"></div>
+   <button class="primary">${signup ? "Create account" : "Log in"} ↗</button>
+  </form>
+
+  <button class="text-button" id="switch-auth">
+   ${signup
+    ? "Already have an account? Log in"
+    : "New here? Create an account"}
+  </button>
+ `);
+
+ $("#switch-auth").onclick = () => auth(!signup);
+
+ $("#auth-form").onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const fields = new FormData(form);
+  const button = form.querySelector(".primary");
+  button.disabled = true;
+
+  try {
+   const username = fields.get("username");
+   const credentials = {
+    email: `${username}@users.loop.invalid`,
+    password: fields.get("password")
+   };
+
+   const { data, error } = signup
+    ? await db.auth.signUp({
+       ...credentials,
+       options: {
+        data: {
+         username,
+         contact_email: fields.get("email") || null
+        }
+       }
+      })
+    : await db.auth.signInWithPassword(credentials);
+
+   if (error) throw error;
+   if (!data.session) {
+    throw new Error(
+     "Account created, but sign-in is unavailable. The project owner " +
+     "must disable email confirmation for username accounts."
+    );
+   }
+
+   user = data.user;
+   accountUI();
+   $("#modal").close();
+   toast(signup ? "Welcome to your world." : "Welcome back.");
+   await loadFeed();
+  } catch (error) {
+   form.querySelector(".form-error").textContent = error.message;
+  } finally {
+   button.disabled = false;
+  }
+ };
+}
+
+async function profile(id = user?.id) {
+ if (!id) {
+  auth();
+  return;
+ }
+ if (!connection()) return;
+
+ const { data: creator, error } = await db
+  .from("profiles")
+  .select("id,username,created_at")
+  .eq("id", id)
+  .single();
+
+ if (error) return toast(error.message);
+
+ let followed = false;
+ if (user && user.id !== id) {
+  const { data } = await db.from("follows")
+   .select("follower_id")
+   .eq("follower_id", user.id)
+   .eq("following_id", id)
+   .maybeSingle();
+  followed = !!data;
+ }
+
+ const own = user?.id === id;
+ modal(`
+  <div class="avatar">${escape(creator.username[0].toUpperCase())}</div>
+  <h2>@${escape(creator.username)}</h2>
+  <p>Creating moments since ${escape(
+   new Date(creator.created_at).toLocaleDateString(undefined, {
+    month: "long", year: "numeric"
+   })
+  )}.</p>
+  ${own ? `
+   <button class="primary" id="profile-upload">Share a moment ↗</button>
+   <br><button class="text-button" id="logout">Log out</button>
+  ` : `
+   <button class="primary" id="follow-user">
+    ${followed ? "Unfollow" : "Follow creator ＋"}
+   </button>
+  `}
+ `);
+
+ if (own) {
+  $("#profile-upload").onclick = upload;
+  $("#logout").onclick = async () => {
+   const { error } = await db.auth.signOut();
+   if (error) return toast(error.message);
+   user = null;
+   accountUI();
+   $("#modal").close();
+   await loadFeed();
+  };
+ } else {
+  $("#follow-user").onclick = async () => {
+   if (!requireUser()) return;
+   const result = followed
+    ? await db.from("follows").delete()
+       .eq("follower_id", user.id).eq("following_id", id)
+    : await db.from("follows").insert({
+       follower_id: user.id, following_id: id
+      });
+
+   if (result.error) toast(result.error.message);
+   else await profile(id);
+  };
+ }
+}
+
+function upload() {
+ if (!requireUser()) return;
+
+ modal(`
+  <p class="eyebrow">MAKE YOUR MOMENT</p>
+  <h2>Something worth sharing.</h2>
+  <p>MP4 or WebM · up to 50 MB. Only upload videos you have the right
+  to share. Videos are public.</p>
+  <form id="upload-form">
+   <label>Your video
+    <input name="video" type="file" accept="video/mp4,video/webm" required>
+   </label>
+   <label>Caption
+    <textarea name="caption" maxlength="500" rows="3"
+     placeholder="Tell the story behind your moment…" required></textarea>
+   </label>
+   <div class="form-error" role="alert"></div>
+   <button class="primary">Post your moment ↗</button>
+  </form>
+ `);
+
+ $("#upload-form").onsubmit = async event => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = form.querySelector("button");
+  const fields = new FormData(form);
+  const file = fields.get("video");
+  button.disabled = true;
+
+  try {
+   if (
+    !["video/mp4", "video/webm"].includes(file.type) ||
+    file.size > 50 * 1024 * 1024 || !file.size
+   ) {
+    throw new Error("Choose an MP4 or WebM video under 50 MB.");
+   }
+
+   const caption = fields.get("caption").trim();
+   if (!caption) throw new Error("Please add a caption.");
+
+   const path =
+    `${user.id}/${crypto.randomUUID()}.` +
+    (file.type === "video/mp4" ? "mp4" : "webm");
+
+   button.textContent = "Uploading…";
+
+   const { error: uploadError } = await db.storage
+    .from("videos")
+    .upload(path, file, { contentType: file.type, upsert: false });
+
+   if (uploadError) throw uploadError;
+
+   const { error } = await db.from("videos").insert({
+    user_id: user.id,
+    storage_path: path,
+    caption
+   });
+
+   if (error) {
+    await db.storage.from("videos").remove([path]);
+    throw error;
+   }
+
+   $("#modal").close();
+   mode = "all";
+   syncTabs();
+   await loadFeed();
+   toast("Your moment is live.");
+  } catch (error) {
+   form.querySelector(".form-error").textContent = error.message;
+  } finally {
+   button.disabled = false;
+   button.textContent = "Post your moment ↗";
+  }
+ };
+}
+
+function clearPosts() {
+ observer?.disconnect();
+ document.querySelectorAll(".video-post").forEach(post => {
+  post.querySelector("video").pause();
+  post.remove();
+ });
+ $("#empty").hidden = false;
+ $("#empty").style.display = "flex";
+}
+
+async function loadFeed() {
+ if (!db) return;
+ const current = ++generation;
+
+ let query = db.from("videos")
+  .select("*, profiles!videos_user_id_fkey(username)")
+  .order("created_at", { ascending: false })
+  .limit(30);
+
+ if (mode === "following") {
+  if (!user) {
+   clearPosts();
+   $("#empty-copy").textContent =
+    "Log in and follow creators to see their latest moments.";
+   return;
+  }
+
+  const { data, error } = await db.from("follows")
+   .select("following_id").eq("follower_id", user.id);
+
+  if (current !== generation) return;
+  if (error) return toast(error.message);
+
+  if (!data.length) {
+   clearPosts();
+   $("#empty-copy").textContent =
+    "Follow a creator to start building your own corner of the world.";
+   return;
+  }
+
+  query = query.in("user_id", data.map(follow => follow.following_id));
+ }
+
+ const { data, error } = await query;
+ if (current !== generation) return;
+ if (error) {
+  $("#empty-copy").textContent =
+   "The feed could not load. Check the Supabase database setup.";
+  toast("Feed could not load: " + error.message);
+  return;
+ }
+
+ clearPosts();
+
+ if (!data.length) {
+  $("#empty-copy").textContent =
+   "No moments here yet. Share the first one.";
+  return;
+ }
+
+ $("#empty").hidden = true;
+ $("#empty").style.display = "none";
+
+ observer = new IntersectionObserver(entries => {
+  for (const entry of entries) {
+   const video = entry.target.querySelector("video");
+   if (entry.isIntersecting) video.play().catch(() => {});
+   else video.pause();
+  }
+ }, { root: $("#feed"), threshold: 0.65 });
+
+ for (const post of data) {
+  const source = db.storage.from("videos")
+   .getPublicUrl(post.storage_path).data.publicUrl;
+
+  const item = document.createElement("article");
+  item.className = "video-post";
+  item.dataset.id = post.id;
+
+  item.innerHTML = `
+   <div class="video-frame">
+    <video src="${escape(source)}" loop muted playsinline
+     preload="metadata" aria-label="${escape(post.caption)}"></video>
+    <button class="sound-button" aria-label="Toggle sound">♪ Off</button>
+    <div class="video-shade">
+     <button class="creator">@${escape(
+      post.profiles?.username || "creator"
+     )}</button>
+     <p>${escape(post.caption)}</p>
+     <small>♫ Original sound</small>
+    </div>
+   </div>
+   <div class="video-actions">
+    <button class="like" aria-label="Like video" aria-pressed="false">
+     <b>♡</b><span>Like</span>
+    </button>
+    <button class="comments" aria-label="Open comments">
+     <b>◌</b><span>Comments</span>
+    </button>
+    <button class="share" aria-label="Share video">
+     <b>↗</b><span>Share</span>
+    </button>
+    ${post.user_id === user?.id ? `
+     <button class="delete" aria-label="Delete video">
+      <b>×</b><span>Delete</span>
+     </button>
+    ` : ""}
+   </div>
+  `;
+
+  const video = item.querySelector("video");
+
+  video.onclick = () => {
+   if (video.paused) {
+    video.play().catch(() => toast("Playback failed."));
+   } else {
+    video.pause();
+   }
+  };
+
+  video.onerror = () => {
+   item.querySelector(".video-shade small").textContent =
+    "Video unavailable or unsupported by this browser.";
+  };
+
+  item.querySelector(".sound-button").onclick = event => {
+   video.muted = !video.muted;
+   event.currentTarget.textContent = video.muted ? "♪ Off" : "♪ On";
+  };
+
+  item.querySelector(".creator").onclick = () => profile(post.user_id);
+
+  const like = item.querySelector(".like");
+  let liked = false;
+
+  const refreshLike = async () => {
+   const { count, error } = await db.from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("video_id", post.id);
+
+   if (error) return;
+
+   liked = false;
+   if (user) {
+    const { data } = await db.from("likes")
+     .select("user_id")
+     .eq("video_id", post.id)
+     .eq("user_id", user.id)
+     .maybeSingle();
+    liked = !!data;
+   }
+
+   like.classList.toggle("liked", liked);
+   like.setAttribute("aria-pressed", String(liked));
+   like.querySelector("b").textContent = liked ? "♥" : "♡";
+   like.querySelector("span").textContent = count || "Like";
+  };
+
+  refreshLike();
+
+  like.onclick = async () => {
+   if (!requireUser()) return;
+   like.disabled = true;
+
+   try {
+    const { error } = liked
+     ? await db.from("likes").delete()
+        .eq("video_id", post.id).eq("user_id", user.id)
+     : await db.from("likes").insert({
+        video_id: post.id, user_id: user.id
+       });
+
+    if (error) throw error;
+    await refreshLike();
+   } catch (error) {
+    toast(error.message);
+   } finally {
+    like.disabled = false;
+   }
+  };
+
+  item.querySelector(".comments").onclick = () => comments(post.id);
+
+  item.querySelector(".share").onclick = async () => {
+   const url = new URL(location.href);
+   url.hash = post.id;
+
+   try {
+    if (navigator.share) {
+     await navigator.share({ title: "A moment on Loop", url: url.href });
+    } else {
+     await navigator.clipboard.writeText(url.href);
+     toast("Link copied.");
+    }
+   } catch (error) {
+    if (error.name !== "AbortError") {
+     toast("Sharing is unavailable in this browser.");
+    }
+   }
+  };
+
+  if (post.user_id === user?.id) {
+   item.querySelector(".delete").onclick = async () => {
+    if (!confirm("Delete this video permanently?")) return;
+
+    const { error } = await db.from("videos").delete()
+     .eq("id", post.id).eq("user_id", user.id);
+
+    if (error) return toast(error.message);
+
+    const result = await db.storage.from("videos")
+     .remove([post.storage_path]);
+
+    if (result.error) {
+     toast("Post deleted; storage cleanup failed: " + result.error.message);
+    }
+
+    await loadFeed();
+   };
+  }
+
+  $("#feed").append(item);
+  observer.observe(item);
+ }
+
+ if (location.hash) {
+  const id = location.hash.slice(1);
+  const target = [...document.querySelectorAll(".video-post")]
+   .find(post => post.dataset.id === id);
+
+  if (target) target.scrollIntoView();
+  else toast("This shared moment is not in the current feed.");
+ }
+}
+
+async function comments(id) {
+ const { data, error } = await db.from("comments")
+  .select("*, profiles!comments_user_id_fkey(username)")
+  .eq("video_id", id)
+  .order("created_at")
+  .limit(100);
+
+ if (error) return toast(error.message);
+
+ modal(`
+  <h2>The conversation.</h2>
+  <div>
+   ${data.length ? data.map(comment => `
+    <div class="comment">
+     <b>@${escape(comment.profiles?.username)}</b>
+     <p>${escape(comment.body)}</p>
+     ${comment.user_id === user?.id ? `
+      <button class="text-button"
+       data-delete-comment="${escape(comment.id)}">Delete</button>
+     ` : ""}
+    </div>
+   `).join("") : "<p>No comments yet. Start the conversation.</p>"}
+  </div>
+  <form id="comment-form">
+   <label>Your comment
+    <input name="body" maxlength="500" required
+     placeholder="Add something kind…">
+   </label>
+   <div class="form-error" role="alert"></div>
+   <button class="primary">Post comment ↗</button>
+  </form>
+ `);
+
+ document.querySelectorAll("[data-delete-comment]").forEach(button => {
+  button.onclick = async () => {
+   const { error } = await db.from("comments").delete()
+    .eq("id", button.dataset.deleteComment)
+    .eq("user_id", user.id);
+
+   if (error) toast(error.message);
+   else await comments(id);
+  };
+ });
+
+ $("#comment-form").onsubmit = async event => {
+  event.preventDefault();
+  if (!requireUser()) return;
+
+  const form = event.currentTarget;
+  const body = new FormData(form).get("body").trim();
+  if (!body) return;
+
+  const button = form.querySelector("button");
+  button.disabled = true;
+
+  try {
+   const { error } = await db.from("comments").insert({
+    video_id: id, user_id: user.id, body
+   });
+
+   if (error) throw error;
+   await comments(id);
+  } catch (error) {
+   form.querySelector(".form-error").textContent = error.message;
+  } finally {
+   button.disabled = false;
+  }
+ };
+}
+
+function search() {
+ if (!connection()) return;
+
+ modal(`
+  <h2>Find your people.</h2>
+  <form id="search-form">
+   <label>Username
+    <input name="query" maxlength="24"
+     placeholder="Search creators" required>
+   </label>
+   <button class="primary">Search ↗</button>
+  </form>
+  <div class="results" id="results"></div>
+ `);
+
+ $("#search-form").onsubmit = async event => {
+  event.preventDefault();
+  const value = new FormData(event.currentTarget)
+   .get("query").toLowerCase().replace(/[^a-z0-9_]/g, "");
+
+  if (!value) return;
+
+  const { data, error } = await db.from("profiles")
+   .select("id,username")
+   .ilike("username", `%${value}%`)
+   .limit(20);
+
+  if (error) return toast(error.message);
+
+  $("#results").innerHTML = data.length
+   ? data.map(creator => `
+      <button data-user="${escape(creator.id)}">
+       @${escape(creator.username)} ↗
+      </button>
+     `).join("")
+   : "<p>No creators found.</p>";
+
+  document.querySelectorAll("[data-user]").forEach(button => {
+   button.onclick = () => profile(button.dataset.user);
+  });
+ };
+}
+
+function syncTabs() {
+ document.querySelectorAll("[data-feed]").forEach(button => {
+  button.classList.toggle("selected", button.dataset.feed === mode);
+  button.classList.toggle("active", button.dataset.feed === mode);
+ });
+}
+
+for (const id of ["upload", "mobile-upload", "first-upload"]) {
+ $("#" + id).onclick = upload;
+}
+
+for (const id of ["account", "sidebar-login", "profile", "mobile-profile"]) {
+ $("#" + id).onclick = () => user ? profile() : auth();
+}
+
+for (const id of ["search-button", "mobile-search", "explore"]) {
+ $("#" + id).onclick = search;
+}
+
+for (const button of document.querySelectorAll("[data-feed]")) {
+ button.onclick = () => {
+  mode = button.dataset.feed;
+  syncTabs();
+  loadFeed();
+ };
+}
+
+function move(direction) {
+ $("#feed").scrollBy({
+  top: direction * $("#feed").clientHeight,
+  behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+   ? "instant" : "smooth"
+ });
+}
+
+$("#next").onclick = () => move(1);
+$("#previous").onclick = () => move(-1);
+
+window.addEventListener("keydown", event => {
+ if (
+  $("#modal").open ||
+  /INPUT|TEXTAREA/.test(event.target.tagName)
+ ) return;
+
+ if (event.key === "/") {
+  event.preventDefault();
+  search();
+ }
+ if (event.key === "ArrowDown") {
+  event.preventDefault();
+  move(1);
+ }
+ if (event.key === "ArrowUp") {
+  event.preventDefault();
+  move(-1);
+ }
+});
+
+document.addEventListener("visibilitychange", () => {
+ if (document.hidden) {
+  document.querySelectorAll("video").forEach(video => video.pause());
+ }
+});
+
+try {
+ const { createClient } = await import(
+  "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.8/+esm"
+ );
+
+ db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+ const { data, error } = await db.auth.getSession();
+ if (error) throw error;
+
+ user = data.session?.user;
+ accountUI();
+
+ db.auth.onAuthStateChange((_event, session) => {
+  user = session?.user;
+  accountUI();
+ });
+
+ await loadFeed();
+} catch (error) {
+ toast("Connection failed: " + error.message);
+}
+
+})().catch(error => console.error(error));
+</script>
+</body>
+</html>
