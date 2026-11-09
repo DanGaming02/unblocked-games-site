@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AeroClick · Crystal Edition</title>
+<title>AeroClick · Aero &amp; Evil</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 14'%3E%3Cpath d='M5 .8C7 3.8 9 6.2 9 8.8a4 4 0 1 1-8 0C1 6.2 3 3.8 5 .8z' fill='%231493d3'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -298,6 +298,30 @@ button:focus-visible,[role=button]:focus-visible{outline:3px solid #075b98;outli
 #hint,#mhint,#bhint,#dhint,#whint{font-size:22px;letter-spacing:1.3px;font-weight:800}
 @media(max-width:650px){.hud-top,body.in-metro .m-hud,body.in-bank .b-hud,body.in-doric .d-hud,body.in-hq .w-hud{top:10px;left:10px;right:10px;gap:6px}.counter{padding:7px 10px 7px 7px;gap:7px}.coin{width:34px;height:34px}.bigv{font-size:23px;min-width:68px}.sub{font-size:9px}.hud-actions{gap:5px}.glass-btn{width:36px;height:36px;border-radius:11px}.logo{top:77px;font-size:12px;padding:6px 13px;pointer-events:none}.panel,#scnPanel{top:120px;bottom:10px;left:10px;right:10px;width:auto;max-width:346px}#panel,#mPanel,#dPanel,#wPanel{left:auto;width:calc(100% - 20px)}.settings{max-width:calc(100vw - 24px)}}
 @media(prefers-reduced-motion:reduce){.pinner,.leg,.rbody,.notify,.siteTimer,.enterChip{animation:none!important}.panel,.pp,.ppB,.ppY,.ppD,.ppO{transition:none!important}}
+</style>
+<style>
+#evilWorld{display:none;position:fixed;inset:0;z-index:12;background:#0b080d}
+body.in-evil #stage> :not(#evilWorld){display:none!important}
+body.in-evil #evilWorld{display:block}
+#evilFrame{display:block;width:100%;height:100%;border:0;background:#0b080d}
+#evilGate,#evilReturnGate{cursor:pointer;touch-action:manipulation}
+#evilGate:focus-visible,#evilReturnGate:focus-visible{outline:2px solid #f8ac96;outline-offset:-3px}
+html[data-world="evil"] body{color:#f8d4c8;background:#0b080d}
+html[data-world="evil"] .glass{background:linear-gradient(155deg,#584048d9,#211821d9 44%,#3a242ad9 45%,#18121ce6);border-color:#a4777180;box-shadow:0 8px 28px #05030966,inset 0 1px #f8d4c844}
+html[data-world="evil"] .logo,html[data-world="evil"] .bigv,html[data-world="evil"] .nm,html[data-world="evil"] .panel-head h2,html[data-world="evil"] .lm-name,html[data-world="evil"] .done-msg{color:#ffe0d5;text-shadow:none}
+html[data-world="evil"] .sub,html[data-world="evil"] .fx,html[data-world="evil"] .glass-btn,html[data-world="evil"] .closePanel{color:#d99d93}
+html[data-world="evil"] .logo em,html[data-world="evil"] .fx b,html[data-world="evil"] .sub b,html[data-world="evil"] .lm-eff,html[data-world="evil"] .special .tag{color:#ff9f7d}
+html[data-world="evil"] .panel-head,html[data-world="evil"] .up-row{background:linear-gradient(#6e485833,#37202955);border-color:#a56a6744}
+html[data-world="evil"] .tile,html[data-world="evil"] .lm-icon,html[data-world="evil"] .coin{background:radial-gradient(circle at 30% 20%,#c59b92,#753c4b 50%,#281728);box-shadow:inset 0 1px #f6c7b877,0 2px 7px #0004;border-color:#986668}
+html[data-world="evil"] .btn-buy{color:#f9d6c7;background:linear-gradient(#684352,#472731 48%,#2b1526 52%,#623447);border-color:#a46a71}
+html[data-world="evil"] .btn-buy.can,html[data-world="evil"] .qty-row button.on{color:#fff0de;background:linear-gradient(#cb6c54,#903b3f 48%,#5a2437 52%,#ac5147)}
+html[data-world="evil"] .special{background:linear-gradient(135deg,#3c263fbb,#51253199);border-color:#ad716a88}
+html[data-world="evil"] .rebirth{background:linear-gradient(135deg,#754b3066,#602a3666);border-color:#b38a5b88}
+html[data-world="evil"] .rb-info,html[data-world="evil"] .rb-stats,html[data-world="evil"] .rb-tag{color:#e6b18b}
+html[data-world="evil"] #dropBody{filter:drop-shadow(0 16px 22px #09030c88) drop-shadow(0 0 18px #ed483b44)}
+html[data-world="evil"] #dropZone:hover #dropBody{filter:drop-shadow(0 16px 22px #09030c88) drop-shadow(0 0 23px #ed483b88)}
+html[data-world="evil"] #dolphinLayer{filter:grayscale(1) sepia(.6)}
+html[data-world="evil"] #scene .fl{color:#ffccac}
 </style>
 </head>
 <body>
@@ -1378,16 +1402,21 @@ button:focus-visible,[role=button]:focus-visible{outline:3px solid #075b98;outli
   </div>
 </div>
 
+
+<section id="evilWorld" aria-label="Frutiger Evil" aria-hidden="true"></section>
+
 <div id="toast"></div>
 </div>
 
 <script>
 'use strict';
+const EVIL_MODE=document.documentElement.getAttribute('data-world')==='evil';
+const EVIL_DOCUMENT_SOURCE='<!DOCTYPE html>'+document.documentElement.outerHTML;
 const $=s=>document.querySelector(s);
 const q=id=>document.getElementById(id);
 const NS='http://www.w3.org/2000/svg';
-const KEY='aeroclick-save-v3';
-const C='#0d76ad', MET='#0aa06a', ORG='#e8681e', WIN='#1f7fd0';
+const KEY=EVIL_MODE?'aeroclick-save-v3-evil':'aeroclick-save-v3';
+const C=EVIL_MODE?'#cf8878':'#0d76ad', MET=EVIL_MODE?'#bd7c72':'#0aa06a', ORG=EVIL_MODE?'#e58b66':'#e8681e', WIN=EVIL_MODE?'#b77779':'#1f7fd0';
 
 /* ================= data ================= */
 const UPGRADES=[
@@ -2460,7 +2489,10 @@ function doRebirth(){
 
 /* ================= views ================= */
 function setView(v){
+  if(!EVIL_MODE&&view==='evil'&&v!=='evil'){q('evilFrame')?.contentWindow?.postMessage({type:'aero-evil-active',active:false},'*');applyVol();}
   view=v;
+  document.body.classList.toggle('in-evil',v==='evil');
+  q('evilWorld').setAttribute('aria-hidden',String(v!=='evil'));
   document.body.classList.toggle('in-metro',v==='metro');
   document.body.classList.toggle('in-bank',v==='bank');
   document.body.classList.toggle('in-doric',v==='doric');
@@ -2933,7 +2965,7 @@ function makeFish(){
     try{
       const g=document.createElementNS(NS,'g');
       const c=FISHC[i%FISHC.length],s=.5+Math.random()*.6;
-      g.innerHTML=`<ellipse rx="15" ry="6.5" fill="${c}" opacity=".92"/>
+      g.innerHTML=EVIL_MODE?EVIL_FISH_SVG:`<ellipse rx="15" ry="6.5" fill="${c}" opacity=".92"/>
         <path d="M13 0 L23 -7 L23 7 Z" fill="${c}" opacity=".92"/>
         <path d="M-3 -6 Q0 -12 4 -5.6" fill="none" stroke="${c}" stroke-width="2.2" opacity=".92"/>
         <circle cx="-8" cy="-1.8" r="1.7" fill="#083b57"/>
@@ -3228,7 +3260,7 @@ let resetting=false;
 function save(){if(resetting)return;try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
 function load(){try{
   const d=JSON.parse(localStorage.getItem(KEY));
-  if(d){state.drops=+d.drops||0;state.owned=d.owned||{};
+  if(d){state.evil=d.evil;state.drops=+d.drops||0;state.owned=d.owned||{};
     state.special=Math.min(d.special||0,LANDMARKS.length);
     state.rebirths=+d.rebirths||0;
     state.riders=+d.riders||0;state.mUp=d.mUp||{};state.mScn=d.mScn||{};
@@ -3275,6 +3307,7 @@ function updBalloon(dt){
 let last=performance.now(),lastFrame=performance.now(),rafQueued=false;
 const flatGY=()=>724;
 function tickEconomy(dt){
+  if(view==='evil')return;
   if(view==='out'||view==='bank'){
     state.drops+=cps*dt;
     if(!isFinite(state.drops))state.drops=0;
@@ -3303,6 +3336,7 @@ function tickEconomy(dt){
   }
 }
 function loop(t){
+  if((EVIL_MODE&&evilWorldPaused)||view==='evil'){last=t;lastFrame=performance.now();kick();return;}
   lastFrame=performance.now();
   let dt=Math.min((t-last)/1000,.25);last=t;
   if(!isFinite(dt)||dt<0)dt=.016;
@@ -3313,6 +3347,7 @@ function loop(t){
     try{for(const p of people)stepPerson(p,dt,groundY);}catch(e){}
     try{updBalloon(dt);}catch(e){}
     try{drawFX(dt,t/1000);}catch(e){}
+
   }else if(view==='metro'){
     try{updRats(dt);}catch(e){}
   }else if(view==='hq'){
@@ -3331,9 +3366,166 @@ setInterval(()=>{
   if(performance.now()-lastFrame>2500)kick();
 },1200);
 
+/* ================= FRUTIGER EVIL: SAME GAME, OTHER SIDE ================= */
+const EVIL_SAVE_KEY='aeroclick-save-v3-evil';
+const EVIL_PROP_NAMES=['Dead Signal Tree','Obsidian Spire','Fractured Rainbow','Razor Turbines','Eclipse Wheel','Abandoned Terminals','Caged Eye Balloon','Quarantine Dome','Warning Beacon','Static Vent','Dead-End Metro','Broken Cathedral','Vault of Echoes'];
+const EVIL_FISH_SVG='<path d="M-13 0 H15 L25 -8 V8 L15 0 M-4 -6 V6 M3 -7 V7 M10 -5 V5" stroke="#d5aaa1" stroke-width="2.5" fill="none" stroke-linejoin="round"/><ellipse cx="-13" rx="7" ry="6" fill="#ebc8b7"/><circle cx="-16" cy="-1" r="2.2" fill="#4c1621"/>';
+let evilWorldPaused=false;
+function evilSvgElement(tag,attrs){
+  const el=document.createElementNS(NS,tag);
+  for(const[name,value]of Object.entries(attrs))el.setAttribute(name,String(value));
+  return el;
+}
+function makeWaterGate(scene,id,label,action){
+  const gate=evilSvgElement('g',{id,role:'button',tabindex:0,'aria-label':label});
+  gate.appendChild(evilSvgElement('rect',{x:0,y:850,width:1600,height:50,fill:'transparent'}));
+  scene.appendChild(gate);
+  gate.addEventListener('click',action);
+  gate.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();action();}});
+}
+function evilColor(value){
+  if(!/^#[\da-f]{3,6}$/i.test(value))return value;
+  let h=value.slice(1);if(h.length===3)h=h.split('').map(c=>c+c).join('');
+  const light=(parseInt(h.slice(0,2),16)+parseInt(h.slice(2,4),16)+parseInt(h.slice(4,6),16))/765;
+  return `hsl(355 ${light>.8?20:45}% ${Math.round(5+light*37)}%)`;
+}
+function evilSvg(markup){return markup.replace(/#[\da-f]{6}\b|#[\da-f]{3}\b/gi,evilColor);}
+function evilDetail(id,markup){
+  const root=q(id);if(!root)return;
+  const detail=evilSvgElement('g',{'pointer-events':'none','data-evil-prop':id});
+  detail.innerHTML=markup;root.appendChild(detail);
+}
+function prepareEvilWorld(){
+  if(!EVIL_MODE)return;
+  document.title='AeroClick · Frutiger Evil';
+  for(const palette of [PAL,PALO,PALW])for(const person of palette)for(const key of Object.keys(person))person[key]=evilColor(person[key]);
+  document.querySelector('.logo em').textContent='EVIL';
+  // Use the original controls, prices, construction phases, workers, interiors,
+  // prestige and progression. Only their presentation and placed props change.
+  EVIL_PROP_NAMES.forEach((name,i)=>LANDMARKS[i].name=name);
+  const upgradeNames=['Rust Scraper','Whisper Bubbles','Ash Sponge','Abyss Pump','Static Jet','Echo Column','Obsidian Polish','Smoke Seeder','Ember Cannon','Broken Prism'];
+  UPGRADES.forEach((u,i)=>u.name=upgradeNames[i]);
+  for(const scene of document.querySelectorAll('#scene,#mscene,#bscene,#dscene,#wscene')){
+    for(const node of scene.querySelectorAll('*'))for(const attr of [...node.attributes]){
+      if(['fill','stroke','stop-color'].includes(attr.name))node.setAttribute(attr.name,evilColor(attr.value));
+    }
+  }
+  const gradients={skyG:['#050408','#21070d','#5e0c19','#cb342e'],sunG:['#ffb187','#f13a30'],hillBackG:['#582326','#21141a'],hillFrontG:['#302124','#1b1519','#100f14'],watG:['#ff7d42','#b92325','#67101c','#14070f'],dropG:['#fff1d8','#ff9b72','#ed403c','#a0102a','#3a071a'],leafG:['#997171','#50313a','#21151c'],towerG:['#bcadae','#59515e','#1d1924'],domeG:['#ffd4bb','#97594f','#34242b'],trunkG:['#655158','#21171e'],roofB:['#83727a','#30252e'],roofG2:['#9c6258','#342027'],balG:['#ffad76','#b82b30'],bWall:['#34252e','#17121e'],bFloor:['#49373f','#211c29'],dSky:['#280c19','#903a39'],dWall:['#46333c','#231c2b'],dFloor:['#423038','#211c29'],offWall:['#352a34','#211923'],carpG:['#36242e','#150f1c'],pigG:['#ffd4c8','#b84b59','#52132e']};
+  for(const[id,colors]of Object.entries(gradients)){
+    const gradient=q(id);if(!gradient)continue;
+    const old=[...gradient.querySelectorAll('stop')];
+    old.forEach((stop,i)=>stop.setAttribute('stop-color',colors[Math.min(colors.length-1,Math.round(i*(colors.length-1)/Math.max(1,old.length-1)))]));
+  }
+  // Every placement retains its animation hooks and footprint while receiving
+  // a distinct evil model, rather than an extra decorative object in the world.
+  for(let i=0;i<4;i++){
+    const leaf=q('lf'+i),circle=leaf.querySelector('circle');
+    const x=+circle.getAttribute('cx'),y=+circle.getAttribute('cy'),r=+circle.getAttribute('r');
+    leaf.innerHTML=`<path d="M${x} ${y+r} V${y-r} M${x} ${y} L${x-r} ${y-r*.7} M${x} ${y-r*.3} L${x+r} ${y-r} M${x} ${y+r*.4} L${x+r} ${y-r*.2}" fill="none" stroke="#5e3846" stroke-width="${r*.18}" stroke-linecap="square"/><path d="M${x-r} ${y-r*.7} l0 ${-r*.35} M${x+r} ${y-r} l${r*.2} ${r*.2}" stroke="#b75a55" fill="none" stroke-width="2"/>`;
+    leaf.setAttribute('data-evil-prop','thorn-branches');
+  }
+  evilDetail('twr','<path d="M1211 445 V420 L1228 434 L1240 407 L1255 432 L1272 416 L1289 442" fill="#2a1c2b" stroke="#ae766d"/><path d="M1247 454 l-12 45 19 21 -15 35 11 28" fill="none" stroke="#f55345" stroke-width="2"/>');
+  q('lm2').querySelectorAll('.rb').forEach((arc,i)=>{arc.setAttribute('stroke',['#f65846','#d8393b','#9e2c3a','#583143','#271c31'][i]);arc.setAttribute('stroke-dasharray','0.12 0.025');});
+  q('lm2').setAttribute('data-evil-prop','fractured-arches');
+  for(const[id,x,y]of [['tb1',1420,536],['tb2',1522,608]]){
+    q(id).querySelectorAll('g[fill] path').forEach(blade=>blade.setAttribute('d',`M${x} ${y} L${x-5} ${y-18} L${x+3} ${y-24} L${x-5} ${y-34} L${x} ${y-58} L${x+10} ${y-28} Z`));
+    q(id).setAttribute('data-evil-prop','saw-blades');
+  }
+  q('fwwheel').querySelectorAll('circle[r="10"]').forEach(cabin=>{cabin.setAttribute('fill','#1c1422');cabin.setAttribute('stroke','#eb5544');cabin.setAttribute('stroke-width','2');});
+  evilDetail('fwwheel','<circle cx="135" cy="505" r="31" fill="#180e1a" stroke="#bc4948" stroke-width="3"/><path d="M113 505 Q135 483 157 505 Q135 527 113 505Z" fill="#c35c55"/><ellipse cx="135" cy="505" rx="4" ry="12" fill="#170c18"/>');
+  for(const n of [1,2]){
+    q('ch'+n+'w').innerHTML='<rect x="864" y="650" width="72" height="52" rx="6" fill="#5a414b" stroke="#a78482"/><rect x="870" y="656" width="60" height="38" rx="3" fill="#150d1b"/><path d="M877 680 l10 -12 12 8 16 -12 M882 687 h30" stroke="#ea6854" fill="none" stroke-width="2"/><rect x="892" y="702" width="16" height="6" fill="#8a6265"/>';
+    q('ch'+n+'w').setAttribute('data-evil-prop','abandoned-terminal');
+    q('ch'+n+'r').innerHTML='<path d="M874 650 l-6 -18 13 10 M925 650 l8 -26 -14 15" stroke="#9a7377" stroke-width="3" fill="none"/>';
+    q('ch'+n+'d').innerHTML='<path d="M875 704 H925 L936 711 H864Z" fill="#50313e" stroke="#ab7676"/><path d="M878 708h44" stroke="#cb968b"/>';
+  }
+  evilDetail('lm6sc','<path d="M-30 -42 Q0 -68 30 -42 Q0 -16 -30 -42Z" fill="#f6a682" stroke="#8b292d" stroke-width="2"/><ellipse cy="-42" rx="6" ry="17" fill="#28101c"/><path d="M-25 -75 V-5 M25 -75 V-5" stroke="#512034" stroke-width="3"/>');
+  q('lm6sc').firstElementChild.appendChild(q('lm6sc').lastElementChild);
+  q('dmPlants').innerHTML='<path d="M273 699 V665 L285 677 V651 L296 667 V697 M312 698 V654 L324 669 V643 L336 662 V698 M349 699 V672 L363 682 V698" fill="#241528" stroke="#9a5158" stroke-width="2"/>';
+  q('dmPlants').setAttribute('data-evil-prop','containment-crystals');
+  evilDetail('dmD','<path d="M306 678 h28 M306 688h28" stroke="#371c29" stroke-width="4"/>');
+  evilDetail('lhP','<path d="M174 626 L185 637 M185 626 L174 637" stroke="#9c202b" stroke-width="2"/>');
+  q('lhP').setAttribute('data-evil-prop','warning-light');
+  evilDetail('lhT','<path d="M162 742 L184 719 L171 708 L189 682" stroke="#6c2937" fill="none" stroke-width="3"/>');
+  q('fntJ').querySelectorAll('path').forEach((jet,i)=>jet.setAttribute('d',i%2?'M0 0 L-3 -42 L11 -61 L0 -100 L3 -58 L-9 -38Z':'M0 0 L-8 -33 L9 -61 L-6 -85 L0 -108 L7 -82 L-3 -60 L13 -40Z'));
+  q('fntJ').setAttribute('data-evil-prop','static-arcs');
+  evilDetail('mtGlass','<path d="M1142 698 L1162 667 M1165 701 L1192 652 M1196 701 L1216 667" stroke="#542435" stroke-width="5"/><path d="M1175 662 l13 0 -6 18Z" fill="#f68a6a"/>');
+  evilDetail('dtPed','<path d="M19 295 L43 278 L52 290 L70 259 L83 281 L96 272 L122 298" fill="#211723" stroke="#af665e"/>');
+  evilDetail('dtBody','<path d="M70 313 l-13 47 19 32 -14 48 12 20 -17 55" stroke="#22121f" stroke-width="5" fill="none"/>');
+  evilDetail('bkDoor','<path d="M689 624 V653 M698 615 V653 M708 614 V653 M719 623 V653 M688 638 H720" stroke="#9a6b6f" stroke-width="3"/>');
+  evilDetail('bkPed','<path d="M631 546 L656 528 L668 542 L704 510 L722 532 L749 529 L781 546" fill="#241624" stroke="#c17365"/>');
+  // Interior decorations are rendered by the same placement functions.
+  for(const dict of [MSCN_SVG,DSCN_SVG,WSCN_SVG,MSCN_ICON,DSCN_ICON,WSCN_ICON])for(const key of Object.keys(dict))dict[key]=evilSvg(dict[key]);
+  for(const group of [MSCN,DSCN,WSCN])for(const prop of group)prop.name='Corrupted '+prop.name;
+  q('scene').querySelectorAll('.lm').forEach((landmark,i)=>{
+    landmark.setAttribute('data-evil-variant',EVIL_PROP_NAMES[+landmark.id.slice(2)]||'evil');
+  });
+  // The original thumbnails keep their animation-free silhouettes and share
+  // the new palette; terminal and tree icons also receive the new geometry.
+  for(let i=0;i<LM_ICON.length;i++)LM_ICON[i]=evilSvg(LM_ICON[i]);
+  LM_ICON[0]='<svg viewBox="0 0 48 48"><path d="M24 43 V7 M24 22 L8 10 M24 30 L41 13 M12 13 V5 M36 18 L42 6" stroke="#bb796f" stroke-width="4" fill="none"/></svg>';
+  LM_ICON[5]='<svg viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="27" rx="4" fill="#72505e"/><rect x="9" y="11" width="30" height="18" fill="#211222"/><path d="M14 25 l8 -10 10 9" stroke="#ef7762" fill="none"/><path d="M21 34 V40 M12 41 H36" stroke="#987079" stroke-width="4"/></svg>';
+}
+function migrateEvilSave(){
+  if(EVIL_MODE||!state.evil)return;
+  try{
+    if(!localStorage.getItem(EVIL_SAVE_KEY)){
+      const old=state.evil,owned={},mapping={touch:'sqg',bubbles:'bub',pump:'pmp',prism:'cnn'};
+      for(const[from,to]of Object.entries(mapping)){const n=+old.owned?.[from];if(Number.isFinite(n)&&n>0)owned[to]=Math.floor(n);}
+      const drops=Number.isFinite(+old.shadows)?Math.max(0,+old.shadows):0;
+      localStorage.setItem(EVIL_SAVE_KEY,JSON.stringify({drops,owned,special:Math.min(LANDMARKS.length,Math.max(0,Math.floor(+old.special||0))),muted:state.muted,vol:state.vol,sfxOn:state.sfxOn}));
+    }
+    delete state.evil;save();
+  }catch(e){}
+}
+function enterEvil(){
+  if(EVIL_MODE||view!=='out')return;
+  save();
+  try{if(!localStorage.getItem(EVIL_SAVE_KEY))localStorage.setItem(EVIL_SAVE_KEY,JSON.stringify({muted:state.muted,vol:state.vol,sfxOn:state.sfxOn}));}catch(e){}
+  let frame=q('evilFrame');
+  if(!frame){
+    frame=document.createElement('iframe');frame.id='evilFrame';frame.title='Frutiger Evil';
+    frame.addEventListener('load',()=>frame.contentWindow.postMessage({type:'aero-evil-active',active:view==='evil'},'*'));
+    q('evilWorld').appendChild(frame);
+    frame.srcdoc=EVIL_DOCUMENT_SOURCE.replace(/<html\b[^>]*>/i,'<html lang="en" data-world="evil">');
+  }
+  setView('evil');
+  frame.focus();
+  if(musicGain)musicGain.gain.value=0;
+  frame.contentWindow?.postMessage({type:'aero-evil-active',active:true},'*');
+}
+function returnFromEvil(){
+  save();
+  if(EVIL_MODE)window.parent.postMessage({type:'aero-return-from-evil'},'*');
+}
+function initEvil(){
+  migrateEvilSave();
+  makeWaterGate(q('scene'),EVIL_MODE?'evilReturnGate':'evilGate',EVIL_MODE?'Return through the deep water':'Cross the deep water',EVIL_MODE?returnFromEvil:enterEvil);
+  addEventListener('message',event=>{
+    if(EVIL_MODE){
+      if(event.source!==window.parent||event.data?.type!=='aero-evil-active')return;
+      evilWorldPaused=!event.data.active;
+      if(evilWorldPaused){save();if(musicGain)musicGain.gain.value=0;}
+      else{applyVol();last=performance.now();kick();}
+    }else{
+      const frame=q('evilFrame');
+      if(!frame||event.source!==frame.contentWindow||event.data?.type!=='aero-return-from-evil')return;
+      frame.contentWindow.postMessage({type:'aero-evil-active',active:false},'*');
+      exitToOut();applyVol();q('evilGate').focus();
+    }
+  });
+  addEventListener('keydown',event=>{
+    if(EVIL_MODE&&view==='out'&&event.key==='Escape'){
+      event.stopImmediatePropagation();returnFromEvil();
+    }
+  },true);
+}
+
 /* ================= init ================= */
+prepareEvilWorld();
 buildPanel();buildMPanel();buildDPanel();buildWPanel();
 load();
+initEvil();
 drawMute();
 applyVol();
 recalc();recalcMetro();recalcDoric();recalcWin();
@@ -3355,5 +3547,5 @@ addEventListener('beforeunload',save);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
 kick();
 </script>
-</body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a57bb150abf1e5da',t:'MTc5NDIxNTUxMw=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a57bb150abf1e5da',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
